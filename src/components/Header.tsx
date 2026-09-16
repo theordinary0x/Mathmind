@@ -18,7 +18,8 @@ import {
   Moon, 
   Sun,
   Keyboard,
-  Settings
+  Settings,
+  Coffee
 } from 'lucide-react';
 import { Project, AppTheme } from '../types';
 
@@ -46,6 +47,7 @@ interface HeaderProps {
   onRedo: () => void;
   onOpenShortcutsModal?: () => void;
   onOpenSettings?: () => void;
+  onOpenSponsor?: () => void;
 }
 
 const KbdBadge: React.FC<{
@@ -103,6 +105,7 @@ export const Header: React.FC<HeaderProps> = ({
   onRedo,
   onOpenShortcutsModal,
   onOpenSettings,
+  onOpenSponsor
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isDark = theme === 'dark';
@@ -347,6 +350,20 @@ export const Header: React.FC<HeaderProps> = ({
           {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5 text-[#1E3A5F]" />}
           <KbdBadge isDark={isDark} className="hidden xl:inline-flex">T</KbdBadge>
         </button>
+
+        {/* Sponsor Button */}
+        {onOpenSponsor && (
+          <button
+            onClick={onOpenSponsor}
+            className={`flex items-center space-x-1 p-1.5 rounded-md transition-colors ${
+              isDark ? 'hover:bg-white/5 text-amber-400 hover:text-amber-300' : 'hover:bg-black/5 text-amber-600 hover:text-amber-700'
+            }`}
+            title="赞助支持 (Sponsor)"
+          >
+            <Coffee className="w-3.5 h-3.5" />
+            <span className="hidden 2xl:inline text-xs font-serif">赞助</span>
+          </button>
+        )}
 
         {/* System Settings */}
         {onOpenSettings && (

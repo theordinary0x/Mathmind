@@ -16,7 +16,8 @@ import {
   Check,
   FileText,
   Monitor,
-  Upload
+  Upload,
+  Coffee
 } from 'lucide-react';
 import {
   AppTheme,
@@ -45,6 +46,7 @@ export interface SettingsModalProps {
   onExportAllProjects: () => void;
   onResetToDefaults: () => void;
   onManualSave: () => void;
+  onOpenSponsor?: () => void;
 }
 
 type TabType = 'general' | 'canvas' | 'storage' | 'shortcuts';
@@ -133,7 +135,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   projects,
   onExportAllProjects,
   onResetToDefaults,
-  onManualSave
+  onManualSave,
+  onOpenSponsor
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('general');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -303,6 +306,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <Keyboard className="w-4 h-4 shrink-0" />
               <span>快捷键速查</span>
             </button>
+
+            {onOpenSponsor && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenSponsor();
+                }}
+                className={`sm:mt-auto shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap text-amber-500 hover:bg-amber-500/10`}
+              >
+                <Coffee className="w-4 h-4 shrink-0" />
+                <span>赞助支持</span>
+              </button>
+            )}
           </div>
 
           {/* Right Panel Content */}

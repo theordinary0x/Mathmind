@@ -25,6 +25,7 @@ import { CreateNodeModal } from './components/CreateNodeModal';
 import { ProjectManagerModal } from './components/ProjectManagerModal';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { SettingsModal } from './components/SettingsModal';
+import { SponsorModal } from './components/SponsorModal';
 import { StatusBar } from './components/StatusBar';
 
 export const App: React.FC = () => {
@@ -85,6 +86,7 @@ export const App: React.FC = () => {
   const [isProjectManagerOpen, setIsProjectManagerOpen] = useState<boolean>(false);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isSponsorOpen, setIsSponsorOpen] = useState<boolean>(false);
   const [canvasSettings, setCanvasSettings] = useState<CanvasSettings>(() => getSavedCanvasSettings());
 
   const handleUpdateCanvasSettings = useCallback((newSettings: CanvasSettings) => {
@@ -513,6 +515,7 @@ export const App: React.FC = () => {
         onRedo={handleRedo}
         onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenSponsor={() => setIsSponsorOpen(true)}
       />
 
       {/* Main Canvas Area */}
@@ -626,6 +629,14 @@ export const App: React.FC = () => {
         onExportAllProjects={handleExportAllProjects}
         onResetToDefaults={handleResetToDefaults}
         onManualSave={() => doSaveNow(true)}
+        onOpenSponsor={() => setIsSponsorOpen(true)}
+      />
+
+      {/* Sponsor Modal */}
+      <SponsorModal
+        isOpen={isSponsorOpen}
+        onClose={() => setIsSponsorOpen(false)}
+        theme={effectiveTheme}
       />
 
       {/* Toast Notification */}
