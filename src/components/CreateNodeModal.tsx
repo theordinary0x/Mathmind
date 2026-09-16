@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Plus, Search } from 'lucide-react';
-import { PropositionNode, PropositionType, NODE_TYPES } from '../types';
+import { PropositionNode, PropositionType, NODE_TYPES, AppTheme } from '../types';
+import { MathRenderer } from './MathRenderer';
 
 interface CreateNodeModalProps {
   isOpen: boolean;
   onClose: () => void;
   allNodes: PropositionNode[];
   onCreateNode: (newNode: PropositionNode) => void;
+  theme: AppTheme;
+  initialPosition?: { x: number; y: number } | null;
 }
 
 export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
@@ -14,9 +17,9 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
   onClose,
   allNodes,
   onCreateNode,
+  theme,
+  initialPosition,
 }) => {
-  if (!isOpen) return null;
-
   const [title, setTitle] = useState('');
   const [type, setType] = useState<PropositionType>('theorem');
   const [statement, setStatement] = useState('');
@@ -26,171 +29,329 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
   const [dependsOn, setDependsOn] = useState<string[]>([]);
   const [searchPrereq, setSearchPrereq] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) {
-      alert('请输入命题名称');
-      return;
+  const isDark = theme === 'dark';
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setTitle('');
+      setType('theorem');
+      setStatement('');
+      setProofSketch('');
+      setNote('');
+      setFullProof('');
+      setDependsOn([]);
+      setSearchPrereq('');
     }
+  }, [isOpen]);
 
-    const newNode: PropositionNode = {
-      id: `prop-${Date.now().toString().slice(-6)}`,
-      title: title.trim(),
-      type,
-      statement: statement.trim(),
-      proof_sketch: proofSketch.trim(),
-      note: note.trim() || undefined,
-      full_proof: fullProof.trim() || undefined,
-      depends_on: dependsOn
+  // Handle keyboard shortcuts: ESC to close, Ctrl+Enter to submit
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        submitFormRef.current?.();
+      }
     };
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
+  }, [isOpen, onClose]);
 
-    onCreateNode(newNode);
-    onClose();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const submitFormRef = React.useRef<() => void>(() => {});
+
+  const doSubmit = () => {
+    try {
+      const cleanTitle = title.trim();
+      if (!cleanTitle) {
+        setErrorMessage('请输入命题标题');
+        return;
+      }
+
+      const newNode: PropositionNode = {
+        id: `prop-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        title: cleanTitle,
+        type,
+        statement: statement.trim() || cleanTitle,
+        proof_sketch: proofSketch.trim(),
+        note: note.trim() || undefined,
+        full_proof: fullProof.trim() || undefined,
+        depends_on: Array.isArray(dependsOn) ? dependsOn : [],
+        position: initialPosition || undefined
+      };
+
+      onCreateNode(newNode);
+      onClose();
+    } catch (err: any) {
+      console.error('Failed to create node:', err);
+      setErrorMessage(`创建命题失败: ${err?.message || '未知错误'}`);
+    }
   };
 
-  const filteredNodes = allNodes.filter(n => {
+  submitFormRef.current = doSubmit;
+
+  if (!isOpen) return null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    doSubmit();
+  };
+
+  const filteredNodes = (allNodes || []).filter(n => {
+    if (!n || !n.title) return false;
     if (!searchPrereq) return true;
     return n.title.toLowerCase().includes(searchPrereq.toLowerCase());
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-      <div className="bg-white rounded-xl border border-[#E8E3D9] shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div
+      onClick={e => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-100"
+    >
+      <div
+        className={`border shadow-2xl rounded-xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden backdrop-blur-md ${
+          isDark
+            ? 'bg-[#18181B] border-white/10 text-zinc-100'
+            : 'bg-white border-black/10 text-stone-800'
+        }`}
+      >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[#E8E3D9] flex items-center justify-between bg-[#FAF8F5]">
-          <div>
-            <h3 className="font-serif font-bold text-base text-[#2C2B29]">新建数学命题</h3>
-            <p className="text-xs text-[#8C887E]">录入公理、定义或待推导的定理</p>
+        <div
+          className={`px-5 py-3.5 border-b flex items-center justify-between ${
+            isDark ? 'bg-zinc-900/60 border-white/10' : 'bg-[#FAF8F5] border-black/10'
+          }`}
+        >
+          <div className="flex items-center space-x-2">
+            <h3 className="font-serif font-bold text-sm">新建命题</h3>
+            {initialPosition && (
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border text-blue-500 border-blue-500/30 bg-blue-500/10">
+                ({Math.round(initialPosition.x)}, {Math.round(initialPosition.y)})
+              </span>
+            )}
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 text-[#8C887E] hover:text-[#2C2B29] rounded transition-colors"
+            className="p-1 rounded-md opacity-60 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
+          {errorMessage && (
+            <div className="p-2.5 rounded-lg text-xs bg-red-500/10 border border-red-500/30 text-red-500 font-serif">
+              {errorMessage}
+            </div>
+          )}
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-2">
-              <label className="block text-xs font-semibold text-[#5C5A55] mb-1">
-                命题标题 <span className="text-red-500">*</span>
+              <label className="block text-[11px] font-semibold opacity-75 mb-1 font-serif flex items-center justify-between">
+                <span>
+                  命题标题 <span className="text-red-500">*</span>
+                </span>
+                <span className="text-[10px] font-normal opacity-50 font-sans">
+                  Enter 或 \\ 换行 · 支持 LaTeX
+                </span>
               </label>
-              <input
-                type="text"
+              <textarea
                 required
+                autoFocus
+                rows={Math.min(3, Math.max(1, (title.match(/\n/g) || []).length + 1))}
                 value={title}
-                onChange={e => setTitle(e.target.value)}
-                placeholder="如: T5: 乘法对加法的分配律"
-                className="w-full text-sm font-serif p-2 bg-[#FAF8F5] border border-[#E8E3D9] rounded focus:bg-white focus:outline-none"
+                onChange={e => {
+                  setTitle(e.target.value);
+                  if (errorMessage) setErrorMessage(null);
+                }}
+                onKeyDown={e => {
+                  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    doSubmit();
+                  }
+                }}
+                placeholder="如: T5: 加法消去律 ($a+c=b+c \implies a=b$)"
+                className={`w-full text-xs font-serif p-2 rounded-lg border transition-colors focus:outline-none resize-none leading-relaxed ${
+                  isDark
+                    ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'
+                    : 'bg-[#FAF8F5] border-black/10 text-stone-900 focus:border-stone-800'
+                }`}
               />
+              {title && (title.includes('$') || title.includes('\\')) && (
+                <div className="mt-1.5 p-2 rounded-lg border border-dashed border-black/10 dark:border-white/10 text-xs font-serif font-bold bg-black/5 dark:bg-white/5">
+                  <span className="text-[9px] opacity-40 block mb-0.5 font-sans font-normal">标题实时预览：</span>
+                  <MathRenderer content={title.replace(/\\\\|\\n|<br\s*\/?>/gi, '\n')} />
+                </div>
+              )}
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#5C5A55] mb-1">命题类型</label>
+              <label className="block text-[11px] font-semibold opacity-75 mb-1 font-serif">类型</label>
               <select
                 value={type}
                 onChange={e => setType(e.target.value as PropositionType)}
-                className="w-full text-xs p-2.5 bg-[#FAF8F5] border border-[#E8E3D9] rounded focus:bg-white focus:outline-none font-medium"
+                className={`w-full text-xs p-2 rounded-lg border transition-colors focus:outline-none font-serif ${
+                  isDark
+                    ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'
+                    : 'bg-[#FAF8F5] border-black/10 text-stone-900 focus:border-stone-800'
+                }`}
               >
-                <option value="axiom">公理 (Axiom)</option>
-                <option value="definition">定义 (Definition)</option>
-                <option value="theorem">定理 (Theorem)</option>
-                <option value="corollary">推论 (Corollary)</option>
+                <option value="axiom">公理</option>
+                <option value="definition">定义</option>
+                <option value="proposition">命题</option>
+                <option value="theorem">定理</option>
+                <option value="corollary">推论</option>
               </select>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#5C5A55] mb-1">
-              命题陈述 (Statement，支持 LaTeX)
+            <label className="block text-[11px] font-semibold opacity-75 mb-1 font-serif">
+              命题陈述 (支持 LaTeX)
             </label>
             <textarea
               value={statement}
               onChange={e => setStatement(e.target.value)}
               rows={2}
-              placeholder="例如: 对任意 $a, b, c \in \mathbb{N}$，有 $a \cdot (b + c) = a \cdot b + a \cdot c$"
-              className="w-full text-sm font-serif p-2 bg-[#FAF8F5] border border-[#E8E3D9] rounded focus:bg-white focus:outline-none"
+              placeholder="如: 对任意 $a, b, c \in \mathbb{N}$，若 $a + c = b + c$，则 $a = b$"
+              className={`w-full text-xs font-serif p-2 rounded-lg border transition-colors focus:outline-none leading-relaxed ${
+                isDark
+                  ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'
+                  : 'bg-[#FAF8F5] border-black/10 text-stone-900 focus:border-stone-800'
+              }`}
             />
+            {statement && (statement.includes('$') || statement.includes('\\')) && (
+              <div
+                className={`mt-1.5 p-2 rounded-lg text-xs font-serif border ${
+                  isDark ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-stone-100 border-black/10 text-stone-800'
+                }`}
+              >
+                <div className="text-[10px] font-mono opacity-50 mb-0.5">LaTeX 实时渲染预览:</div>
+                <MathRenderer content={statement} />
+              </div>
+            )}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#5C5A55] mb-1">
-              证明思路概括 (Proof Sketch)
+            <label className="block text-[11px] font-semibold opacity-75 mb-1 font-serif">
+              证明思路
             </label>
             <input
               type="text"
               value={proofSketch}
               onChange={e => setProofSketch(e.target.value)}
-              placeholder="一两句话概括核心思路..."
-              className="w-full text-xs p-2 bg-[#FAF8F5] border border-[#E8E3D9] rounded focus:bg-white focus:outline-none"
+              placeholder="简要概括推导思路..."
+              className={`w-full text-xs p-2 rounded-lg border transition-colors focus:outline-none ${
+                isDark
+                  ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'
+                  : 'bg-[#FAF8F5] border-black/10 text-stone-900 focus:border-stone-800'
+              }`}
             />
+            {proofSketch && (proofSketch.includes('$') || proofSketch.includes('\\')) && (
+              <div
+                className={`mt-1.5 p-2 rounded-lg text-xs font-serif border ${
+                  isDark ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-stone-100 border-black/10 text-stone-800'
+                }`}
+              >
+                <div className="text-[10px] font-mono opacity-50 mb-0.5">LaTeX 实时渲染预览:</div>
+                <MathRenderer content={proofSketch} />
+              </div>
+            )}
           </div>
 
           {/* Prerequisite selection */}
           <div>
-            <label className="block text-xs font-semibold text-[#5C5A55] mb-1">
-              选择依赖的前置命题 ({dependsOn.length} 已选)
+            <label className="block text-[11px] font-semibold opacity-75 mb-1 font-serif">
+              前置依赖 ({dependsOn.length})
             </label>
-            <div className="relative mb-1.5">
-              <Search className="w-3.5 h-3.5 text-[#8C887E] absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <div className="relative mb-2">
+              <Search className="w-3 h-3 opacity-50 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchPrereq}
                 onChange={e => setSearchPrereq(e.target.value)}
                 placeholder="搜索前置命题..."
-                className="w-full pl-8 pr-3 py-1 text-xs bg-[#FAF8F5] border border-[#E8E3D9] rounded focus:bg-white focus:outline-none"
+                className={`w-full pl-7 pr-3 py-1.5 text-xs rounded-lg border transition-colors focus:outline-none font-serif ${
+                  isDark
+                    ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'
+                    : 'bg-[#FAF8F5] border-black/10 text-stone-900 focus:border-stone-800'
+                }`}
               />
             </div>
-            <div className="max-h-32 overflow-y-auto space-y-1 border border-[#E8E3D9] rounded-lg p-2 bg-[#FAF8F5]">
-              {filteredNodes.map(cand => {
-                const isChecked = dependsOn.includes(cand.id);
-                const candType = NODE_TYPES[cand.type] || NODE_TYPES.theorem;
-                return (
-                  <label
-                    key={cand.id}
-                    className={`flex items-center space-x-2 p-1 rounded text-xs cursor-pointer ${
-                      isChecked ? 'bg-white shadow-xs' : 'hover:bg-[#F0ECE1]'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={() => {
-                        if (isChecked) {
-                          setDependsOn(dependsOn.filter(id => id !== cand.id));
-                        } else {
-                          setDependsOn([...dependsOn, cand.id]);
-                        }
-                      }}
-                      className="rounded text-[#26547C]"
-                    />
-                    <span
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ backgroundColor: candType.borderColor }}
-                    />
-                    <span className="font-serif truncate">{cand.title}</span>
-                  </label>
-                );
-              })}
+            <div
+              className={`max-h-32 overflow-y-auto space-y-1 border rounded-lg p-1.5 ${
+                isDark ? 'bg-zinc-900/40 border-white/10' : 'bg-[#FAF8F5] border-black/10'
+              }`}
+            >
+              {filteredNodes.length === 0 ? (
+                <p className="text-[11px] opacity-50 p-2">未找到匹配的前置命题</p>
+              ) : (
+                filteredNodes.map(cand => {
+                  const isChecked = dependsOn.includes(cand.id);
+                  const candType = NODE_TYPES[cand.type] || NODE_TYPES.theorem;
+                  return (
+                    <label
+                      key={cand.id}
+                      className={`flex items-center space-x-2 p-1.5 text-xs cursor-pointer rounded-md border transition-colors ${
+                        isChecked
+                          ? isDark
+                            ? 'bg-blue-500/10 border-blue-500/40 text-blue-300'
+                            : 'bg-stone-100 border-stone-300 text-stone-900'
+                          : 'border-transparent hover:bg-black/5 dark:hover:bg-white/5'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => {
+                          if (isChecked) {
+                            setDependsOn(dependsOn.filter(id => id !== cand.id));
+                          } else {
+                            setDependsOn([...dependsOn, cand.id]);
+                          }
+                        }}
+                        className="rounded text-blue-600 focus:ring-0"
+                      />
+                      <span
+                        className="w-1.5 h-1.5 rounded-full shrink-0"
+                        style={{ backgroundColor: isDark ? candType.darkBorderColor : candType.borderColor }}
+                      />
+                      <span className="font-serif truncate">{cand.title}</span>
+                    </label>
+                  );
+                })
+              )}
             </div>
           </div>
 
-          {/* Action Footer */}
-          <div className="pt-3 border-t border-[#E8E3D9] flex items-center justify-end space-x-2">
+          {/* Actions */}
+          <div className="pt-3 border-t border-black/10 dark:border-white/10 flex items-center justify-end space-x-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-1.5 text-xs text-[#5C5A55] hover:bg-[#F5F2EB] rounded-lg transition-colors"
+              className="px-3.5 py-1.5 text-xs rounded-lg opacity-75 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             >
-              取消
+              取消 (Esc)
             </button>
             <button
               type="submit"
-              className="flex items-center space-x-1.5 px-4 py-1.5 bg-[#2C2B29] hover:bg-[#43413E] text-white rounded-lg text-xs font-medium transition-colors shadow-xs"
+              className={`flex items-center space-x-1 px-4 py-1.5 text-xs font-medium rounded-lg transition-colors shadow-xs ${
+                isDark
+                  ? 'bg-blue-600 hover:bg-blue-500 text-white'
+                  : 'bg-stone-900 hover:bg-stone-800 text-white'
+              }`}
+              title="创建 (Ctrl+Enter)"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>确认创建</span>
+              <span>创建 (Ctrl+Enter)</span>
             </button>
           </div>
         </form>

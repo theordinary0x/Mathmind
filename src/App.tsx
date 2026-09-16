@@ -1,51 +1,395 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { PropositionNode, GraphDataset } from './types';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { PropositionNode, Project, AppTheme, ThemeMode, PropositionType, AutoSaveMode, CanvasSettings } from './types';
+import { useAutoSave } from './hooks/useAutoSave';
+import { useAppKeyboardShortcuts } from './hooks/useAppKeyboardShortcuts';
 import { 
-  loadDataset, 
-  saveDataset, 
-  exportDatasetToJson, 
+  loadProjects, 
+  saveProjects, 
+  getActiveProjectId, 
+  setActiveProjectId, 
+  createNewProject, 
+  saveProjectAsJsonFile, 
   parseImportedJson, 
-  computeDownstreamMap 
+  computeDownstreamMap,
+  wouldCreateCycle,
+  getSavedAutoSaveMode,
+  saveAutoSaveMode,
+  getSavedCanvasSettings,
+  saveCanvasSettings,
+  exportAllProjectsBackup
 } from './utils/storage';
-import { PEANO_DATASET } from './data/seedData';
 import { Header } from './components/Header';
 import { GraphCanvas } from './components/GraphCanvas';
 import { NodeDetailDrawer } from './components/NodeDetailDrawer';
 import { CreateNodeModal } from './components/CreateNodeModal';
+import { ProjectManagerModal } from './components/ProjectManagerModal';
+import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
+import { SettingsModal } from './components/SettingsModal';
+import { StatusBar } from './components/StatusBar';
 
 export const App: React.FC = () => {
-  const [dataset, setDataset] = useState<GraphDataset>(() => loadDataset());
+  // Theme state: dark | paper | system
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    const saved = localStorage.getItem('mathmind_theme_mode_v2');
+    return (saved as ThemeMode) || 'dark';
+  });
+
+  const [systemPrefersDark, setSystemPrefersDark] = useState<boolean>(() => {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  // Listen to OS system theme changes
+  useEffect(() => {
+    if (!window.matchMedia) return;
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = (e: MediaQueryListEvent) => setSystemPrefersDark(e.matches);
+    media.addEventListener('change', handler);
+    return () => media.removeEventListener('change', handler);
+  }, []);
+
+  const effectiveTheme: AppTheme = useMemo(() => {
+    if (themeMode === 'system') {
+      return systemPrefersDark ? 'dark' : 'paper';
+    }
+    return themeMode;
+  }, [themeMode, systemPrefersDark]);
+
+  // Synchronize documentElement class for Tailwind dark: variants and global styles
+  useEffect(() => {
+    if (effectiveTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
+    }
+  }, [effectiveTheme]);
+
+  const cycleTheme = () => {
+    const next: ThemeMode = effectiveTheme === 'dark' ? 'paper' : 'dark';
+    setThemeMode(next);
+    localStorage.setItem('mathmind_theme_mode_v2', next);
+    showToast(next === 'dark' ? '深色模式' : '浅色模式');
+  };
+
+  // Projects State
+  const [projects, setProjects] = useState<Project[]>(() => loadProjects());
+  const [activeProjectId, setActiveId] = useState<string>(() => getActiveProjectId(projects));
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [layoutType, setLayoutType] = useState<'dagre' | 'cose'>('dagre');
-  const [isFocusMode, setIsFocusMode] = useState<boolean>(true);
+  const [isFocusMode, setIsFocusMode] = useState<boolean>(false); // 默认关闭聚焦模式，展示全局清晰网络
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isConnectingMode, setIsConnectingMode] = useState<boolean>(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState<boolean>(false);
+  const [createNodeTargetPos, setCreateNodeTargetPos] = useState<{ x: number; y: number } | null>(null);
+  const [isProjectManagerOpen, setIsProjectManagerOpen] = useState<boolean>(false);
+  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState<boolean>(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [canvasSettings, setCanvasSettings] = useState<CanvasSettings>(() => getSavedCanvasSettings());
+
+  const handleUpdateCanvasSettings = useCallback((newSettings: CanvasSettings) => {
+    setCanvasSettings(newSettings);
+    saveCanvasSettings(newSettings);
+  }, []);
+
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  // Auto-save whenever dataset changes
-  useEffect(() => {
-    saveDataset(dataset);
-  }, [dataset]);
-
-  const showToast = (msg: string) => {
+  const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 3000);
-  };
+    }, 2800);
+  }, []);
 
-  // Compute downstream dependents
+  const {
+    autoSaveMode,
+    isDirty,
+    setIsDirty,
+    isSaving,
+    lastSavedTime,
+    doSaveNow,
+    handleChangeAutoSaveMode
+  } = useAutoSave({ projects, showToast });
+
+  // Clipboard State (Ctrl+C / Ctrl+V / Ctrl+X)
+  const [clipboardNode, setClipboardNode] = useState<PropositionNode | null>(null);
+
+  // Active project
+  const currentProject = useMemo(() => {
+    return projects.find(p => p.id === activeProjectId) || projects[0];
+  }, [projects, activeProjectId]);
+
+  const dataset = currentProject.dataset;
+
+  // History stack for Undo / Redo
+  const [history, setHistory] = useState<PropositionNode[][]>([dataset.nodes]);
+  const [historyIndex, setHistoryIndex] = useState<number>(0);
+
+  // Sync history when switching projects
+  useEffect(() => {
+    setHistory([dataset.nodes]);
+    setHistoryIndex(0);
+  }, [activeProjectId]);
+
+  // Clean up selectedNodeId if deleted or not in active dataset
+  useEffect(() => {
+    if (selectedNodeId && !dataset.nodes.some(n => n.id === selectedNodeId)) {
+      setSelectedNodeId(null);
+    }
+  }, [dataset.nodes, selectedNodeId]);
+
+  const commitNodesUpdate = useCallback((newNodes: PropositionNode[], actionDescription?: string) => {
+    const MAX_HISTORY = 60;
+    let updatedHistory = history.slice(0, historyIndex + 1);
+    updatedHistory.push(newNodes);
+    if (updatedHistory.length > MAX_HISTORY) {
+      updatedHistory = updatedHistory.slice(updatedHistory.length - MAX_HISTORY);
+    }
+    setHistory(updatedHistory);
+    setHistoryIndex(updatedHistory.length - 1);
+
+    setProjects(prevProjects =>
+      prevProjects.map(p => {
+        if (p.id === currentProject.id) {
+          return {
+            ...p,
+            updatedAt: new Date().toISOString(),
+            dataset: {
+              ...p.dataset,
+              updatedAt: new Date().toISOString(),
+              nodes: newNodes
+            }
+          };
+        }
+        return p;
+      })
+    );
+
+    setIsDirty(true);
+
+    if (actionDescription) {
+      showToast(actionDescription);
+    }
+  }, [history, historyIndex, currentProject.id]);
+
+  // Undo
+  const handleUndo = useCallback(() => {
+    if (historyIndex > 0) {
+      const prevIndex = historyIndex - 1;
+      const prevNodes = history[prevIndex];
+      setHistoryIndex(prevIndex);
+
+      setProjects(prevProjects =>
+        prevProjects.map(p => {
+          if (p.id === currentProject.id) {
+            return {
+              ...p,
+              dataset: { ...p.dataset, nodes: prevNodes }
+            };
+          }
+          return p;
+        })
+      );
+      setIsDirty(true);
+      showToast('已撤销');
+    }
+  }, [history, historyIndex, currentProject.id]);
+
+  // Redo
+  const handleRedo = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      const nextIndex = historyIndex + 1;
+      const nextNodes = history[nextIndex];
+      setHistoryIndex(nextIndex);
+
+      setProjects(prevProjects =>
+        prevProjects.map(p => {
+          if (p.id === currentProject.id) {
+            return {
+              ...p,
+              dataset: { ...p.dataset, nodes: nextNodes }
+            };
+          }
+          return p;
+        })
+      );
+      setIsDirty(true);
+      showToast('已重做');
+    }
+  }, [history, historyIndex, currentProject.id]);
+
+  // Copy
+  const handleCopyNode = useCallback((node: PropositionNode) => {
+    setClipboardNode(node);
+    showToast(`已复制：${node.title}`);
+  }, []);
+
+  // Cut
+  const handleCutNode = useCallback((node: PropositionNode) => {
+    setClipboardNode(node);
+    const updated = dataset.nodes
+      .filter(n => n.id !== node.id)
+      .map(n => ({
+        ...n,
+        depends_on: (n.depends_on || []).filter(id => id !== node.id)
+      }));
+    commitNodesUpdate(updated, `已剪切：${node.title}`);
+    if (selectedNodeId === node.id) setSelectedNodeId(null);
+  }, [dataset.nodes, commitNodesUpdate, selectedNodeId]);
+
+  // Open Create Proposition Modal
+  const handleOpenCreateModal = useCallback((pos?: { x: number; y: number }) => {
+    setCreateNodeTargetPos(pos || null);
+    setIsCreateModalOpen(true);
+  }, []);
+
+  // Paste
+  const handlePasteNode = useCallback((position?: { x: number; y: number }) => {
+    if (!clipboardNode) {
+      showToast('剪贴板为空');
+      return;
+    }
+
+    const newNode: PropositionNode = {
+      ...clipboardNode,
+      id: `prop-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      title: `${clipboardNode.title} (副本)`,
+      depends_on: [...(clipboardNode.depends_on || [])],
+      position: position || undefined
+    };
+
+    const updated = [...dataset.nodes, newNode];
+    commitNodesUpdate(updated, `已粘贴命题：${newNode.title}`);
+    setSelectedNodeId(newNode.id);
+  }, [clipboardNode, dataset.nodes, commitNodesUpdate]);
+
+  // Delete node
+  const handleDeleteNode = useCallback((nodeId: string) => {
+    const target = dataset.nodes.find(n => n.id === nodeId);
+    const updatedNodes = dataset.nodes
+      .filter(n => n.id !== nodeId)
+      .map(n => ({
+        ...n,
+        depends_on: (n.depends_on || []).filter(depId => depId !== nodeId)
+      }));
+    commitNodesUpdate(updatedNodes, `已删除命题：${target?.title || nodeId}`);
+    if (selectedNodeId === nodeId) {
+      setSelectedNodeId(null);
+    }
+  }, [dataset.nodes, commitNodesUpdate, selectedNodeId]);
+
+  // Change node type directly
+  const handleChangeNodeType = useCallback((nodeId: string, newType: PropositionType) => {
+    const updated = dataset.nodes.map(n => (n.id === nodeId ? { ...n, type: newType } : n));
+    commitNodesUpdate(updated, `已更改类型为：${newType}`);
+  }, [dataset.nodes, commitNodesUpdate]);
+
+  // Node position drag change handler
+  const handleNodesPositionChange = useCallback((updates: { id: string; position: { x: number; y: number } }[]) => {
+    setProjects(prevProjects =>
+      prevProjects.map(p => {
+        if (p.id === currentProject.id) {
+          const updateMap = new Map(updates.map(u => [u.id, u.position]));
+          const newNodes = p.dataset.nodes.map(n => {
+            const pos = updateMap.get(n.id);
+            return pos ? { ...n, position: pos } : n;
+          });
+          return {
+            ...p,
+            updatedAt: new Date().toISOString(),
+            dataset: {
+              ...p.dataset,
+              updatedAt: new Date().toISOString(),
+              nodes: newNodes
+            }
+          };
+        }
+        return p;
+      })
+    );
+    setIsDirty(true);
+  }, [currentProject.id]);
+
+  const handleExportAllProjects = useCallback(async () => {
+    try {
+      const filename = await exportAllProjectsBackup(projects);
+      showToast(`已成功导出备份：${filename}`);
+    } catch (err: any) {
+      if (err.message !== '用户取消了备份导出') {
+        showToast('备份导出失败');
+      }
+    }
+  }, [projects]);
+
+  const handleResetToDefaults = useCallback(() => {
+    const defaultProjects = [
+      createNewProject('皮亚诺公理体系 (算术基础)', 'peano'),
+      createNewProject('欧几里得几何原本 (前五命题)', 'euclid')
+    ];
+    setProjects(defaultProjects);
+    setActiveId(defaultProjects[0].id);
+    saveProjects(defaultProjects);
+    setActiveProjectId(defaultProjects[0].id);
+    showToast('已恢复官方默认示例体系');
+  }, []);
+
+  const handleSaveAs = useCallback(async () => {
+    try {
+      const filename = await saveProjectAsJsonFile(currentProject);
+      showToast(`已保存：${filename}`);
+    } catch (err: any) {
+      if (err.message !== '用户取消了另存为') {
+        showToast(`保存失败：${err.message}`);
+      }
+    }
+  }, [currentProject, showToast]);
+
+  // Comprehensive Keyboard Shortcuts Hook
+  useAppKeyboardShortcuts({
+    isCreateModalOpen,
+    isProjectManagerOpen,
+    isShortcutsModalOpen,
+    isSettingsOpen,
+    setIsSettingsOpen,
+    setIsShortcutsModalOpen,
+    setIsProjectManagerOpen,
+    handleOpenCreateModal,
+    isConnectingMode,
+    setIsConnectingMode,
+    setLayoutType,
+    cycleTheme,
+    handleUndo,
+    handleRedo,
+    doSaveNow,
+    handleSaveAs,
+    selectedNodeId,
+    setSelectedNodeId,
+    nodes: dataset.nodes,
+    handleCopyNode,
+    handlePasteNode,
+    handleDeleteNode,
+    setIsFocusMode,
+    showToast
+  });
+
   const downstreamMap = useMemo(() => {
     return computeDownstreamMap(dataset.nodes);
   }, [dataset.nodes]);
 
-  // Selected node object
+  const totalEdgesCount = useMemo(() => {
+    return dataset.nodes.reduce((acc, node) => acc + (node.depends_on || []).length, 0);
+  }, [dataset.nodes]);
+
   const selectedNode = useMemo(() => {
     return dataset.nodes.find(n => n.id === selectedNodeId) || null;
   }, [selectedNodeId, dataset.nodes]);
 
-  // Handle connecting two nodes (Target depends on Source)
+  const handleSelectProject = (projId: string) => {
+    setActiveId(projId);
+    setActiveProjectId(projId);
+    setSelectedNodeId(null);
+    showToast(`切换至项目：${projects.find(p => p.id === projId)?.name}`);
+  };
+
   const handleConnectNodes = (sourceId: string, targetId: string) => {
     if (sourceId === targetId) {
       showToast('无法将命题连接到自身');
@@ -57,57 +401,66 @@ export const App: React.FC = () => {
 
     if (!targetNode || !sourceNode) return;
 
-    if (targetNode.depends_on.includes(sourceId)) {
-      showToast(`「${targetNode.title}」已存在对「${sourceNode.title}」的依赖`);
+    if ((targetNode.depends_on || []).includes(sourceId)) {
+      showToast(`「${targetNode.title}」已依赖「${sourceNode.title}」`);
       return;
     }
 
-    // Add dependency: Target depends on Source
+    if (wouldCreateCycle(dataset.nodes, sourceId, targetId)) {
+      showToast(`无法连接：会导致循环论证！「${sourceNode.title}」已依赖「${targetNode.title}」`);
+      return;
+    }
+
     const updatedNodes = dataset.nodes.map(n => {
       if (n.id === targetId) {
         return {
           ...n,
-          depends_on: [...n.depends_on, sourceId]
+          depends_on: [...(n.depends_on || []), sourceId]
         };
       }
       return n;
     });
 
-    setDataset({ ...dataset, nodes: updatedNodes });
-    showToast(`成功建立依赖：${targetNode.title} 依赖 ${sourceNode.title}`);
+    commitNodesUpdate(updatedNodes, `建立依赖：${targetNode.title} 依赖 ${sourceNode.title}`);
   };
 
-  // Update existing node
   const handleUpdateNode = (updatedNode: PropositionNode) => {
     const updatedNodes = dataset.nodes.map(n => (n.id === updatedNode.id ? updatedNode : n));
-    setDataset({ ...dataset, nodes: updatedNodes });
-    showToast(`已保存命题：${updatedNode.title}`);
+    commitNodesUpdate(updatedNodes, `已保存：${updatedNode.title}`);
   };
 
-  // Create new node
   const handleCreateNode = (newNode: PropositionNode) => {
     const updatedNodes = [...dataset.nodes, newNode];
-    setDataset({ ...dataset, nodes: updatedNodes });
+    commitNodesUpdate(updatedNodes, `已创建命题：${newNode.title}`);
     setSelectedNodeId(newNode.id);
-    showToast(`成功创建命题：${newNode.title}`);
   };
 
-  // Delete node
-  const handleDeleteNode = (nodeId: string) => {
-    const updatedNodes = dataset.nodes
-      .filter(n => n.id !== nodeId)
-      .map(n => ({
-        ...n,
-        depends_on: n.depends_on.filter(depId => depId !== nodeId)
-      }));
-    setDataset({ ...dataset, nodes: updatedNodes });
-    if (selectedNodeId === nodeId) {
+  const handleCreateProject = (name: string, template: 'blank' | 'peano' | 'euclid') => {
+    const newProj = createNewProject(name, template);
+    const updated = [...projects, newProj];
+    setProjects(updated);
+    setActiveId(newProj.id);
+    setActiveProjectId(newProj.id);
+    setSelectedNodeId(null);
+    showToast(`已创建项目：${newProj.name}`);
+  };
+
+  const handleDeleteProject = (projId: string) => {
+    if (projects.length <= 1) {
+      showToast('至少需保留一个项目');
+      return;
+    }
+    const updated = projects.filter(p => p.id !== projId);
+    setProjects(updated);
+    if (activeProjectId === projId) {
+      const nextId = updated[0].id;
+      setActiveId(nextId);
+      setActiveProjectId(nextId);
       setSelectedNodeId(null);
     }
-    showToast('已删除命题及其相关依赖连线');
+    showToast('已删除项目');
   };
 
-  // Import JSON
   const handleImportJson = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -116,31 +469,29 @@ export const App: React.FC = () => {
     reader.onload = event => {
       try {
         const content = event.target?.result as string;
-        const imported = parseImportedJson(content);
-        setDataset(imported);
+        const importedDataset = parseImportedJson(content);
+        commitNodesUpdate(importedDataset.nodes, '导入成功');
         setSelectedNodeId(null);
-        showToast('知识网络导入成功！');
       } catch (err: any) {
-        alert(`导入失败：${err.message || '格式错误'}`);
+        alert(`导入失败：${err.message || 'JSON 格式错误'}`);
       }
     };
     reader.readAsText(file);
     e.target.value = '';
   };
 
-  // Reset to Peano seed data
-  const handleResetSeed = () => {
-    if (window.confirm('确定要重置为初始的「皮亚诺公理推导体系」吗？当前未导出的修改将被覆盖。')) {
-      setDataset(PEANO_DATASET);
-      setSelectedNodeId(null);
-      showToast('已重置为初始经典推导网络');
-    }
-  };
+  const isDark = effectiveTheme === 'dark';
 
   return (
-    <div className="flex flex-col w-screen h-screen overflow-hidden bg-[#FAF8F5]">
+    <div
+      className={`flex flex-col w-screen h-screen overflow-hidden font-sans transition-colors duration-200 ${
+        isDark ? 'bg-[#121214] text-[#EDECE8]' : 'bg-[#FAF8F5] text-[#2C2B29]'
+      }`}
+    >
       {/* Top Header */}
       <Header
+        currentProject={currentProject}
+        onOpenProjectManager={() => setIsProjectManagerOpen(true)}
         layoutType={layoutType}
         onChangeLayout={setLayoutType}
         isFocusMode={isFocusMode}
@@ -149,16 +500,25 @@ export const App: React.FC = () => {
         onToggleConnectingMode={() => setIsConnectingMode(!isConnectingMode)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        onOpenCreateModal={() => setIsCreateModalOpen(true)}
-        onExport={() => exportDatasetToJson(dataset)}
+        onOpenCreateModal={() => handleOpenCreateModal()}
+        onSaveAs={handleSaveAs}
+        onManualSave={() => doSaveNow(true)}
         onImport={handleImportJson}
-        onResetSeed={handleResetSeed}
         nodeCount={dataset.nodes.length}
+        theme={effectiveTheme}
+        onToggleTheme={cycleTheme}
+        canUndo={historyIndex > 0}
+        canRedo={historyIndex < history.length - 1}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
       {/* Main Canvas Area */}
       <main className="flex-1 relative overflow-hidden">
         <GraphCanvas
+          key={currentProject.id}
           nodes={dataset.nodes}
           selectedNodeId={selectedNodeId}
           onSelectNode={setSelectedNodeId}
@@ -168,6 +528,21 @@ export const App: React.FC = () => {
           onConnectNodes={handleConnectNodes}
           isConnectingMode={isConnectingMode}
           setIsConnectingMode={setIsConnectingMode}
+          theme={effectiveTheme}
+          onCopyNode={handleCopyNode}
+          onCutNode={handleCutNode}
+          onPasteNode={handlePasteNode}
+          hasClipboard={!!clipboardNode}
+          onChangeNodeType={handleChangeNodeType}
+          onDeleteNode={handleDeleteNode}
+          onCreateNodeAtPos={handleOpenCreateModal}
+          onOpenEditNode={id => setSelectedNodeId(id)}
+          onToggleLayout={() => setLayoutType(prev => (prev === 'dagre' ? 'cose' : 'dagre'))}
+          onNodesPositionChange={handleNodesPositionChange}
+          projectName={currentProject.name}
+          projectId={currentProject.id}
+          canvasSettings={canvasSettings}
+          onUpdateCanvasSettings={handleUpdateCanvasSettings}
         />
 
         {/* Sliding Detail Drawer */}
@@ -179,20 +554,89 @@ export const App: React.FC = () => {
           onUpdateNode={handleUpdateNode}
           onDeleteNode={handleDeleteNode}
           onNavigateToNode={id => setSelectedNodeId(id)}
+          theme={effectiveTheme}
         />
       </main>
 
-      {/* Create Modal */}
+      {/* Status Bar */}
+      <StatusBar
+        theme={effectiveTheme}
+        projectName={currentProject.name}
+        nodeCount={dataset.nodes.length}
+        edgeCount={totalEdgesCount}
+        selectedTitle={selectedNode?.title || null}
+        lastSavedTime={lastSavedTime}
+        canUndo={historyIndex > 0}
+        canRedo={historyIndex < history.length - 1}
+        onOpenShortcuts={() => setIsShortcutsModalOpen(true)}
+        autoSaveMode={autoSaveMode}
+        onChangeAutoSaveMode={handleChangeAutoSaveMode}
+        isDirty={isDirty}
+        isSaving={isSaving}
+        onManualSave={() => doSaveNow(true)}
+      />
+
+      {/* Create Proposition Modal */}
       <CreateNodeModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         allNodes={dataset.nodes}
         onCreateNode={handleCreateNode}
+        theme={effectiveTheme}
+        initialPosition={createNodeTargetPos}
+      />
+
+      {/* Project Manager Modal */}
+      <ProjectManagerModal
+        isOpen={isProjectManagerOpen}
+        onClose={() => setIsProjectManagerOpen(false)}
+        projects={projects}
+        activeProjectId={activeProjectId}
+        onSelectProject={handleSelectProject}
+        onCreateProject={handleCreateProject}
+        onDeleteProject={handleDeleteProject}
+        theme={effectiveTheme}
+      />
+
+      {/* Keyboard Shortcuts Guide Modal */}
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsModalOpen}
+        onClose={() => setIsShortcutsModalOpen(false)}
+        theme={effectiveTheme}
+      />
+
+      {/* System Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        theme={effectiveTheme}
+        themeMode={themeMode}
+        onThemeModeChange={mode => {
+          setThemeMode(mode);
+          localStorage.setItem('mathmind_theme_mode_v2', mode);
+          showToast(mode === 'dark' ? '已切换至深色模式' : mode === 'paper' ? '已切换至浅色纸张模式' : '已设置为跟随系统外观');
+        }}
+        canvasSettings={canvasSettings}
+        onUpdateCanvasSettings={handleUpdateCanvasSettings}
+        autoSaveMode={autoSaveMode}
+        onAutoSaveModeChange={handleChangeAutoSaveMode}
+        layoutType={layoutType}
+        onChangeLayout={setLayoutType}
+        projects={projects}
+        onExportAllProjects={handleExportAllProjects}
+        onResetToDefaults={handleResetToDefaults}
+        onManualSave={() => doSaveNow(true)}
       />
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#2C2B29] text-white text-xs px-4 py-2 rounded-lg shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-150">
+        <div
+          className={`fixed bottom-9 left-1/2 -translate-x-1/2 z-50 text-xs px-4 py-2 border shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-150 font-serif ${
+            isDark
+              ? 'bg-[#27272A] border-[#3F3F46] text-white shadow-black/80'
+              : 'bg-[#1A1A1A] border-[#333333] text-white'
+          }`}
+        >
           {toastMessage}
         </div>
       )}

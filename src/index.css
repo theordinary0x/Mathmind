@@ -34,6 +34,32 @@ body {
   background: #B8B0A2;
 }
 
+/* Dark mode scrollbars */
+.dark ::-webkit-scrollbar-track {
+  background: #18181B;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #3F3F46;
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #52525B;
+}
+
+/* Utilities: hide scrollbar completely */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
 /* KaTeX tweak for clean rendering inside text */
 .katex {
   font-size: 1.05em;
