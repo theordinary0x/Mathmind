@@ -19,7 +19,8 @@ import {
   Sun,
   Keyboard,
   Settings,
-  Coffee
+  Coffee,
+  Sparkles
 } from 'lucide-react';
 import { Project, AppTheme } from '../types';
 
@@ -35,6 +36,7 @@ interface HeaderProps {
   searchQuery: string;
   onSearchChange: (q: string) => void;
   onOpenCreateModal: () => void;
+  onOpenAiIngestion?: () => void;
   onSaveAs: () => void;
   onManualSave?: () => void;
   onImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -93,6 +95,7 @@ export const Header: React.FC<HeaderProps> = ({
   searchQuery,
   onSearchChange,
   onOpenCreateModal,
+  onOpenAiIngestion,
   onSaveAs,
   onManualSave,
   onImport,
@@ -289,6 +292,23 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="hidden sm:inline">新建命题</span>
           <KbdBadge isDark={isDark} variant="solid" className="hidden xl:inline-flex">N</KbdBadge>
         </button>
+
+        {/* AI Ingestion Button */}
+        {onOpenAiIngestion && (
+          <button
+            onClick={onOpenAiIngestion}
+            className={`flex items-center space-x-1 px-2 sm:px-2.5 py-1 text-xs font-medium rounded-md transition-all shadow-xs whitespace-nowrap ${
+              isDark
+                ? 'bg-indigo-600/90 hover:bg-indigo-500 text-white'
+                : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+            }`}
+            title="AI 智能录入教材 (Shift+I)"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <span className="hidden sm:inline">AI 录入</span>
+            <KbdBadge isDark={isDark} variant="solid" className="hidden xl:inline-flex">Shift+I</KbdBadge>
+          </button>
+        )}
 
         {/* Save to Local / Export */}
         <button

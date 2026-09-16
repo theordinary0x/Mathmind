@@ -10,6 +10,7 @@ interface CreateNodeModalProps {
   onCreateNode: (newNode: PropositionNode) => void;
   theme: AppTheme;
   initialPosition?: { x: number; y: number } | null;
+  initialNodeData?: Partial<PropositionNode> | null;
 }
 
 export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
@@ -19,6 +20,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
   onCreateNode,
   theme,
   initialPosition,
+  initialNodeData,
 }) => {
   const [title, setTitle] = useState('');
   const [type, setType] = useState<PropositionType>('theorem');
@@ -34,16 +36,26 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
-      setTitle('');
-      setType('theorem');
-      setStatement('');
-      setProofSketch('');
-      setNote('');
-      setFullProof('');
-      setDependsOn([]);
+      if (initialNodeData) {
+        setTitle(initialNodeData.title || '');
+        setType(initialNodeData.type || 'theorem');
+        setStatement(initialNodeData.statement || '');
+        setProofSketch(initialNodeData.proof_sketch || '');
+        setNote(initialNodeData.note || '');
+        setFullProof(initialNodeData.full_proof || '');
+        setDependsOn(initialNodeData.depends_on || []);
+      } else {
+        setTitle('');
+        setType('theorem');
+        setStatement('');
+        setProofSketch('');
+        setNote('');
+        setFullProof('');
+        setDependsOn([]);
+      }
       setSearchPrereq('');
     }
-  }, [isOpen]);
+  }, [isOpen, initialNodeData]);
 
   // Handle keyboard shortcuts: ESC to close, Ctrl+Enter to submit
   useEffect(() => {

@@ -26,6 +26,7 @@ import { ProjectManagerModal } from './components/ProjectManagerModal';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { SettingsModal } from './components/SettingsModal';
 import { SponsorModal } from './components/SponsorModal';
+import { AiIngestionModal } from './components/AiIngestionModal';
 import { StatusBar } from './components/StatusBar';
 
 export const App: React.FC = () => {
@@ -87,6 +88,8 @@ export const App: React.FC = () => {
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isSponsorOpen, setIsSponsorOpen] = useState<boolean>(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
+  const [initialCreateNodeData, setInitialCreateNodeData] = useState<Partial<PropositionNode> | null>(null);
   const [canvasSettings, setCanvasSettings] = useState<CanvasSettings>(() => getSavedCanvasSettings());
 
   const handleUpdateCanvasSettings = useCallback((newSettings: CanvasSettings) => {
@@ -240,9 +243,66 @@ export const App: React.FC = () => {
 
   // Open Create Proposition Modal
   const handleOpenCreateModal = useCallback((pos?: { x: number; y: number }) => {
+    setInitialCreateNodeData(null);
     setCreateNodeTargetPos(pos || null);
     setIsCreateModalOpen(true);
   }, []);
+
+  // Open Single Proposition from AI Ingestion Modal in CreateNodeModal
+  const handleOpenAiSingleInCreateModal = useCallback((nodeData: Partial<PropositionNode>) => {
+    setInitialCreateNodeData(nodeData);
+    setCreateNodeTargetPos(null);
+    setIsCreateModalOpen(true);
+  }, []);
+
+  // Batch Import from AI Ingestion Modal
+  const handleBatchImportFromAi = useCallback((
+    newNodes: Array<Omit<PropositionNode, 'id'> & { tempId: string }>,
+    connections: Array<{ fromTempOrId: string; toTempOrId: string }>
+  ) => {
+    if (newNodes.length === 0) return;
+
+    // 1. Map tempId -> unique real ID
+    const tempToRealId = new Map<string, string>();
+    const timestamp = Date.now();
+    newNodes.forEach((node, idx) => {
+      tempToRealId.set(node.tempId, `prop-${timestamp}-${idx + 1}`);
+    });
+
+    // 2. Build map of targetId -> array of sourceIds from connections
+    const targetToSources = new Map<string, string[]>();
+    connections.forEach(({ fromTempOrId, toTempOrId }) => {
+      const realFrom = tempToRealId.get(fromTempOrId) || fromTempOrId;
+      const realTo = tempToRealId.get(toTempOrId) || toTempOrId;
+      if (!targetToSources.has(realTo)) {
+        targetToSources.set(realTo, []);
+      }
+      if (!targetToSources.get(realTo)!.includes(realFrom)) {
+        targetToSources.get(realTo)!.push(realFrom);
+      }
+    });
+
+    // 3. Construct PropositionNode array
+    const createdNodes: PropositionNode[] = newNodes.map(node => {
+      const realId = tempToRealId.get(node.tempId)!;
+      const connectedSources = targetToSources.get(realId) || [];
+      const mergedDependsOn = Array.from(new Set([...(node.depends_on || []), ...connectedSources]));
+
+      return {
+        id: realId,
+        type: node.type,
+        title: node.title,
+        statement: node.statement,
+        proof_sketch: node.proof_sketch,
+        depends_on: mergedDependsOn
+      };
+    });
+
+    // 4. Commit updates to dataset
+    const updatedNodes = [...dataset.nodes, ...createdNodes];
+    commitNodesUpdate(updatedNodes, `已通过 AI 智能录入 ${createdNodes.length} 个命题与推导脉络`);
+    showToast(`成功录入 ${createdNodes.length} 个数学命题`);
+  }, [dataset.nodes, commitNodesUpdate, showToast]);
 
   // Paste
   const handlePasteNode = useCallback((position?: { x: number; y: number }) => {
@@ -351,10 +411,12 @@ export const App: React.FC = () => {
     isProjectManagerOpen,
     isShortcutsModalOpen,
     isSettingsOpen,
+    isAiModalOpen,
     setIsSettingsOpen,
     setIsShortcutsModalOpen,
     setIsProjectManagerOpen,
     handleOpenCreateModal,
+    handleOpenAiModal: () => setIsAiModalOpen(true),
     isConnectingMode,
     setIsConnectingMode,
     setLayoutType,
@@ -503,6 +565,7 @@ export const App: React.FC = () => {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onOpenCreateModal={() => handleOpenCreateModal()}
+        onOpenAiIngestion={() => setIsAiModalOpen(true)}
         onSaveAs={handleSaveAs}
         onManualSave={() => doSaveNow(true)}
         onImport={handleImportJson}
@@ -582,11 +645,15 @@ export const App: React.FC = () => {
       {/* Create Proposition Modal */}
       <CreateNodeModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          setInitialCreateNodeData(null);
+        }}
         allNodes={dataset.nodes}
         onCreateNode={handleCreateNode}
         theme={effectiveTheme}
         initialPosition={createNodeTargetPos}
+        initialNodeData={initialCreateNodeData}
       />
 
       {/* Project Manager Modal */}
@@ -637,6 +704,16 @@ export const App: React.FC = () => {
         isOpen={isSponsorOpen}
         onClose={() => setIsSponsorOpen(false)}
         theme={effectiveTheme}
+      />
+
+      {/* AI Ingestion Modal */}
+      <AiIngestionModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        allNodes={dataset.nodes}
+        theme={effectiveTheme}
+        onBatchImport={handleBatchImportFromAi}
+        onOpenSingleInCreateModal={handleOpenAiSingleInCreateModal}
       />
 
       {/* Toast Notification */}

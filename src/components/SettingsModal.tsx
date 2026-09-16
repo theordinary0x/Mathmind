@@ -17,7 +17,9 @@ import {
   FileText,
   Monitor,
   Upload,
-  Coffee
+  Coffee,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import {
   AppTheme,
@@ -29,6 +31,13 @@ import {
   Project
 } from '../types';
 import { calculateStorageUsage } from '../utils/storage';
+import { AiProvider, AiSettings } from '../types/ai';
+import { 
+  loadAiSettings, 
+  saveAiSettings, 
+  PROVIDER_CONFIGS, 
+  getSavedKeyForProvider 
+} from '../services/ai/aiConfig';
 
 export interface SettingsModalProps {
   isOpen: boolean;
@@ -49,7 +58,7 @@ export interface SettingsModalProps {
   onOpenSponsor?: () => void;
 }
 
-type TabType = 'general' | 'canvas' | 'storage' | 'shortcuts';
+type TabType = 'general' | 'canvas' | 'storage' | 'shortcuts' | 'ai';
 
 interface PresetOption {
   id: BackgroundPresetType;
@@ -99,6 +108,7 @@ const SHORTCUT_LIST = [
     { key: 'P / Ctrl + P', desc: '打开项目管理面板' },
     { key: '?', desc: '查看快捷键指南' },
     { key: '/', desc: '聚焦快速搜索框' },
+    { key: 'Shift + I', desc: '打开 AI 教材智能录入' },
     { key: 'T', desc: '快速切换深浅主题' }
   ]},
   { group: '命题编辑', items: [
@@ -139,8 +149,37 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onOpenSponsor
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('general');
+  const [aiSettings, setAiSettings] = useState<AiSettings>(() => loadAiSettings());
+  const [showAiKey, setShowAiKey] = useState<boolean>(false);
+  const [aiSavedNotice, setAiSavedNotice] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isDark = theme === 'dark';
+
+  const triggerAiSaveNotice = () => {
+    setAiSavedNotice(true);
+    setTimeout(() => setAiSavedNotice(false), 2000);
+  };
+
+  const handleProviderChange = (provider: AiProvider) => {
+    const meta = PROVIDER_CONFIGS[provider];
+    const savedKey = getSavedKeyForProvider(provider);
+    const updated: AiSettings = {
+      provider,
+      apiKey: savedKey,
+      baseUrl: meta.defaultBaseUrl,
+      model: meta.defaultModel
+    };
+    setAiSettings(updated);
+    saveAiSettings(updated);
+    triggerAiSaveNotice();
+  };
+
+  const handleUpdateAiSettings = (partial: Partial<AiSettings>) => {
+    const updated = { ...aiSettings, ...partial };
+    setAiSettings(updated);
+    saveAiSettings(updated);
+    triggerAiSaveNotice();
+  };
 
   // ESC to close
   useEffect(() => {
@@ -305,6 +344,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             >
               <Keyboard className="w-4 h-4 shrink-0" />
               <span>快捷键速查</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('ai')}
+              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap ${
+                activeTab === 'ai'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : isDark
+                  ? 'text-zinc-300 hover:bg-white/5'
+                  : 'text-stone-700 hover:bg-black/5'
+              }`}
+            >
+              <Sparkles className="w-4 h-4 shrink-0 text-amber-400" />
+              <span>AI 模型配置</span>
             </button>
 
             {onOpenSponsor && (
@@ -737,6 +790,166 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 5: AI 模型服务配置 */}
+            {activeTab === 'ai' && (
+              <div className="space-y-6 animate-fadeIn">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold uppercase tracking-wider mb-1 opacity-70 flex items-center space-x-1.5">
+                      <Sparkles className="w-4 h-4 text-amber-500" />
+                      <span>AI 大模型服务配置</span>
+                    </h3>
+                    <p className="text-xs opacity-60">
+                      配置用于教材智能提炼的 AI 服务商。API Key 仅保存在浏览器本地，请求直接从本机发起。
+                    </p>
+                  </div>
+                  {aiSavedNotice && (
+                    <span className="text-xs text-emerald-500 font-medium animate-in fade-in flex items-center space-x-1">
+                      <Check className="w-3.5 h-3.5" />
+                      <span>已保存</span>
+                    </span>
+                  )}
+                </div>
+
+                {/* Provider Selector Cards */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold opacity-80">选择服务商</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    {(Object.keys(PROVIDER_CONFIGS) as AiProvider[]).map(pKey => {
+                      const meta = PROVIDER_CONFIGS[pKey];
+                      const isSelected = aiSettings.provider === pKey;
+                      return (
+                        <button
+                          key={pKey}
+                          type="button"
+                          onClick={() => handleProviderChange(pKey)}
+                          className={`p-3 rounded-xl border text-left transition-all ${
+                            isSelected
+                              ? 'border-blue-500 bg-blue-500/10 shadow-xs'
+                              : isDark
+                              ? 'border-white/10 hover:border-white/20 bg-zinc-900/40'
+                              : 'border-black/10 hover:border-black/20 bg-white'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-xs">{meta.name}</span>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-blue-500" />}
+                          </div>
+                          <div className="flex items-center space-x-2 mt-1.5 text-[10px] opacity-60 font-mono">
+                            <span>{meta.supportsPdf ? 'PDF / 图片 / 文本' : meta.supportsImage ? '图片 / 文本' : '纯文本'}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Provider Detailed Form */}
+                <div
+                  className={`p-4 rounded-xl border space-y-4 ${
+                    isDark ? 'border-white/10 bg-zinc-900/30' : 'border-black/10 bg-white'
+                  }`}
+                >
+                  {/* Model Name & Quick Choices */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-bold opacity-80">模型代号 (Model)</label>
+                      <div className="flex items-center space-x-1 text-[10px]">
+                        <span className="opacity-50">推荐:</span>
+                        {PROVIDER_CONFIGS[aiSettings.provider].candidateModels.map(m => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => handleUpdateAiSettings({ model: m })}
+                            className={`px-1.5 py-0.5 rounded font-mono transition-colors ${
+                              aiSettings.model === m
+                                ? 'bg-blue-600 text-white'
+                                : isDark ? 'bg-white/10 text-zinc-300 hover:bg-white/20' : 'bg-black/5 text-stone-700 hover:bg-black/10'
+                            }`}
+                          >
+                            {m}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <input
+                      type="text"
+                      value={aiSettings.model}
+                      onChange={e => handleUpdateAiSettings({ model: e.target.value })}
+                      className={`w-full p-2.5 rounded-lg border text-xs font-mono outline-hidden ${
+                        isDark ? 'bg-[#18181B] border-white/15 text-white' : 'bg-[#FAF8F5] border-black/15 text-stone-900'
+                      }`}
+                      placeholder="模型代号"
+                    />
+                  </div>
+
+                  {/* API Key */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-bold opacity-80">API Key 密钥</label>
+                      {PROVIDER_CONFIGS[aiSettings.provider].docUrl && (
+                        <a
+                          href={PROVIDER_CONFIGS[aiSettings.provider].docUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[11px] text-blue-500 hover:underline"
+                        >
+                          前往官方获取密钥 &rarr;
+                        </a>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <input
+                        type={showAiKey ? 'text' : 'password'}
+                        value={aiSettings.apiKey}
+                        onChange={e => handleUpdateAiSettings({ apiKey: e.target.value })}
+                        placeholder={`请输入 ${PROVIDER_CONFIGS[aiSettings.provider].name} 的 API Key`}
+                        className={`w-full p-2.5 pr-10 rounded-lg border text-xs font-mono outline-hidden ${
+                          isDark ? 'bg-[#18181B] border-white/15 text-white' : 'bg-[#FAF8F5] border-black/15 text-stone-900'
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowAiKey(!showAiKey)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100"
+                        title={showAiKey ? '隐藏密钥' : '显示密钥'}
+                      >
+                        {showAiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Base URL (for proxies, custom endpoints, Ollama) */}
+                  <div>
+                    <label className="block text-xs font-bold opacity-80 mb-1.5">接口请求基地址 (Base URL)</label>
+                    <input
+                      type="text"
+                      value={aiSettings.baseUrl}
+                      onChange={e => handleUpdateAiSettings({ baseUrl: e.target.value })}
+                      className={`w-full p-2.5 rounded-lg border text-xs font-mono outline-hidden ${
+                        isDark ? 'bg-[#18181B] border-white/15 text-white' : 'bg-[#FAF8F5] border-black/15 text-stone-900'
+                      }`}
+                      placeholder={PROVIDER_CONFIGS[aiSettings.provider].defaultBaseUrl}
+                    />
+                    <p className="mt-1 text-[11px] opacity-50">
+                      支持自建反向代理、OneAPI、或本地 Ollama 地址（如 http://localhost:11434/v1）
+                    </p>
+                  </div>
+                </div>
+
+                <div className={`p-3 rounded-lg border text-xs leading-relaxed opacity-75 ${
+                  isDark ? 'bg-white/5 border-white/10' : 'bg-stone-50 border-black/10'
+                }`}>
+                  <p className="font-bold mb-1">关于多模态与 PDF 支持提示：</p>
+                  <ul className="list-disc list-inside space-y-0.5 text-[11px]">
+                    <li><strong>Google Gemini</strong>：原生支持输入整份 PDF 与高精度数学公式识别（推荐 <code>gemini-2.5-flash</code>）。</li>
+                    <li><strong>通义千问 / 智谱 GLM</strong>：支持截图与文字输入，公式理解扎实。</li>
+                    <li><strong>DeepSeek</strong>：官方目前提供超高水准的纯文本逻辑推理（推荐用于文本/LaTeX 输入）。</li>
+                  </ul>
                 </div>
               </div>
             )}

@@ -58,6 +58,7 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { keys: ['Alt + S', 'Ctrl + Shift + S'], description: '另存为 JSON 文件' },
       { keys: ['P', 'Ctrl + P', 'M'], description: '打开项目管理' },
       { keys: ['/'], description: '聚焦搜索框' },
+      { keys: ['Shift + I'], description: '打开 AI 教材智能录入' },
       { keys: ['?'], description: '打开快捷键指南' }
     ]
   }

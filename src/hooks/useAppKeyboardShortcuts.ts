@@ -6,10 +6,12 @@ interface UseAppKeyboardShortcutsProps {
   isProjectManagerOpen: boolean;
   isShortcutsModalOpen: boolean;
   isSettingsOpen: boolean;
+  isAiModalOpen?: boolean;
   setIsSettingsOpen: (open: boolean) => void;
   setIsShortcutsModalOpen: (open: boolean) => void;
   setIsProjectManagerOpen: (open: boolean) => void;
   handleOpenCreateModal: () => void;
+  handleOpenAiModal?: () => void;
   isConnectingMode: boolean;
   setIsConnectingMode: React.Dispatch<React.SetStateAction<boolean>>;
   setLayoutType: (type: 'dagre' | 'cose') => void;
@@ -43,7 +45,7 @@ export function useAppKeyboardShortcuts(props: UseAppKeyboardShortcutsProps) {
       }
 
       // If any major dialog is open, do not trigger global single-key shortcuts
-      if (p.isCreateModalOpen || p.isProjectManagerOpen || p.isShortcutsModalOpen || p.isSettingsOpen) {
+      if (p.isCreateModalOpen || p.isProjectManagerOpen || p.isShortcutsModalOpen || p.isSettingsOpen || p.isAiModalOpen) {
         return;
       }
 
@@ -63,6 +65,16 @@ export function useAppKeyboardShortcuts(props: UseAppKeyboardShortcutsProps) {
         if (e.key === 'Escape') {
           target.blur();
         }
+        return;
+      }
+
+      // Open AI Ingestion (Shift+I or Ctrl+I)
+      if (
+        (e.shiftKey && e.key.toLowerCase() === 'i' && !e.ctrlKey && !e.altKey && !e.metaKey) ||
+        ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'i' && !e.altKey)
+      ) {
+        e.preventDefault();
+        p.handleOpenAiModal?.();
         return;
       }
 
