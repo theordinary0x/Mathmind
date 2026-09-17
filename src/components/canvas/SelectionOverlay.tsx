@@ -35,6 +35,13 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
       if (e.key === 'Shift') setIsModifierShift(true);
       if (e.key === 'Alt') setIsModifierAlt(true);
+      if (e.key === 'Escape') {
+        setIsDragging(false);
+        setActiveType(null);
+        setBoxStart(null);
+        setBoxCurrent(null);
+        setLassoPoints([]);
+      }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
