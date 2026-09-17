@@ -65,3 +65,21 @@ body {
   font-size: 1.05em;
   font-weight: 500;
 }
+
+/* Scoped rich markdown typography */
+.math-markdown h1 { font-size: 1.25rem; font-weight: 700; margin: 0.8rem 0 0.4rem 0; line-height: 1.3; }
+.math-markdown h2 { font-size: 1.1rem; font-weight: 600; margin: 0.7rem 0 0.35rem 0; line-height: 1.35; }
+.math-markdown h3 { font-size: 0.95rem; font-weight: 600; margin: 0.6rem 0 0.3rem 0; line-height: 1.4; }
+.math-markdown h4 { font-size: 0.85rem; font-weight: 600; margin: 0.5rem 0 0.25rem 0; }
+.math-markdown p { margin: 0.4rem 0; line-height: 1.65; }
+.math-markdown ul { list-style-type: disc; padding-left: 1.25rem; margin: 0.4rem 0; }
+.math-markdown ol { list-style-type: decimal; padding-left: 1.25rem; margin: 0.4rem 0; }
+.math-markdown li { margin: 0.2rem 0; line-height: 1.55; }
+.math-markdown li > p { margin: 0.15rem 0; }
+.math-markdown blockquote { border-left: 3px solid #3B82F6; padding-left: 0.75rem; margin: 0.5rem 0; opacity: 0.85; font-style: italic; }
+.math-markdown table { width: 100%; border-collapse: collapse; margin: 0.6rem 0; font-size: 0.85em; }
+.math-markdown th, .math-markdown td { border: 1px solid rgba(128, 128, 128, 0.3); padding: 0.35rem 0.6rem; text-align: left; }
+.math-markdown th { background: rgba(128, 128, 128, 0.1); font-weight: 600; }
+.math-markdown code:not(pre code) { padding: 0.15rem 0.35rem; border-radius: 4px; font-family: monospace; font-size: 0.9em; background: rgba(128, 128, 128, 0.15); }
+.math-markdown hr { border: none; border-top: 1px solid rgba(128, 128, 128, 0.2); margin: 0.8rem 0; }
+

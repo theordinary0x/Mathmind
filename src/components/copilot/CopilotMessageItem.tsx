@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CopilotMessage } from '../../types/copilot';
-import { MathRenderer } from '../MathRenderer';
+import { MarkdownMathRenderer } from '../MarkdownMathRenderer';
 import { DiffReviewCard } from './DiffReviewCard';
 import { Sparkles, User, Copy, Check, AlertCircle, Loader2 } from 'lucide-react';
 
@@ -81,7 +81,7 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
             {isUser ? (
               <div className="whitespace-pre-wrap">{message.content}</div>
             ) : (
-              <MathRenderer content={message.content} />
+              <MarkdownMathRenderer content={message.content} isDark={isDark} />
             )}
           </div>
         )}

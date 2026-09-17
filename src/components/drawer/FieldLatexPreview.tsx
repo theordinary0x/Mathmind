@@ -1,5 +1,5 @@
 import React from 'react';
-import { MathRenderer } from '../MathRenderer';
+import { MarkdownMathRenderer } from '../MarkdownMathRenderer';
 
 export const FieldLatexPreview: React.FC<{
   label: string;
@@ -7,7 +7,7 @@ export const FieldLatexPreview: React.FC<{
   isDark: boolean;
   className?: string;
 }> = ({ label, content, isDark, className = '' }) => {
-  if (!content || (!content.includes('$') && !content.includes('\\'))) return null;
+  if (!content) return null;
   return (
     <div
       className={`mt-1.5 p-2 rounded border border-dashed text-xs ${
@@ -15,7 +15,7 @@ export const FieldLatexPreview: React.FC<{
       } ${className}`}
     >
       <div className="text-[9px] font-mono opacity-50 mb-0.5 font-normal">{label}:</div>
-      <MathRenderer content={content.replace(/\\\\|\\n|<br\s*\/?>/gi, '\n')} />
+      <MarkdownMathRenderer content={content.replace(/\\\\|\\n|<br\s*\/?>/gi, '\n')} isDark={isDark} />
     </div>
   );
 };
