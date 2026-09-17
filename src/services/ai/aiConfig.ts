@@ -23,10 +23,10 @@ export const PROVIDER_CONFIGS: Record<AiProvider, ProviderMeta> = {
   deepseek: {
     name: 'DeepSeek (深度求索)',
     defaultBaseUrl: 'https://api.deepseek.com/v1',
-    defaultModel: 'deepseek-chat',
-    candidateModels: ['deepseek-chat', 'deepseek-reasoner'],
+    defaultModel: 'deepseek-flash',
+    candidateModels: ['deepseek-flash', 'deepseek-chat', 'deepseek-reasoner'],
     docUrl: 'https://platform.deepseek.com/api_keys',
-    supportsImage: false,
+    supportsImage: true,
     supportsPdf: false
   },
   qwen: {

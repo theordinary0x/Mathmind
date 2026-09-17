@@ -17,9 +17,8 @@ export const callOpenAiCompatibleApi = async (
   let userContent: any = userPromptText;
 
   if (input.mode === 'image' && input.image) {
-    // Check if provider is known to be text-only
-    if (settings.provider === 'deepseek') {
-      throw new Error('DeepSeek 当前官方接口为纯文本模型，无法直接处理图片。如需识别图片，请切换至 Gemini 或 Qwen/GLM 的视觉模型。');
+    if (settings.provider === 'deepseek' && settings.model.includes('reasoner')) {
+      throw new Error('DeepSeek Reasoner 为纯文本深度推理模型。若需识别图片/截图，请在模型配置中切换为 DeepSeek 最新的多模态视觉模型「deepseek-flash」。');
     }
 
     userContent = [
