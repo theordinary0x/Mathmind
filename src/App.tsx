@@ -20,6 +20,7 @@ import {
 } from './utils/storage';
 import { Header } from './components/Header';
 import { GraphCanvas } from './components/GraphCanvas';
+import { SelectionToolMode } from './components/canvas/SelectionOverlay';
 import { NodeDetailDrawer } from './components/NodeDetailDrawer';
 import { CreateNodeModal } from './components/CreateNodeModal';
 import { ProjectManagerModal } from './components/ProjectManagerModal';
@@ -78,6 +79,8 @@ export const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>(() => loadProjects());
   const [activeProjectId, setActiveId] = useState<string>(() => getActiveProjectId(projects));
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(new Set());
+  const [toolMode, setToolMode] = useState<SelectionToolMode>('none');
   const [layoutType, setLayoutType] = useState<'dagre' | 'cose'>('dagre');
   const [isFocusMode, setIsFocusMode] = useState<boolean>(false); // 默认关闭聚焦模式，展示全局清晰网络
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -135,11 +138,21 @@ export const App: React.FC = () => {
     setHistoryIndex(0);
   }, [activeProjectId]);
 
-  // Clean up selectedNodeId if deleted or not in active dataset
+  // Clean up selectedNodeId / selectedNodeIds if deleted or not in active dataset
   useEffect(() => {
     if (selectedNodeId && !dataset.nodes.some(n => n.id === selectedNodeId)) {
       setSelectedNodeId(null);
     }
+    setSelectedNodeIds(prev => {
+      const activeIds = new Set(dataset.nodes.map(n => n.id));
+      let changed = false;
+      const next = new Set<string>();
+      prev.forEach(id => {
+        if (activeIds.has(id)) next.add(id);
+        else changed = true;
+      });
+      return changed ? next : prev;
+    });
   }, [dataset.nodes, selectedNodeId]);
 
   const commitNodesUpdate = useCallback((newNodes: PropositionNode[], actionDescription?: string) => {
@@ -239,6 +252,11 @@ export const App: React.FC = () => {
       }));
     commitNodesUpdate(updated, `已剪切：${node.title}`);
     if (selectedNodeId === node.id) setSelectedNodeId(null);
+    setSelectedNodeIds(prev => {
+      const next = new Set(prev);
+      next.delete(node.id);
+      return next;
+    });
   }, [dataset.nodes, commitNodesUpdate, selectedNodeId]);
 
   // Open Create Proposition Modal
@@ -322,6 +340,7 @@ export const App: React.FC = () => {
     const updated = [...dataset.nodes, newNode];
     commitNodesUpdate(updated, `已粘贴命题：${newNode.title}`);
     setSelectedNodeId(newNode.id);
+    setSelectedNodeIds(new Set([newNode.id]));
   }, [clipboardNode, dataset.nodes, commitNodesUpdate]);
 
   // Delete node
@@ -337,7 +356,76 @@ export const App: React.FC = () => {
     if (selectedNodeId === nodeId) {
       setSelectedNodeId(null);
     }
+    setSelectedNodeIds(prev => {
+      const next = new Set(prev);
+      next.delete(nodeId);
+      return next;
+    });
   }, [dataset.nodes, commitNodesUpdate, selectedNodeId]);
+
+  // Single selection handler
+  const handleSelectSingleNode = useCallback((nodeId: string | null) => {
+    setSelectedNodeId(nodeId);
+    if (nodeId) {
+      setSelectedNodeIds(new Set([nodeId]));
+    } else {
+      setSelectedNodeIds(new Set());
+    }
+  }, []);
+
+  // Multi selection handler (Box / Lasso / Ctrl+Click)
+  const handleSelectMultipleNodes = useCallback((nodeIds: string[], mode: 'replace' | 'toggle' | 'add') => {
+    setSelectedNodeIds(prev => {
+      let next: Set<string>;
+      if (mode === 'replace') {
+        next = new Set(nodeIds);
+      } else if (mode === 'add') {
+        next = new Set([...prev, ...nodeIds]);
+      } else {
+        // toggle
+        next = new Set(prev);
+        nodeIds.forEach(id => {
+          if (next.has(id)) next.delete(id);
+          else next.add(id);
+        });
+      }
+
+      if (next.size === 1) {
+        setSelectedNodeId(Array.from(next)[0]);
+      } else {
+        setSelectedNodeId(null);
+      }
+      return next;
+    });
+  }, []);
+
+  // Select all nodes
+  const handleSelectAllNodes = useCallback(() => {
+    const allIds = new Set(dataset.nodes.map(n => n.id));
+    setSelectedNodeIds(allIds);
+    setSelectedNodeId(null);
+  }, [dataset.nodes]);
+
+  // Clear selection
+  const handleClearSelection = useCallback(() => {
+    setSelectedNodeIds(new Set());
+    setSelectedNodeId(null);
+  }, []);
+
+  // Batch delete nodes
+  const handleBatchDeleteNodes = useCallback((nodeIds: string[]) => {
+    if (!nodeIds || nodeIds.length === 0) return;
+    const deleteSet = new Set(nodeIds);
+    const updatedNodes = dataset.nodes
+      .filter(n => !deleteSet.has(n.id))
+      .map(n => ({
+        ...n,
+        depends_on: (n.depends_on || []).filter(depId => !deleteSet.has(depId))
+      }));
+    commitNodesUpdate(updatedNodes, `已批量删除 ${nodeIds.length} 个命题`);
+    setSelectedNodeIds(new Set());
+    setSelectedNodeId(null);
+  }, [dataset.nodes, commitNodesUpdate]);
 
   // Change node type directly
   const handleChangeNodeType = useCallback((nodeId: string, newType: PropositionType) => {
@@ -426,7 +514,13 @@ export const App: React.FC = () => {
     doSaveNow,
     handleSaveAs,
     selectedNodeId,
-    setSelectedNodeId,
+    setSelectedNodeId: handleSelectSingleNode,
+    selectedNodeIds,
+    handleBatchDeleteNodes,
+    handleClearSelection,
+    handleToggleBoxSelection: () => setToolMode(prev => (prev === 'box' ? 'none' : 'box')),
+    toolMode,
+    setToolMode,
     nodes: dataset.nodes,
     handleCopyNode,
     handlePasteNode,
@@ -451,6 +545,8 @@ export const App: React.FC = () => {
     setActiveId(projId);
     setActiveProjectId(projId);
     setSelectedNodeId(null);
+    setSelectedNodeIds(new Set());
+    setToolMode('none');
     showToast(`切换至项目：${projects.find(p => p.id === projId)?.name}`);
   };
 
@@ -521,6 +617,8 @@ export const App: React.FC = () => {
       setActiveId(nextId);
       setActiveProjectId(nextId);
       setSelectedNodeId(null);
+      setSelectedNodeIds(new Set());
+      setToolMode('none');
     }
     showToast('已删除项目');
   };
@@ -536,6 +634,8 @@ export const App: React.FC = () => {
         const importedDataset = parseImportedJson(content);
         commitNodesUpdate(importedDataset.nodes, '导入成功');
         setSelectedNodeId(null);
+        setSelectedNodeIds(new Set());
+        setToolMode('none');
       } catch (err: any) {
         alert(`导入失败：${err.message || 'JSON 格式错误'}`);
       }
@@ -587,7 +687,14 @@ export const App: React.FC = () => {
           key={currentProject.id}
           nodes={dataset.nodes}
           selectedNodeId={selectedNodeId}
-          onSelectNode={setSelectedNodeId}
+          selectedNodeIds={selectedNodeIds}
+          onSelectNode={handleSelectSingleNode}
+          onSelectMultipleNodes={handleSelectMultipleNodes}
+          onBatchDeleteNodes={handleBatchDeleteNodes}
+          onSelectAllNodes={handleSelectAllNodes}
+          onClearSelection={handleClearSelection}
+          toolMode={toolMode}
+          onChangeToolMode={setToolMode}
           layoutType={layoutType}
           isFocusMode={isFocusMode}
           searchQuery={searchQuery}
@@ -602,7 +709,7 @@ export const App: React.FC = () => {
           onChangeNodeType={handleChangeNodeType}
           onDeleteNode={handleDeleteNode}
           onCreateNodeAtPos={handleOpenCreateModal}
-          onOpenEditNode={id => setSelectedNodeId(id)}
+          onOpenEditNode={id => handleSelectSingleNode(id)}
           onToggleLayout={() => setLayoutType(prev => (prev === 'dagre' ? 'cose' : 'dagre'))}
           onNodesPositionChange={handleNodesPositionChange}
           projectName={currentProject.name}
@@ -616,10 +723,10 @@ export const App: React.FC = () => {
           node={selectedNode}
           allNodes={dataset.nodes}
           downstreamMap={downstreamMap}
-          onClose={() => setSelectedNodeId(null)}
+          onClose={() => handleSelectSingleNode(null)}
           onUpdateNode={handleUpdateNode}
           onDeleteNode={handleDeleteNode}
-          onNavigateToNode={id => setSelectedNodeId(id)}
+          onNavigateToNode={id => handleSelectSingleNode(id)}
           theme={effectiveTheme}
         />
       </main>

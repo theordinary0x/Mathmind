@@ -22,6 +22,12 @@ interface UseAppKeyboardShortcutsProps {
   handleSaveAs: () => void;
   selectedNodeId: string | null;
   setSelectedNodeId: (id: string | null) => void;
+  selectedNodeIds?: Set<string>;
+  handleBatchDeleteNodes?: (ids: string[]) => void;
+  handleClearSelection?: () => void;
+  handleToggleBoxSelection?: () => void;
+  toolMode?: 'none' | 'box' | 'lasso';
+  setToolMode?: (mode: 'none' | 'box' | 'lasso') => void;
   nodes: PropositionNode[];
   handleCopyNode: (node: PropositionNode) => void;
   handlePasteNode: () => void;
@@ -68,8 +74,9 @@ export function useAppKeyboardShortcuts(props: UseAppKeyboardShortcutsProps) {
         return;
       }
 
-      // Open AI Ingestion (Shift+I or Ctrl+I)
+      // Open AI Ingestion (I, Shift+I or Ctrl+I)
       if (
+        (e.key.toLowerCase() === 'i' && !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) ||
         (e.shiftKey && e.key.toLowerCase() === 'i' && !e.ctrlKey && !e.altKey && !e.metaKey) ||
         ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'i' && !e.altKey)
       ) {
@@ -241,9 +248,19 @@ export function useAppKeyboardShortcuts(props: UseAppKeyboardShortcutsProps) {
         return;
       }
 
-      // Delete
+      // Box selection mode (B)
+      if (e.key.toLowerCase() === 'b' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+        e.preventDefault();
+        p.handleToggleBoxSelection?.();
+        return;
+      }
+
+      // Delete (Single or Batch)
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (p.selectedNodeId) {
+        if (p.selectedNodeIds && p.selectedNodeIds.size > 1) {
+          e.preventDefault();
+          p.handleBatchDeleteNodes?.(Array.from(p.selectedNodeIds));
+        } else if (p.selectedNodeId) {
           e.preventDefault();
           p.handleDeleteNode(p.selectedNodeId);
         }
@@ -262,6 +279,11 @@ export function useAppKeyboardShortcuts(props: UseAppKeyboardShortcutsProps) {
         if (p.isConnectingMode) {
           p.setIsConnectingMode(false);
           p.showToast('已退出连线模式');
+        } else if (p.toolMode && p.toolMode !== 'none') {
+          p.setToolMode?.('none');
+          p.showToast('已退出圈选模式');
+        } else if (p.selectedNodeIds && p.selectedNodeIds.size > 0) {
+          p.handleClearSelection?.();
         } else if (p.selectedNodeId) {
           p.setSelectedNodeId(null);
         }

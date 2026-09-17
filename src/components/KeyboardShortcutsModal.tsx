@@ -49,6 +49,17 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
     ]
   },
   {
+    category: '多选与批量管理',
+    items: [
+      { keys: ['Ctrl + 单击'], description: '连续多选 / 反选命题' },
+      { keys: ['Shift + 拖拽'], description: '矩形框选命题群' },
+      { keys: ['Alt + 拖拽'], description: '自由划线圈定命题 (套索 Lasso)' },
+      { keys: ['B'], description: '开启 / 关闭画板框选模式' },
+      { keys: ['Delete', 'Backspace'], description: '批量删除当前选中的全部命题' },
+      { keys: ['Esc'], description: '一键清空全部选中' }
+    ]
+  },
+  {
     category: '系统与导航',
     items: [
       { keys: ['Ctrl + ,'], description: '打开系统设置' },
@@ -58,7 +69,7 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { keys: ['Alt + S', 'Ctrl + Shift + S'], description: '另存为 JSON 文件' },
       { keys: ['P', 'Ctrl + P', 'M'], description: '打开项目管理' },
       { keys: ['/'], description: '聚焦搜索框' },
-      { keys: ['Shift + I'], description: '打开 AI 教材智能录入' },
+      { keys: ['I', 'Shift + I', 'Ctrl + I'], description: '打开 AI 教材智能录入' },
       { keys: ['?'], description: '打开快捷键指南' }
     ]
   }

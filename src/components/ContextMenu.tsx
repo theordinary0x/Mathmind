@@ -42,6 +42,8 @@ interface ContextMenuProps {
   onToggleLayout: () => void;
   currentLayout: 'dagre' | 'cose';
   theme: AppTheme;
+  selectedNodeCount?: number;
+  onBatchDelete?: () => void;
 }
 
 export const ContextMenu: React.FC<ContextMenuProps> = ({
@@ -61,6 +63,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   onToggleLayout,
   currentLayout,
   theme,
+  selectedNodeCount,
+  onBatchDelete,
 }) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const isDark = theme === 'dark';
@@ -212,19 +216,35 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
           </div>
 
           <div className="py-1">
-            <button
-              onClick={() => {
-                onDeleteNode(menuState.node!.id);
-                onClose();
-              }}
-              className="w-full px-3 py-1.5 text-left flex items-center justify-between text-red-500 hover:bg-red-600 hover:text-white transition-colors"
-            >
-              <div className="flex items-center space-x-2">
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>删除此命题</span>
-              </div>
-              <span className="text-[10px] opacity-70 font-mono">Del</span>
-            </button>
+            {selectedNodeCount && selectedNodeCount >= 2 && onBatchDelete ? (
+              <button
+                onClick={() => {
+                  onBatchDelete();
+                  onClose();
+                }}
+                className="w-full px-3 py-1.5 text-left flex items-center justify-between text-red-500 hover:bg-red-600 hover:text-white transition-colors font-semibold"
+              >
+                <div className="flex items-center space-x-2">
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>批量删除选中的 {selectedNodeCount} 个命题</span>
+                </div>
+                <span className="text-[10px] opacity-70 font-mono">Del</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  onDeleteNode(menuState.node!.id);
+                  onClose();
+                }}
+                className="w-full px-3 py-1.5 text-left flex items-center justify-between text-red-500 hover:bg-red-600 hover:text-white transition-colors"
+              >
+                <div className="flex items-center space-x-2">
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>删除此命题</span>
+                </div>
+                <span className="text-[10px] opacity-70 font-mono">Del</span>
+              </button>
+            )}
           </div>
         </div>
       ) : (

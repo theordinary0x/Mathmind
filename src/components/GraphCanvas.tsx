@@ -9,13 +9,24 @@ import { getHybridPaperTexture, getChalkboardTexture } from '../utils/paperTextu
 import { latexToUnicode } from '../utils/latexToUnicode';
 import { getCytoscapeStyles } from '../styles/cytoscapeStyles';
 import { getGraphLayoutConfig } from '../utils/layoutConfigs';
+import { SelectionOverlay, SelectionToolMode } from './canvas/SelectionOverlay';
+import { BatchSelectionBar } from './canvas/BatchSelectionBar';
+import { isPointInBox, isPointInPolygon, Point, BoundingBox } from '../utils/selectionHelper';
+import { BoxSelect, Lasso, MousePointer } from 'lucide-react';
 
 cytoscape.use(dagre);
 
 interface GraphCanvasProps {
   nodes: PropositionNode[];
   selectedNodeId: string | null;
+  selectedNodeIds?: Set<string>;
   onSelectNode: (nodeId: string | null) => void;
+  onSelectMultipleNodes?: (nodeIds: string[], mode: 'replace' | 'toggle' | 'add') => void;
+  onBatchDeleteNodes?: (nodeIds: string[]) => void;
+  onSelectAllNodes?: () => void;
+  onClearSelection?: () => void;
+  toolMode?: SelectionToolMode;
+  onChangeToolMode?: (mode: SelectionToolMode) => void;
   layoutType: 'dagre' | 'cose';
   isFocusMode: boolean;
   searchQuery: string;
@@ -55,7 +66,14 @@ export function formatCanvasTitle(title: string): string {
 export const GraphCanvas: React.FC<GraphCanvasProps> = ({
   nodes,
   selectedNodeId,
+  selectedNodeIds = new Set(),
   onSelectNode,
+  onSelectMultipleNodes,
+  onBatchDeleteNodes,
+  onSelectAllNodes,
+  onClearSelection,
+  toolMode: toolModeProp,
+  onChangeToolMode: onChangeToolModeProp,
   layoutType,
   isFocusMode,
   searchQuery,
@@ -84,6 +102,20 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
   const [connectSourceId, setConnectSourceId] = useState<string | null>(null);
   const [currentZoomPercent, setCurrentZoomPercent] = useState<number>(100);
   const prevProjectRef = useRef<string>(projectId || projectName);
+
+  // Selection Tool Mode (none | box | lasso)
+  const [internalToolMode, setInternalToolMode] = useState<SelectionToolMode>('none');
+  const toolMode = toolModeProp !== undefined ? toolModeProp : internalToolMode;
+  const setToolMode = useCallback((mode: SelectionToolMode | ((prev: SelectionToolMode) => SelectionToolMode)) => {
+    if (typeof mode === 'function') {
+      const nextMode = mode(toolMode);
+      if (onChangeToolModeProp) onChangeToolModeProp(nextMode);
+      else setInternalToolMode(nextMode);
+    } else {
+      if (onChangeToolModeProp) onChangeToolModeProp(mode);
+      else setInternalToolMode(mode);
+    }
+  }, [toolMode, onChangeToolModeProp]);
 
   // Context Menu State
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({
@@ -240,6 +272,50 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
   const onNodesPositionChangeRef = useRef(onNodesPositionChange);
   onNodesPositionChangeRef.current = onNodesPositionChange;
 
+  const selectedNodeIdsRef = useRef<Set<string>>(selectedNodeIds);
+  selectedNodeIdsRef.current = selectedNodeIds;
+
+  const onSelectMultipleNodesRef = useRef(onSelectMultipleNodes);
+  onSelectMultipleNodesRef.current = onSelectMultipleNodes;
+
+  const onClearSelectionRef = useRef(onClearSelection);
+  onClearSelectionRef.current = onClearSelection;
+
+  const dragStartPositionsRef = useRef<Map<string, { x: number; y: number }>>(new Map());
+  const dragAnchorStartPosRef = useRef<{ x: number; y: number } | null>(null);
+
+  // Box selection geometry check
+  const handleSelectBox = useCallback((box: BoundingBox, isAppend: boolean) => {
+    const cy = cyRef.current;
+    if (!cy) return;
+    const matchedIds: string[] = [];
+    cy.nodes().forEach(node => {
+      const pos = node.renderedPosition();
+      if (isPointInBox(pos, box)) {
+        matchedIds.push(node.id());
+      }
+    });
+    if (onSelectMultipleNodes) {
+      onSelectMultipleNodes(matchedIds, isAppend ? 'add' : 'replace');
+    }
+  }, [onSelectMultipleNodes]);
+
+  // Lasso polygon selection geometry check
+  const handleSelectLasso = useCallback((polygon: Point[], isAppend: boolean) => {
+    const cy = cyRef.current;
+    if (!cy) return;
+    const matchedIds: string[] = [];
+    cy.nodes().forEach(node => {
+      const pos = node.renderedPosition();
+      if (isPointInPolygon(pos, polygon)) {
+        matchedIds.push(node.id());
+      }
+    });
+    if (onSelectMultipleNodes) {
+      onSelectMultipleNodes(matchedIds, isAppend ? 'add' : 'replace');
+    }
+  }, [onSelectMultipleNodes]);
+
   // Initialize Cytoscape
   useEffect(() => {
     const container = containerRef.current;
@@ -260,6 +336,8 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
     // Left click node
     cy.on('tap', 'node', (evt: EventObject) => {
       const clickedId = evt.target.id();
+      const originalEvent = evt.originalEvent as MouseEvent | undefined;
+      const isCtrlOrCmd = originalEvent ? (originalEvent.ctrlKey || originalEvent.metaKey) : false;
 
       if (isConnectingModeRef.current) {
         if (!connectSourceIdRef.current) {
@@ -280,7 +358,16 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
         return;
       }
 
-      onSelectNodeRef.current(clickedId);
+      if (isCtrlOrCmd) {
+        if (onSelectMultipleNodesRef.current) {
+          onSelectMultipleNodesRef.current([clickedId], 'toggle');
+        }
+      } else {
+        if (onSelectMultipleNodesRef.current) {
+          onSelectMultipleNodesRef.current([clickedId], 'replace');
+        }
+        onSelectNodeRef.current(clickedId);
+      }
     });
 
     // Left click background
@@ -292,6 +379,9 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
           setIsConnectingModeRef.current(false);
           cy.nodes().removeClass('connect-source');
         } else {
+          if (onClearSelectionRef.current) {
+            onClearSelectionRef.current();
+          }
           onSelectNodeRef.current(null);
         }
       }
@@ -305,6 +395,14 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
       const containerRect = containerRef.current?.getBoundingClientRect();
       const originX = containerRect ? containerRect.left : 0;
       const originY = containerRect ? containerRect.top : 56;
+
+      const selected = selectedNodeIdsRef.current;
+      if (!selected.has(clickedId)) {
+        if (onSelectMultipleNodesRef.current) {
+          onSelectMultipleNodesRef.current([clickedId], 'replace');
+        }
+        onSelectNodeRef.current(clickedId);
+      }
 
       setContextMenu({
         isOpen: true,
@@ -348,17 +446,83 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
       }
     });
 
-    // Node drag release: persist new positions
-    cy.on('dragfree', 'node', (evt: EventObject) => {
-      const node = evt.target;
-      const pos = node.position();
-      if (onNodesPositionChangeRef.current) {
-        onNodesPositionChangeRef.current([
-          {
-            id: node.id(),
-            position: { x: Math.round(pos.x), y: Math.round(pos.y) }
+    // Multi-node drag start
+    cy.on('grab', 'node', (evt: EventObject) => {
+      const targetNode = evt.target;
+      const targetId = targetNode.id();
+      const selected = selectedNodeIdsRef.current;
+      if (selected && selected.has(targetId) && selected.size > 1) {
+        const map = new Map<string, { x: number; y: number }>();
+        selected.forEach(id => {
+          const n = cy.$id(id);
+          if (n.length > 0) {
+            map.set(id, { ...n.position() });
           }
-        ]);
+        });
+        dragStartPositionsRef.current = map;
+        dragAnchorStartPosRef.current = { ...targetNode.position() };
+      } else {
+        dragStartPositionsRef.current.clear();
+        dragAnchorStartPosRef.current = null;
+      }
+    });
+
+    // Multi-node drag move
+    cy.on('drag', 'node', (evt: EventObject) => {
+      const targetNode = evt.target;
+      const targetId = targetNode.id();
+      const startMap = dragStartPositionsRef.current;
+      const anchorStart = dragAnchorStartPosRef.current;
+      if (anchorStart && startMap.size > 1 && startMap.has(targetId)) {
+        const currentPos = targetNode.position();
+        const dx = currentPos.x - anchorStart.x;
+        const dy = currentPos.y - anchorStart.y;
+        startMap.forEach((startPos, id) => {
+          if (id !== targetId) {
+            const n = cy.$id(id);
+            if (n.length > 0) {
+              n.position({
+                x: Math.round(startPos.x + dx),
+                y: Math.round(startPos.y + dy)
+              });
+            }
+          }
+        });
+      }
+    });
+
+    // Node drag release: persist new positions (single or batch)
+    cy.on('dragfree', 'node', (evt: EventObject) => {
+      const targetNode = evt.target;
+      const targetId = targetNode.id();
+      const startMap = dragStartPositionsRef.current;
+      if (startMap.size > 1 && startMap.has(targetId)) {
+        const updates: { id: string; position: { x: number; y: number } }[] = [];
+        startMap.forEach((_, id) => {
+          const n = cy.$id(id);
+          if (n.length > 0) {
+            const pos = n.position();
+            updates.push({
+              id,
+              position: { x: Math.round(pos.x), y: Math.round(pos.y) }
+            });
+          }
+        });
+        dragStartPositionsRef.current.clear();
+        dragAnchorStartPosRef.current = null;
+        if (onNodesPositionChangeRef.current && updates.length > 0) {
+          onNodesPositionChangeRef.current(updates);
+        }
+      } else {
+        const pos = targetNode.position();
+        if (onNodesPositionChangeRef.current) {
+          onNodesPositionChangeRef.current([
+            {
+              id: targetId,
+              position: { x: Math.round(pos.x), y: Math.round(pos.y) }
+            }
+          ]);
+        }
       }
     });
 
@@ -655,12 +819,19 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
     runLayout(layoutType, false);
   }, [layoutType, runLayout]);
 
-  // Focus mode & pan to selected node
+  // Focus mode & pan to selected node / multi-selection
   useEffect(() => {
     const cy = cyRef.current;
     if (!cy) return;
 
     cy.elements().removeClass('dimmed selected upstream-highlight downstream-highlight highlighted-edge newly-created');
+
+    // Highlight all nodes in multi-selection
+    if (selectedNodeIds && selectedNodeIds.size > 0) {
+      selectedNodeIds.forEach(id => {
+        cy.$id(id).addClass('selected');
+      });
+    }
 
     if (!selectedNodeId) return;
 
@@ -710,7 +881,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
     }
 
     return () => clearTimeout(timer);
-  }, [selectedNodeId, isFocusMode]);
+  }, [selectedNodeId, selectedNodeIds, isFocusMode]);
 
   // Search
   useEffect(() => {
@@ -841,7 +1012,31 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
       {/* Cytoscape Container */}
       <div 
         ref={containerRef} 
-        className={`w-full h-full relative z-0 ${isConnectingMode ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing'}`} 
+        className={`w-full h-full relative z-0 ${
+          isConnectingMode 
+            ? 'cursor-crosshair' 
+            : toolMode === 'box' || toolMode === 'lasso'
+            ? 'cursor-crosshair'
+            : 'cursor-grab active:cursor-grabbing'
+        }`} 
+      />
+
+      {/* Selection Overlay for Box & Lasso */}
+      <SelectionOverlay
+        toolMode={toolMode}
+        onSelectBox={handleSelectBox}
+        onSelectLasso={handleSelectLasso}
+        containerRef={containerRef}
+      />
+
+      {/* Floating Batch Selection Bar */}
+      <BatchSelectionBar
+        selectedCount={selectedNodeIds.size}
+        totalNodeCount={nodes.length}
+        onSelectAll={() => onSelectAllNodes?.()}
+        onClearSelection={() => onClearSelection?.()}
+        onBatchDelete={() => onBatchDeleteNodes?.(Array.from(selectedNodeIds))}
+        isDark={isDark}
       />
 
       {/* Floating Canvas Controls - Modern Frosted Glass Island */}
@@ -918,7 +1113,62 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
         <span className="px-1.5 py-1 font-mono text-[10px] opacity-60">
           {currentZoomPercent}%
         </span>
+
+        <div className="w-[1px] h-3.5 bg-black/10 dark:bg-white/10 mx-0.5" />
+
+        {/* Selection Tool Mode Toggles */}
+        <button
+          onClick={() => setToolMode('none')}
+          className={`p-1.5 rounded-md transition-colors ${
+            toolMode === 'none'
+              ? isDark ? 'bg-white/20 text-white' : 'bg-black/10 text-stone-900 font-bold'
+              : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'
+          }`}
+          title="默认选择与拖拽模式"
+        >
+          <MousePointer className="w-3.5 h-3.5" />
+        </button>
+
+        <button
+          onClick={() => setToolMode(prev => prev === 'box' ? 'none' : 'box')}
+          className={`p-1.5 rounded-md transition-colors ${
+            toolMode === 'box'
+              ? 'bg-blue-600 text-white'
+              : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'
+          }`}
+          title="矩形框选模式 (Shift+拖拽 / B)"
+        >
+          <BoxSelect className="w-3.5 h-3.5" />
+        </button>
+
+        <button
+          onClick={() => setToolMode(prev => prev === 'lasso' ? 'none' : 'lasso')}
+          className={`p-1.5 rounded-md transition-colors ${
+            toolMode === 'lasso'
+              ? 'bg-blue-600 text-white'
+              : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'
+          }`}
+          title="自由套索圈选模式 (Alt+拖拽)"
+        >
+          <Lasso className="w-3.5 h-3.5" />
+        </button>
       </div>
+
+      {/* Box / Lasso Mode Active Banner */}
+      {toolMode !== 'none' && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1.5 rounded-full shadow-2xl flex items-center space-x-3 text-xs z-30 animate-in fade-in slide-in-from-top-2 duration-150">
+          <span className="font-medium">
+            {toolMode === 'box' ? '矩形框选模式：在画布上按住并拖拽框选' : '自由套索模式：在画布上按住并划线圈选'}
+          </span>
+          <button
+            onClick={() => setToolMode('none')}
+            className="text-[11px] bg-white/20 hover:bg-white/30 px-2 py-0.5 rounded-full transition-colors font-medium flex items-center space-x-1"
+          >
+            <span>退出</span>
+            <kbd className="px-1 text-[9px] font-mono bg-white/25 rounded">Esc</kbd>
+          </button>
+        </div>
+      )}
 
       {/* MiniMap */}
       <MiniMap cy={cyInstance} theme={theme} />
@@ -973,6 +1223,8 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
         onToggleLayout={onToggleLayout}
         currentLayout={layoutType}
         theme={theme}
+        selectedNodeCount={selectedNodeIds.size}
+        onBatchDelete={() => onBatchDeleteNodes?.(Array.from(selectedNodeIds))}
       />
     </div>
   );
