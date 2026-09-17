@@ -946,9 +946,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 }`}>
                   <p className="font-bold mb-1">关于多模态与 PDF 支持提示：</p>
                   <ul className="list-disc list-inside space-y-0.5 text-[11px]">
-                    <li><strong>Google Gemini</strong>：原生支持输入整份 PDF 与高精度数学公式识别（推荐 <code>gemini-2.5-flash</code>）。</li>
+                    <li><strong>Google Gemini</strong>：原生支持输入整份 PDF 与高精度数学公式识别（推荐 <code>gemini-3.8-flash</code> / <code>gemini-3.7-flash</code>）。</li>
                     <li><strong>DeepSeek</strong>：支持文字与截图输入，最新 <code>deepseek-flash</code> 原生具备视觉多模态能力；<code>deepseek-chat</code> / <code>deepseek-reasoner</code> 擅长深度数理逻辑推理。</li>
-                    <li><strong>通义千问 / 智谱 GLM</strong>：支持截图与文字输入，公式理解扎实。</li>
+                    <li><strong>通义千问 / 智谱 GLM</strong>：支持截图与文字输入，推荐最新 <code>qwen3.8-flash</code> 与 <code>glm-5.3-flash</code>。</li>
                   </ul>
                 </div>
               </div>

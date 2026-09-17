@@ -5,7 +5,7 @@ import {
   ExtractedProposition, 
   IngestionBuildMode 
 } from '../../types/ai';
-import { buildSystemPrompt, buildUserPromptText } from './prompts';
+import { buildSystemPrompt, buildUserPromptText, buildRefineUserPromptText } from './prompts';
 import { callGeminiApi } from './geminiClient';
 import { callOpenAiCompatibleApi } from './openaiClient';
 
@@ -60,7 +60,10 @@ export const cleanAndParseAiJson = (rawText: string): ExtractedProposition[] => 
     const tempId = item.tempId ? String(item.tempId) : `extracted_${Date.now()}_${idx + 1}`;
     const title = String(item.title || `未命名命题 ${idx + 1}`).trim();
     const statement = String(item.statement || item.content || '').trim();
-    const proof_sketch = String(item.proof_sketch || item.proof || item.intuition || '').trim();
+    const proof_sketch = String(item.proof_sketch || item.intuition || '').trim();
+    const full_proof = (item.full_proof || item.proof || item.proof_detail)
+      ? String(item.full_proof || item.proof || item.proof_detail).trim()
+      : undefined;
 
     const existingDeps = Array.isArray(item.depends_on_existing_ids) 
       ? item.depends_on_existing_ids.map(String) 
@@ -75,6 +78,7 @@ export const cleanAndParseAiJson = (rawText: string): ExtractedProposition[] => 
       title,
       statement,
       proof_sketch,
+      full_proof,
       depends_on_existing_ids: existingDeps,
       depends_on_new_temp_ids: newDeps
     };
@@ -91,6 +95,32 @@ export const extractMathPropositions = async (
 ): Promise<ExtractedProposition[]> => {
   const systemPrompt = buildSystemPrompt(buildMode, existingNodes);
   const userPromptText = buildUserPromptText(
+    input.text,
+    input.image?.fileName || input.pdf?.fileName
+  );
+
+  let rawResponse = '';
+  if (settings.provider === 'gemini') {
+    rawResponse = await callGeminiApi(systemPrompt, userPromptText, input, settings);
+  } else {
+    rawResponse = await callOpenAiCompatibleApi(systemPrompt, userPromptText, input, settings);
+  }
+
+  return cleanAndParseAiJson(rawResponse);
+};
+
+export const refineMathPropositions = async (
+  currentNodes: ExtractedProposition[],
+  userInstruction: string,
+  input: AiIngestionInput,
+  buildMode: IngestionBuildMode,
+  existingNodes: PropositionNode[],
+  settings: AiSettings
+): Promise<ExtractedProposition[]> => {
+  const systemPrompt = buildSystemPrompt(buildMode, existingNodes);
+  const userPromptText = buildRefineUserPromptText(
+    currentNodes,
+    userInstruction,
     input.text,
     input.image?.fileName || input.pdf?.fileName
   );

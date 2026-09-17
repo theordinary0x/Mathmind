@@ -6,19 +6,15 @@ import {
   Image as ImageIcon, 
   FileSpreadsheet, 
   Settings as SettingsIcon, 
-  ChevronRight, 
-  Check, 
   AlertCircle, 
   Loader2, 
-  ArrowRight, 
-  Link, 
-  Eye, 
-  EyeOff, 
+  Plus,
   Trash2,
   Layers,
-  Plus
+  Eye,
+  EyeOff
 } from 'lucide-react';
-import { PropositionNode, PropositionType, AppTheme, NODE_TYPES } from '../types';
+import { PropositionNode, AppTheme } from '../types';
 import { 
   AiProvider, 
   AiSettings, 
@@ -32,7 +28,7 @@ import {
   PROVIDER_CONFIGS, 
   getSavedKeyForProvider 
 } from '../services/ai/aiConfig';
-import { extractMathPropositions } from '../services/ai/aiService';
+import { extractMathPropositions, refineMathPropositions } from '../services/ai/aiService';
 import { 
   processImageFile, 
   processPdfFile, 
@@ -41,7 +37,8 @@ import {
   ProcessedImageData,
   ProcessedPdfData
 } from '../utils/fileHelper';
-import { MathRenderer } from './MathRenderer';
+import { ExtractedNodeCard } from './ai/ExtractedNodeCard';
+import { AiRefinementChat } from './ai/AiRefinementChat';
 
 interface AiIngestionModalProps {
   isOpen: boolean;
@@ -79,6 +76,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
 
   // Execution & Extraction States
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isRefining, setIsRefining] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [extractedNodes, setExtractedNodes] = useState<ExtractedProposition[]>([]);
   const [selectedTempIds, setSelectedTempIds] = useState<Set<string>>(new Set());
@@ -113,26 +111,35 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
       if (e.key === 'Escape') {
         onClose();
       } else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        if (!isLoading && hasValidInput) {
+        if (!isLoading && !isRefining && hasValidInput) {
           handleStartExtraction();
         }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, isLoading, textContent, imageData, pdfData, aiSettings, buildMode]);
+  }, [isOpen, isLoading, isRefining, textContent, imageData, pdfData, aiSettings, buildMode]);
 
-  // Global paste handler for images
-  const handleContainerPaste = useCallback(async (e: React.ClipboardEvent) => {
-    if (e.clipboardData && e.clipboardData.items) {
-      const processed = await extractImageFromClipboard(e.clipboardData.items);
-      if (processed) {
-        setImageData(processed);
-        setInputTab('image');
-        setErrorMessage(null);
+  // Window-level paste listener for clipboard screenshots
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleWindowPaste = async (e: ClipboardEvent) => {
+      if (e.clipboardData && e.clipboardData.items) {
+        const processed = await extractImageFromClipboard(e.clipboardData.items);
+        if (processed) {
+          e.preventDefault();
+          e.stopPropagation();
+          setImageData(processed);
+          setInputTab('image');
+          setErrorMessage(null);
+        }
       }
-    }
-  }, []);
+    };
+
+    window.addEventListener('paste', handleWindowPaste);
+    return () => window.removeEventListener('paste', handleWindowPaste);
+  }, [isOpen]);
 
   const hasValidInput = useMemo(() => {
     if (inputTab === 'text') return textContent.trim().length > 0;
@@ -189,6 +196,47 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
     }
   };
 
+  // Handle Conversational Refinement
+  const handleRefinePropositions = async (instruction: string) => {
+    if (!instruction.trim() || extractedNodes.length === 0) return;
+    setIsRefining(true);
+    setErrorMessage(null);
+
+    const input: AiIngestionInput = {
+      mode: inputTab,
+      text: textContent,
+      image: imageData ? {
+        mimeType: imageData.mimeType,
+        data: imageData.data,
+        previewUrl: imageData.previewUrl,
+        fileName: imageData.fileName
+      } : undefined,
+      pdf: pdfData ? {
+        fileName: pdfData.fileName,
+        fileSize: pdfData.fileSize,
+        data: pdfData.data,
+        textContent: pdfData.textContent
+      } : undefined
+    };
+
+    try {
+      const refined = await refineMathPropositions(
+        extractedNodes,
+        instruction,
+        input,
+        buildMode,
+        allNodes,
+        aiSettings
+      );
+      setExtractedNodes(refined);
+      setSelectedTempIds(new Set(refined.map(r => r.tempId)));
+    } catch (err: any) {
+      setErrorMessage(`微调失败: ${err.message || '请检查配置或网络。'}`);
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
   // Toggle selection
   const handleToggleSelect = (tempId: string) => {
     setSelectedTempIds(prev => {
@@ -221,6 +269,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
       title: item.title,
       statement: item.statement,
       proof_sketch: item.proof_sketch,
+      full_proof: item.full_proof,
       depends_on: item.depends_on_existing_ids
     }));
 
@@ -252,6 +301,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
       title: node.title,
       statement: node.statement,
       proof_sketch: node.proof_sketch,
+      full_proof: node.full_proof,
       depends_on: node.depends_on_existing_ids
     });
     onClose();
@@ -261,14 +311,13 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
 
   return (
     <div
-      onPaste={handleContainerPaste}
       onClick={e => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-xs p-3 sm:p-5 animate-in fade-in duration-100"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-xs p-2.5 sm:p-4 animate-in fade-in duration-100"
     >
       <div
-        className={`rounded-xl border shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden font-sans ${
+        className={`relative w-full max-w-5xl h-[90vh] max-h-[860px] rounded-2xl border shadow-2xl flex flex-col overflow-hidden font-sans ${
           isDark ? 'bg-[#18181B] border-white/10 text-[#EDECE8]' : 'bg-white border-black/10 text-[#2C2B29]'
         }`}
       >
@@ -278,39 +327,39 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
             isDark ? 'bg-[#202024] border-white/10' : 'bg-[#FAF8F5] border-black/10'
           }`}
         >
-          <div className="flex items-center space-x-2.5">
-            <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-500">
+          <div className="flex items-center space-x-2.5 min-w-0 pr-2">
+            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500 shrink-0">
               <Sparkles className="w-4 h-4" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center space-x-2">
-                <h2 className="text-sm font-serif font-bold">AI 教材智能录入</h2>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-500 font-mono">
+                <h2 className="text-sm sm:text-base font-serif font-bold truncate">AI 教材智能录入</h2>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 font-mono shrink-0">
                   {PROVIDER_CONFIGS[aiSettings.provider].name}
                 </span>
               </div>
-              <p className="text-[11px] opacity-60">
+              <p className="text-[11px] opacity-60 truncate">
                 支持文本、剪贴板截图与 PDF，智能识别因果前置拓扑链
               </p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 shrink-0">
             <button
               onClick={() => setShowSettingsPanel(!showSettingsPanel)}
-              className={`p-1.5 rounded-md text-xs flex items-center space-x-1 transition-colors ${
+              className={`px-2.5 py-1.5 rounded-lg text-xs flex items-center space-x-1.5 transition-colors font-medium ${
                 showSettingsPanel 
-                  ? 'bg-blue-600 text-white' 
+                  ? 'bg-blue-600 text-white shadow-xs' 
                   : isDark ? 'hover:bg-white/5 text-zinc-400 hover:text-white' : 'hover:bg-black/5 text-stone-600 hover:text-black'
               }`}
               title="配置 AI 模型与 API Key"
             >
-              <SettingsIcon className="w-4 h-4" />
+              <SettingsIcon className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">模型配置</span>
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-md opacity-60 hover:opacity-100 transition-opacity"
+              className="p-1.5 rounded-lg opacity-60 hover:opacity-100 transition-opacity"
               title="关闭 (Esc)"
             >
               <X className="w-4 h-4" />
@@ -332,12 +381,12 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                 <select
                   value={aiSettings.provider}
                   onChange={e => handleProviderChange(e.target.value as AiProvider)}
-                  className={`w-full p-1.5 rounded border text-xs outline-hidden ${
+                  className={`w-full p-2 rounded-lg border text-xs outline-hidden ${
                     isDark ? 'bg-[#18181B] border-white/15 text-white' : 'bg-white border-black/15 text-stone-800'
                   }`}
                 >
                   <option value="gemini">Google Gemini (多模态/PDF)</option>
-                  <option value="deepseek">DeepSeek (深度求索)</option>
+                  <option value="deepseek">DeepSeek (深度求索/多模态)</option>
                   <option value="qwen">通义千问 (Qwen)</option>
                   <option value="glm">智谱清言 (GLM)</option>
                   <option value="custom">自定义 / 本地 Ollama</option>
@@ -351,8 +400,8 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                   type="text"
                   value={aiSettings.model}
                   onChange={e => handleUpdateSettings({ model: e.target.value })}
-                  placeholder="如 gemini-2.5-flash / deepseek-chat"
-                  className={`w-full p-1.5 rounded border text-xs outline-hidden font-mono ${
+                  placeholder="如 gemini-3.8-flash / deepseek-flash"
+                  className={`w-full p-2 rounded-lg border text-xs outline-hidden font-mono ${
                     isDark ? 'bg-[#18181B] border-white/15 text-white' : 'bg-white border-black/15 text-stone-800'
                   }`}
                 />
@@ -379,14 +428,14 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                     value={aiSettings.apiKey}
                     onChange={e => handleUpdateSettings({ apiKey: e.target.value })}
                     placeholder="输入 API Key (本地保存)"
-                    className={`w-full p-1.5 pr-8 rounded border text-xs outline-hidden font-mono ${
+                    className={`w-full p-2 pr-8 rounded-lg border text-xs outline-hidden font-mono ${
                       isDark ? 'bg-[#18181B] border-white/15 text-white' : 'bg-white border-black/15 text-stone-800'
                     }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowApiKey(!showApiKey)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100"
                   >
                     {showApiKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
@@ -397,126 +446,140 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
         )}
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
+        <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
           {/* Left Column: Input and Configuration */}
-          <div className="w-full md:w-1/2 flex flex-col p-4 border-b md:border-b-0 md:border-r border-black/10 dark:border-white/10 overflow-y-auto">
+          <div className="w-full md:w-1/2 flex flex-col p-4 border-b md:border-b-0 md:border-r border-black/10 dark:border-white/10 min-h-0 overflow-y-auto">
             {/* Build Mode Selector */}
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-3 shrink-0">
               <label className="text-xs font-semibold uppercase tracking-wider opacity-60">提炼策略</label>
               <div className="flex items-center p-0.5 rounded-lg border border-black/10 dark:border-white/10 text-xs">
                 <button
                   type="button"
                   onClick={() => setBuildMode('batch')}
-                  className={`px-2.5 py-1 rounded-md transition-colors ${
-                    buildMode === 'batch' 
-                      ? 'bg-blue-600 text-white font-medium shadow-xs' 
+                  className={`px-3 py-1 rounded-md font-medium transition-colors ${
+                    buildMode === 'batch'
+                      ? 'bg-blue-600 text-white shadow-xs'
                       : 'opacity-70 hover:opacity-100'
                   }`}
                 >
-                  ⚡ 批量抽取 (Batch)
+                  ⚡ 批量提炼
                 </button>
                 <button
                   type="button"
                   onClick={() => setBuildMode('single')}
-                  className={`px-2.5 py-1 rounded-md transition-colors ${
-                    buildMode === 'single' 
-                      ? 'bg-blue-600 text-white font-medium shadow-xs' 
+                  className={`px-3 py-1 rounded-md font-medium transition-colors ${
+                    buildMode === 'single'
+                      ? 'bg-blue-600 text-white shadow-xs'
                       : 'opacity-70 hover:opacity-100'
                   }`}
                 >
-                  🎯 单个精修 (Single)
+                  🎯 单个精修
                 </button>
               </div>
             </div>
 
-            {/* Input Type Tabs */}
-            <div className="flex border-b border-black/10 dark:border-white/10 mb-3 text-xs">
+            {/* Input Form Tabs */}
+            <div className="flex items-center space-x-1 mb-3 p-1 rounded-xl bg-black/5 dark:bg-white/5 text-xs shrink-0">
               <button
                 type="button"
                 onClick={() => setInputTab('text')}
-                className={`pb-2 px-3 border-b-2 flex items-center space-x-1.5 font-medium transition-colors ${
+                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center space-x-1.5 transition-all font-medium ${
                   inputTab === 'text'
-                    ? 'border-blue-500 text-blue-500'
-                    : 'border-transparent opacity-60 hover:opacity-100'
+                    ? isDark ? 'bg-[#27272A] text-white shadow-xs' : 'bg-white text-black shadow-xs'
+                    : 'opacity-60 hover:opacity-100'
                 }`}
               >
                 <FileText className="w-3.5 h-3.5" />
-                <span>文本 / LaTeX</span>
+                <span>文本输入</span>
               </button>
               <button
                 type="button"
                 onClick={() => setInputTab('image')}
-                className={`pb-2 px-3 border-b-2 flex items-center space-x-1.5 font-medium transition-colors ${
+                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center space-x-1.5 transition-all font-medium ${
                   inputTab === 'image'
-                    ? 'border-blue-500 text-blue-500'
-                    : 'border-transparent opacity-60 hover:opacity-100'
+                    ? isDark ? 'bg-[#27272A] text-white shadow-xs' : 'bg-white text-black shadow-xs'
+                    : 'opacity-60 hover:opacity-100'
                 }`}
               >
                 <ImageIcon className="w-3.5 h-3.5" />
-                <span>截图 / 图片</span>
+                <span>截图 / 识图</span>
+                {imageData && <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
               </button>
               <button
                 type="button"
                 onClick={() => setInputTab('pdf')}
-                className={`pb-2 px-3 border-b-2 flex items-center space-x-1.5 font-medium transition-colors ${
+                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center space-x-1.5 transition-all font-medium ${
                   inputTab === 'pdf'
-                    ? 'border-blue-500 text-blue-500'
-                    : 'border-transparent opacity-60 hover:opacity-100'
+                    ? isDark ? 'bg-[#27272A] text-white shadow-xs' : 'bg-white text-black shadow-xs'
+                    : 'opacity-60 hover:opacity-100'
                 }`}
               >
                 <FileSpreadsheet className="w-3.5 h-3.5" />
                 <span>PDF 文档</span>
+                {pdfData && <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
               </button>
             </div>
 
-            {/* Input Form Fields */}
-            <div className="flex-1 flex flex-col min-h-[180px]">
+            {/* Content Input Box */}
+            <div className="flex-1 min-h-0 flex flex-col mb-2">
               {inputTab === 'text' && (
                 <textarea
                   value={textContent}
                   onChange={e => setTextContent(e.target.value)}
-                  placeholder="在此粘贴教材正文、定理推导段落或 LaTeX 源码...&#10;&#10;例：&#10;定义 1.2（一致连续）：设函数 f(x) 在区间 I 上有定义。若对于任意给定的 ε > 0，总存在 δ > 0..."
-                  className={`w-full flex-1 p-3 rounded-lg border text-xs leading-relaxed resize-none outline-hidden font-serif ${
+                  placeholder="在此粘贴数学教材文本、定理、推论或证明过程（支持直接粘贴 LaTeX 公式）..."
+                  className={`w-full flex-1 min-h-[220px] p-3 rounded-xl border text-xs outline-hidden font-serif resize-none leading-relaxed transition-colors ${
                     isDark
-                      ? 'bg-[#121214] border-white/10 text-white placeholder-zinc-500'
-                      : 'bg-[#FAF8F5] border-black/10 text-stone-900 placeholder-stone-400'
+                      ? 'bg-[#121214] border-white/10 text-white placeholder-zinc-500 focus:border-blue-500/50'
+                      : 'bg-[#FAF8F5] border-black/10 text-stone-900 placeholder-stone-400 focus:border-blue-500/50'
                   }`}
                 />
               )}
 
               {inputTab === 'image' && (
-                <div className="flex-1 flex flex-col">
+                <div className="flex-1 min-h-0 flex flex-col">
                   {imageData ? (
-                    <div className="relative flex-1 flex flex-col items-center justify-center p-2 border rounded-lg border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
+                    <div className="relative flex-1 min-h-0 flex flex-col items-center justify-center p-3 border rounded-xl border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
                       <img
                         src={imageData.previewUrl}
                         alt="待识别图片"
-                        className="max-h-52 object-contain rounded shadow-sm"
+                        className="max-h-52 object-contain rounded-lg shadow-sm"
                       />
                       <div className="mt-2 text-[11px] opacity-70 flex items-center justify-between w-full px-2">
-                        <span className="truncate">{imageData.fileName}</span>
+                        <span className="truncate max-w-[220px]">{imageData.fileName}</span>
                         <button
                           type="button"
                           onClick={() => setImageData(null)}
-                          className="text-red-500 hover:text-red-600 flex items-center space-x-1"
+                          className="text-red-500 hover:text-red-600 flex items-center space-x-1 font-medium"
                         >
                           <Trash2 className="w-3 h-3" />
-                          <span>移除</span>
+                          <span>移除图片</span>
                         </button>
                       </div>
                     </div>
                   ) : (
                     <div
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`flex-1 border-2 border-dashed rounded-lg flex flex-col items-center justify-center p-6 cursor-pointer transition-colors ${
+                      className={`flex-1 min-h-[180px] border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-6 text-center transition-colors ${
                         isDark 
-                          ? 'border-white/15 hover:border-blue-500/50 hover:bg-white/5' 
-                          : 'border-black/15 hover:border-blue-500/50 hover:bg-stone-50'
+                          ? 'border-white/15 bg-white/[0.02]' 
+                          : 'border-black/15 bg-stone-50/50'
                       }`}
                     >
-                      <ImageIcon className="w-8 h-8 opacity-40 mb-2 text-blue-500" />
-                      <p className="text-xs font-medium">点击选择或拖拽图片到此</p>
-                      <p className="text-[11px] opacity-60 mt-1">支持在任意位置直接 Ctrl + V 粘贴剪贴板截图</p>
+                      <ImageIcon className="w-9 h-9 opacity-40 mb-2.5 text-blue-500" />
+                      <p className="text-xs font-semibold">直接按 Ctrl + V 粘贴截图</p>
+                      <p className="text-[11px] opacity-60 mt-1">支持剪贴板截图直接贴入，无需手动另存</p>
+                      <div className="mt-3 flex items-center space-x-2">
+                        <span className="text-[11px] opacity-40">或者</span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            fileInputRef.current?.click();
+                          }}
+                          className="px-3 py-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 text-xs font-medium transition-colors shadow-xs"
+                        >
+                          选择本地图片
+                        </button>
+                      </div>
                     </div>
                   )}
                   <input
@@ -529,6 +592,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                       if (file) {
                         const processed = await processImageFile(file);
                         setImageData(processed);
+                        e.target.value = '';
                       }
                     }}
                   />
@@ -537,8 +601,8 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                     type="text"
                     value={textContent}
                     onChange={e => setTextContent(e.target.value)}
-                    placeholder="可选：补充补充说明或重点关注的定理名称..."
-                    className={`mt-2 p-2 rounded border text-xs outline-hidden ${
+                    placeholder="可选：输入额外补充说明或重点关注的定理..."
+                    className={`mt-2 p-2 rounded-lg border text-xs outline-hidden shrink-0 ${
                       isDark ? 'bg-[#121214] border-white/10 text-white' : 'bg-[#FAF8F5] border-black/10 text-stone-800'
                     }`}
                   />
@@ -546,16 +610,16 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
               )}
 
               {inputTab === 'pdf' && (
-                <div className="flex-1 flex flex-col">
+                <div className="flex-1 min-h-0 flex flex-col">
                   {pdfData ? (
-                    <div className="relative flex-1 flex flex-col items-center justify-center p-4 border rounded-lg border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
+                    <div className="relative flex-1 min-h-0 flex flex-col items-center justify-center p-4 border rounded-xl border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
                       <FileSpreadsheet className="w-10 h-10 text-red-500 opacity-80 mb-2" />
                       <p className="text-xs font-bold truncate max-w-xs">{pdfData.fileName}</p>
                       <p className="text-[11px] opacity-60 mt-0.5">{formatFileSize(pdfData.fileSize)}</p>
                       <button
                         type="button"
                         onClick={() => setPdfData(null)}
-                        className="mt-3 text-xs text-red-500 hover:text-red-600 flex items-center space-x-1"
+                        className="mt-3 text-xs text-red-500 hover:text-red-600 flex items-center space-x-1 font-medium"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         <span>移除并重选</span>
@@ -563,16 +627,25 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                     </div>
                   ) : (
                     <div
-                      onClick={() => pdfInputRef.current?.click()}
-                      className={`flex-1 border-2 border-dashed rounded-lg flex flex-col items-center justify-center p-6 cursor-pointer transition-colors ${
+                      className={`flex-1 min-h-[180px] border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-6 text-center transition-colors ${
                         isDark 
-                          ? 'border-white/15 hover:border-blue-500/50 hover:bg-white/5' 
-                          : 'border-black/15 hover:border-blue-500/50 hover:bg-stone-50'
+                          ? 'border-white/15 bg-white/[0.02]' 
+                          : 'border-black/15 bg-stone-50/50'
                       }`}
                     >
-                      <FileSpreadsheet className="w-8 h-8 opacity-40 mb-2 text-indigo-500" />
-                      <p className="text-xs font-medium">点击选择本地 PDF 文档</p>
-                      <p className="text-[11px] opacity-60 mt-1">推荐使用 Google Gemini 原生解析 PDF 公式与逻辑</p>
+                      <FileSpreadsheet className="w-9 h-9 opacity-40 mb-2.5 text-indigo-500" />
+                      <p className="text-xs font-semibold">上传本地数学教材 PDF</p>
+                      <p className="text-[11px] opacity-60 mt-1">推荐使用 Google Gemini 原生解析高精度公式与定理逻辑</p>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          pdfInputRef.current?.click();
+                        }}
+                        className="mt-3 px-3 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 text-xs font-medium transition-colors shadow-xs"
+                      >
+                        选择 PDF 文档
+                      </button>
                     </div>
                   )}
                   <input
@@ -585,6 +658,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                       if (file) {
                         const processed = await processPdfFile(file);
                         setPdfData(processed);
+                        e.target.value = '';
                       }
                     }}
                   />
@@ -592,8 +666,8 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                     type="text"
                     value={textContent}
                     onChange={e => setTextContent(e.target.value)}
-                    placeholder="可选：指定解析章节或补充提示..."
-                    className={`mt-2 p-2 rounded border text-xs outline-hidden ${
+                    placeholder="可选：指定解析章节或定理编号..."
+                    className={`mt-2 p-2 rounded-lg border text-xs outline-hidden shrink-0 ${
                       isDark ? 'bg-[#121214] border-white/10 text-white' : 'bg-[#FAF8F5] border-black/10 text-stone-800'
                     }`}
                   />
@@ -603,20 +677,20 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
 
             {/* Error Message Alert */}
             {errorMessage && (
-              <div className="mt-3 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-xs flex items-start space-x-2">
+              <div className="mt-2.5 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-xs flex items-start space-x-2 shrink-0">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span className="leading-tight">{errorMessage}</span>
               </div>
             )}
 
             {/* Trigger Button */}
-            <div className="mt-4 pt-3 border-t border-black/10 dark:border-white/10 flex items-center justify-between">
+            <div className="mt-3 pt-3 border-t border-black/10 dark:border-white/10 flex items-center justify-between shrink-0">
               <span className="text-[11px] opacity-50 font-mono hidden sm:inline">Ctrl + Enter 启动</span>
               <button
                 type="button"
                 onClick={handleStartExtraction}
-                disabled={isLoading || !hasValidInput}
-                className="w-full sm:w-auto px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium flex items-center justify-center space-x-2 shadow-sm transition-all"
+                disabled={isLoading || isRefining || !hasValidInput}
+                className="w-full sm:w-auto px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-semibold flex items-center justify-center space-x-2 shadow-sm transition-all"
               >
                 {isLoading ? (
                   <>
@@ -633,9 +707,10 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
             </div>
           </div>
 
-          {/* Right Column: Preview & Result Checklist */}
-          <div className="w-full md:w-1/2 flex flex-col p-4 overflow-y-auto min-h-[260px]">
-            <div className="flex items-center justify-between mb-3">
+          {/* Right Column: Preview, Result Checklist & Conversational Refinement */}
+          <div className="w-full md:w-1/2 flex flex-col p-4 min-h-0">
+            {/* Right Column Header */}
+            <div className="flex items-center justify-between mb-2.5 shrink-0">
               <div className="flex items-center space-x-2">
                 <Layers className="w-4 h-4 text-blue-500" />
                 <h3 className="text-xs font-semibold uppercase tracking-wider">
@@ -646,123 +721,68 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                 <button
                   type="button"
                   onClick={handleToggleSelectAll}
-                  className="text-[11px] text-blue-500 hover:underline"
+                  className="text-[11px] text-blue-500 hover:underline font-medium"
                 >
                   {selectedTempIds.size === extractedNodes.length ? '取消全选' : '全选'}
                 </button>
               )}
             </div>
 
-            {/* Empty or Loading State */}
-            {isLoading ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-8 opacity-70">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-3" />
-                <p className="text-xs font-medium">正在解析命题、验证 LaTeX 公式与前置依赖...</p>
-                <p className="text-[11px] opacity-60 mt-1">耗时通常约 3~8 秒，请稍候</p>
-              </div>
-            ) : extractedNodes.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center opacity-40 border-2 border-dashed rounded-lg border-black/10 dark:border-white/10">
-                <Sparkles className="w-8 h-8 mb-2" />
-                <p className="text-xs">在左侧输入数学材料后点击“开始智能提炼”</p>
-                <p className="text-[11px] mt-1">提取出的定义、定理与拓扑连接将在此展示</p>
-              </div>
-            ) : (
-              <div className="space-y-3 flex-1 overflow-y-auto pr-1">
-                {extractedNodes.map((item) => {
-                  const isSelected = selectedTempIds.has(item.tempId);
-                  const typeMeta = NODE_TYPES[item.type] || { label: item.type, color: 'bg-zinc-500' };
-
-                  return (
-                    <div
+            {/* Main Center Area: Independent Scroll for Cards */}
+            <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+              {isLoading ? (
+                <div className="h-full flex flex-col items-center justify-center p-8 opacity-70">
+                  <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-3" />
+                  <p className="text-xs font-medium">正在解析命题、验证 LaTeX 公式与前置依赖...</p>
+                  <p className="text-[11px] opacity-60 mt-1">耗时通常约 3~8 秒，请稍候</p>
+                </div>
+              ) : extractedNodes.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center p-8 text-center opacity-40 border-2 border-dashed rounded-xl border-black/10 dark:border-white/10">
+                  <Sparkles className="w-8 h-8 mb-2" />
+                  <p className="text-xs font-medium">在左侧输入数学材料后点击“开始智能提炼”</p>
+                  <p className="text-[11px] mt-1">提炼出的标题、命题陈述、证明思路与严格证明将在此展示</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {extractedNodes.map(item => (
+                    <ExtractedNodeCard
                       key={item.tempId}
-                      className={`p-3 rounded-lg border text-xs transition-all ${
-                        isSelected 
-                          ? isDark ? 'bg-blue-950/20 border-blue-500/50' : 'bg-blue-50/50 border-blue-400'
-                          : isDark ? 'bg-white/5 border-white/10 opacity-75' : 'bg-stone-50 border-black/10 opacity-75'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => handleToggleSelect(item.tempId)}
-                            className="w-3.5 h-3.5 rounded accent-blue-600 cursor-pointer"
-                          />
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] text-white font-medium ${typeMeta.color}`}>
-                            {typeMeta.label}
-                          </span>
-                          <span className="font-serif font-bold text-sm">{item.title}</span>
-                        </div>
+                      item={item}
+                      isSelected={selectedTempIds.has(item.tempId)}
+                      onToggleSelect={handleToggleSelect}
+                      buildMode={buildMode}
+                      onOpenSingle={handleOpenSingle}
+                      existingNodeMap={existingNodeMap}
+                      allExtractedNodes={extractedNodes}
+                      isDark={isDark}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
 
-                        {buildMode === 'single' && (
-                          <button
-                            type="button"
-                            onClick={() => handleOpenSingle(item)}
-                            className="px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white text-[11px] shrink-0"
-                          >
-                            精修编辑 &rarr;
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Statement Preview */}
-                      <div className="mt-2 pl-5.5">
-                        <div className="p-2 rounded bg-black/5 dark:bg-black/20 font-serif leading-relaxed text-xs">
-                          <MathRenderer content={item.statement} />
-                        </div>
-
-                        {item.proof_sketch && (
-                          <p className="mt-1.5 text-[11px] opacity-70 leading-relaxed font-serif">
-                            <span className="font-bold">思路：</span>{item.proof_sketch}
-                          </p>
-                        )}
-
-                        {/* Dependencies */}
-                        {(item.depends_on_existing_ids.length > 0 || item.depends_on_new_temp_ids.length > 0) && (
-                          <div className="mt-2 pt-2 border-t border-black/5 dark:border-white/5 flex flex-wrap items-center gap-1.5 text-[10px]">
-                            <span className="opacity-60 flex items-center">
-                              <Link className="w-3 h-3 mr-1" /> 前置依赖:
-                            </span>
-                            {/* Existing canvas nodes */}
-                            {item.depends_on_existing_ids.map(id => {
-                              const existing = existingNodeMap.get(id);
-                              return (
-                                <span key={id} className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono">
-                                  {existing?.title || id} (已有)
-                                </span>
-                              );
-                            })}
-                            {/* In-batch new nodes */}
-                            {item.depends_on_new_temp_ids.map(tempId => {
-                              const targetNew = extractedNodes.find(n => n.tempId === tempId);
-                              return (
-                                <span key={tempId} className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-500 font-mono flex items-center">
-                                  <ArrowRight className="w-2.5 h-2.5 mr-0.5" />
-                                  {targetNew?.title || tempId}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+            {/* Conversational Refinement Chat Box */}
+            {extractedNodes.length > 0 && (
+              <div className="shrink-0 mt-3">
+                <AiRefinementChat
+                  isRefining={isRefining}
+                  onRefine={handleRefinePropositions}
+                  isDark={isDark}
+                />
               </div>
             )}
 
-            {/* Batch Import Button */}
+            {/* Batch Import Action Footer */}
             {extractedNodes.length > 0 && (
-              <div className="mt-4 pt-3 border-t border-black/10 dark:border-white/10 flex items-center justify-between">
+              <div className="mt-2.5 pt-2.5 border-t border-black/10 dark:border-white/10 flex items-center justify-between shrink-0">
                 <span className="text-xs opacity-70">
                   已选择 <strong className="text-blue-500">{selectedTempIds.size}</strong> / {extractedNodes.length} 个命题
                 </span>
                 <button
                   type="button"
                   onClick={handleExecuteBatchImport}
-                  disabled={selectedTempIds.size === 0}
-                  className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold flex items-center space-x-1.5 shadow-sm transition-all"
+                  disabled={selectedTempIds.size === 0 || isRefining}
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold flex items-center space-x-1.5 shadow-sm transition-all"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>一键导入画布</span>

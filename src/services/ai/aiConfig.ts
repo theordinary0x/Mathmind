@@ -14,8 +14,8 @@ export const PROVIDER_CONFIGS: Record<AiProvider, ProviderMeta> = {
   gemini: {
     name: 'Google Gemini',
     defaultBaseUrl: 'https://generativelanguage.googleapis.com',
-    defaultModel: 'gemini-2.5-flash',
-    candidateModels: ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro'],
+    defaultModel: 'gemini-3.8-flash',
+    candidateModels: ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.1-pro', 'gemini-2.5-flash'],
     docUrl: 'https://aistudio.google.com/apikey',
     supportsImage: true,
     supportsPdf: true
@@ -32,8 +32,8 @@ export const PROVIDER_CONFIGS: Record<AiProvider, ProviderMeta> = {
   qwen: {
     name: '通义千问 (Qwen)',
     defaultBaseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-    defaultModel: 'qwen-plus',
-    candidateModels: ['qwen-plus', 'qwen-max', 'qwen-vl-max', 'qwen-turbo'],
+    defaultModel: 'qwen3.8-flash',
+    candidateModels: ['qwen3.8-flash', 'qwen3.8-max', 'qwen-plus', 'qwen-vl-max'],
     docUrl: 'https://dashscope.console.aliyun.com/apiKey',
     supportsImage: true,
     supportsPdf: false
@@ -41,8 +41,8 @@ export const PROVIDER_CONFIGS: Record<AiProvider, ProviderMeta> = {
   glm: {
     name: '智谱清言 (GLM)',
     defaultBaseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-    defaultModel: 'glm-4-flash',
-    candidateModels: ['glm-4-flash', 'glm-4-plus', 'glm-4v-plus'],
+    defaultModel: 'glm-5.3-flash',
+    candidateModels: ['glm-5.3-flash', 'glm-5.3', 'glm-4-flash'],
     docUrl: 'https://open.bigmodel.cn/usercenter/apikeys',
     supportsImage: true,
     supportsPdf: false
