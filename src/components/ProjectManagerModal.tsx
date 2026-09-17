@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Folder, Trash2, ArrowRight } from 'lucide-react';
 import { Project, AppTheme } from '../types';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface ProjectManagerModalProps {
   isOpen: boolean;
@@ -41,6 +42,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
 
   if (!isOpen) return null;
 
+  const { t } = useTranslation();
   const isDark = theme === 'dark';
 
   const handleCreate = (e: React.FormEvent) => {
@@ -74,7 +76,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
         >
           <div className="flex items-center space-x-2">
             <Folder className="w-4 h-4 text-blue-500" />
-            <h3 className="font-serif font-bold text-sm tracking-tight">项目管理</h3>
+            <h3 className="font-serif font-bold text-sm tracking-tight">{t('projectModal.title')}</h3>
           </div>
           <button
             onClick={onClose}
@@ -97,7 +99,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
               }`}
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>新建项目</span>
+              <span>{t('projectModal.createProject')}</span>
             </button>
           ) : (
             <form
@@ -107,7 +109,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-serif font-bold">新建项目</span>
+                <span className="text-xs font-serif font-bold">{t('projectModal.createProject')}</span>
                 <button
                   type="button"
                   onClick={() => setIsCreating(false)}
@@ -125,7 +127,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
                   autoFocus
                   value={newProjectName}
                   onChange={e => setNewProjectName(e.target.value)}
-                  placeholder="输入项目名称..."
+                  placeholder={t('projectModal.projectNamePlaceholder')}
                   className={`w-full text-xs font-serif p-2 rounded-lg border transition-colors focus:outline-none ${
                     isDark
                       ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'

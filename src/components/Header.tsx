@@ -23,6 +23,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { Project, AppTheme } from '../types';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface HeaderProps {
   currentProject: Project;
@@ -112,6 +113,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isDark = theme === 'dark';
+  const { t, language } = useTranslation();
 
   return (
     <header
@@ -139,7 +141,7 @@ export const Header: React.FC<HeaderProps> = ({
               ? 'hover:bg-white/5 text-zinc-200'
               : 'hover:bg-black/5 text-stone-800'
           }`}
-          title="项目管理 (P / Ctrl+P)"
+          title={`${t('header.projectManager')} (P / Ctrl+P)`}
         >
           <Layers className="w-3.5 h-3.5 text-[#60A5FA] shrink-0" />
           <span className="font-serif font-medium max-w-[60px] sm:max-w-[100px] md:max-w-[130px] lg:max-w-[170px] truncate">
@@ -162,7 +164,7 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'hover:bg-white text-stone-900 shadow-xs'
                 : 'opacity-25 cursor-not-allowed'
             }`}
-            title="撤销 (Ctrl+Z)"
+            title={`${t('common.undo')} (Ctrl+Z)`}
           >
             <Undo2 className="w-3.5 h-3.5" />
           </button>
@@ -176,7 +178,7 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'hover:bg-white text-stone-900 shadow-xs'
                 : 'opacity-25 cursor-not-allowed'
             }`}
-            title="重做 (Ctrl+Y)"
+            title={`${t('common.redo')} (Ctrl+Y)`}
           >
             <Redo2 className="w-3.5 h-3.5" />
           </button>
@@ -191,7 +193,7 @@ export const Header: React.FC<HeaderProps> = ({
           id="global-search-input"
           value={searchQuery}
           onChange={e => onSearchChange(e.target.value)}
-          placeholder="搜索... (/)"
+          placeholder={t('header.searchPlaceholder')}
           className={`w-full pl-7 pr-4 py-1 text-xs rounded-md border focus:outline-none transition-all font-serif ${
             isDark
               ? 'bg-white/5 border-white/10 text-white placeholder-zinc-500 focus:border-blue-400/60 focus:bg-white/10'
@@ -221,10 +223,10 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'bg-white text-stone-900 shadow-xs font-semibold'
                 : 'opacity-60 hover:opacity-100'
             }`}
-            title="分层拓扑布局 (1)"
+            title={`${t('header.dagreLayout')} (1)`}
           >
             <GitFork className="w-3 h-3" />
-            <span className="hidden xl:inline">分层</span>
+            <span className="hidden xl:inline">{language === 'zh' ? '分层' : 'DAG'}</span>
             <KbdBadge isDark={isDark} active={layoutType === 'dagre'}>1</KbdBadge>
           </button>
           <button
@@ -236,10 +238,10 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'bg-white text-stone-900 shadow-xs font-semibold'
                 : 'opacity-60 hover:opacity-100'
             }`}
-            title="力导向布局 (2)"
+            title={`${t('header.coseLayout')} (2)`}
           >
             <Network className="w-3 h-3" />
-            <span className="hidden xl:inline">力导向</span>
+            <span className="hidden xl:inline">{language === 'zh' ? '力导向' : 'Force'}</span>
             <KbdBadge isDark={isDark} active={layoutType === 'cose'}>2</KbdBadge>
           </button>
         </div>
@@ -254,10 +256,10 @@ export const Header: React.FC<HeaderProps> = ({
                 ? 'hover:bg-white/5 text-zinc-300 opacity-80 hover:opacity-100'
                 : 'hover:bg-black/5 text-stone-700 opacity-80 hover:opacity-100'
           }`}
-          title="聚焦模式 (F)"
+          title={`${t('header.focusMode')} (F)`}
         >
           {isFocusMode ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-          <span className="hidden xl:inline">{isFocusMode ? '聚焦: 开' : '聚焦'}</span>
+          <span className="hidden xl:inline">{isFocusMode ? (language === 'zh' ? '聚焦: 开' : 'Focus: On') : (language === 'zh' ? '聚焦' : 'Focus')}</span>
           <KbdBadge isDark={isDark} active={isFocusMode}>F</KbdBadge>
         </button>
 
@@ -271,10 +273,10 @@ export const Header: React.FC<HeaderProps> = ({
                 ? 'hover:bg-white/5 text-zinc-300 opacity-80 hover:opacity-100'
                 : 'hover:bg-black/5 text-stone-700 opacity-80 hover:opacity-100'
           }`}
-          title="连线模式 (L)"
+          title={`${t('header.connectMode')} (L)`}
         >
           <Link2 className="w-3.5 h-3.5" />
-          <span className="hidden xl:inline">{isConnectingMode ? '连线中...' : '连线'}</span>
+          <span className="hidden xl:inline">{isConnectingMode ? (language === 'zh' ? '连线中...' : 'Connecting...') : (language === 'zh' ? '连线' : 'Connect')}</span>
           <KbdBadge isDark={isDark} active={isConnectingMode}>L</KbdBadge>
         </button>
 
@@ -286,10 +288,10 @@ export const Header: React.FC<HeaderProps> = ({
               ? 'bg-blue-600 hover:bg-blue-500 text-white'
               : 'bg-[#2C2B29] hover:bg-[#3F3E3A] text-white'
           }`}
-          title="新建命题 (N / Ctrl+N)"
+          title={`${t('header.newProposition')} (N / Ctrl+N)`}
         >
           <Plus className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">新建命题</span>
+          <span className="hidden sm:inline">{t('header.newProposition')}</span>
           <KbdBadge isDark={isDark} variant="solid" className="hidden xl:inline-flex">N</KbdBadge>
         </button>
 
@@ -302,11 +304,11 @@ export const Header: React.FC<HeaderProps> = ({
                 ? 'bg-indigo-600/90 hover:bg-indigo-500 text-white'
                 : 'bg-indigo-600 hover:bg-indigo-700 text-white'
             }`}
-            title="AI 智能录入教材 (Shift+I)"
+            title={`${t('header.aiIngestion')} (I / Shift+I)`}
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span className="hidden sm:inline">AI 录入</span>
-            <KbdBadge isDark={isDark} variant="solid" className="hidden xl:inline-flex">Shift+I</KbdBadge>
+            <span className="hidden sm:inline">{language === 'zh' ? 'AI 录入' : 'AI Ingest'}</span>
+            <KbdBadge isDark={isDark} variant="solid" className="hidden xl:inline-flex">I</KbdBadge>
           </button>
         )}
 
@@ -320,10 +322,10 @@ export const Header: React.FC<HeaderProps> = ({
           className={`hidden sm:flex items-center space-x-1 px-1.5 sm:px-2 py-1 text-xs rounded-md transition-colors whitespace-nowrap ${
             isDark ? 'hover:bg-white/5 text-zinc-300' : 'hover:bg-black/5 text-stone-700'
           }`}
-          title="立即保存 (Ctrl+S) · 右键或 Alt+S 另存为文件"
+          title={language === 'zh' ? '立即保存 (Ctrl+S) · 右键或 Alt+S 另存为文件' : 'Save (Ctrl+S) · Right-click or Alt+S to Save As'}
         >
           <Save className="w-3.5 h-3.5 text-blue-400" />
-          <span className="hidden 2xl:inline">保存</span>
+          <span className="hidden 2xl:inline">{t('common.save')}</span>
           <KbdBadge isDark={isDark} className="hidden xl:inline-flex">Ctrl+S</KbdBadge>
         </button>
 
@@ -333,7 +335,7 @@ export const Header: React.FC<HeaderProps> = ({
           className={`hidden sm:block p-1.5 rounded-md transition-colors ${
             isDark ? 'hover:bg-white/5 text-zinc-300' : 'hover:bg-black/5 text-stone-700'
           }`}
-          title="导入 JSON"
+          title={`${t('common.import')} JSON`}
         >
           <Upload className="w-3.5 h-3.5" />
         </button>
@@ -352,7 +354,7 @@ export const Header: React.FC<HeaderProps> = ({
             className={`hidden sm:flex items-center space-x-1 p-1.5 rounded-md transition-colors ${
               isDark ? 'hover:bg-white/5 text-zinc-300' : 'hover:bg-black/5 text-stone-700'
             }`}
-            title="快捷键指南 (?)"
+            title={`${t('header.shortcuts')} (?)`}
           >
             <Keyboard className="w-3.5 h-3.5" />
             <KbdBadge isDark={isDark} className="hidden xl:inline-flex">?</KbdBadge>
@@ -365,7 +367,7 @@ export const Header: React.FC<HeaderProps> = ({
           className={`flex items-center space-x-1 p-1.5 rounded-md transition-colors text-amber-500 ${
             isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'
           }`}
-          title={isDark ? '切换浅色模式 (T)' : '切换深色模式 (T)'}
+          title={isDark ? (language === 'zh' ? '切换浅色模式 (T)' : 'Switch to Light (T)') : (language === 'zh' ? '切换深色模式 (T)' : 'Switch to Dark (T)')}
         >
           {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5 text-[#1E3A5F]" />}
           <KbdBadge isDark={isDark} className="hidden xl:inline-flex">T</KbdBadge>
@@ -378,10 +380,10 @@ export const Header: React.FC<HeaderProps> = ({
             className={`flex items-center space-x-1 p-1.5 rounded-md transition-colors ${
               isDark ? 'hover:bg-white/5 text-amber-400 hover:text-amber-300' : 'hover:bg-black/5 text-amber-600 hover:text-amber-700'
             }`}
-            title="赞助支持 (Sponsor)"
+            title={`${t('header.sponsor')}`}
           >
             <Coffee className="w-3.5 h-3.5" />
-            <span className="hidden 2xl:inline text-xs font-serif">赞助</span>
+            <span className="hidden 2xl:inline text-xs font-serif">{t('header.sponsor')}</span>
           </button>
         )}
 
@@ -392,7 +394,7 @@ export const Header: React.FC<HeaderProps> = ({
             className={`flex items-center space-x-1 p-1.5 rounded-md transition-colors ${
               isDark ? 'hover:bg-white/5 text-zinc-300 hover:text-white' : 'hover:bg-black/5 text-stone-700 hover:text-black'
             }`}
-            title="系统设置 (Ctrl+,)"
+            title={`${t('header.settings')} (Ctrl+,)`}
           >
             <Settings className="w-3.5 h-3.5 text-blue-400" />
             <KbdBadge isDark={isDark} className="hidden xl:inline-flex">Ctrl+,</KbdBadge>

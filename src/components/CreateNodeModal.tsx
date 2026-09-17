@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Plus, Search } from 'lucide-react';
 import { PropositionNode, PropositionType, NODE_TYPES, AppTheme } from '../types';
 import { MathRenderer } from './MathRenderer';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface CreateNodeModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
   const [dependsOn, setDependsOn] = useState<string[]>([]);
   const [searchPrereq, setSearchPrereq] = useState('');
 
+  const { t } = useTranslation();
   const isDark = theme === 'dark';
 
   // Reset form when modal opens
@@ -83,7 +85,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
     try {
       const cleanTitle = title.trim();
       if (!cleanTitle) {
-        setErrorMessage('请输入命题标题');
+        setErrorMessage(t('createModal.titleRequired'));
         return;
       }
 
@@ -143,7 +145,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
           }`}
         >
           <div className="flex items-center space-x-2">
-            <h3 className="font-serif font-bold text-sm">新建命题</h3>
+            <h3 className="font-serif font-bold text-sm">{initialNodeData ? t('createModal.modalTitleEdit') : t('createModal.modalTitleCreate')}</h3>
             {initialPosition && (
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border text-blue-500 border-blue-500/30 bg-blue-500/10">
                 ({Math.round(initialPosition.x)}, {Math.round(initialPosition.y)})

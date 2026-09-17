@@ -8,6 +8,7 @@ import {
   getActiveProjectId, 
   setActiveProjectId, 
   createNewProject, 
+  getDefaultProjects, 
   saveProjectAsJsonFile, 
   parseImportedJson, 
   computeDownstreamMap,
@@ -19,6 +20,7 @@ import {
   exportAllProjectsBackup
 } from './utils/storage';
 import { Header } from './components/Header';
+import { useTranslation } from './i18n/LanguageContext';
 import { GraphCanvas } from './components/GraphCanvas';
 import { SelectionToolMode } from './components/canvas/SelectionOverlay';
 import { NodeDetailDrawer } from './components/NodeDetailDrawer';
@@ -31,6 +33,7 @@ import { AiIngestionModal } from './components/AiIngestionModal';
 import { StatusBar } from './components/StatusBar';
 
 export const App: React.FC = () => {
+  const { t, language } = useTranslation();
   // Theme state: dark | paper | system
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem('mathmind_theme_mode_v2');
@@ -471,16 +474,13 @@ export const App: React.FC = () => {
   }, [projects]);
 
   const handleResetToDefaults = useCallback(() => {
-    const defaultProjects = [
-      createNewProject('皮亚诺公理体系 (算术基础)', 'peano'),
-      createNewProject('欧几里得几何原本 (前五命题)', 'euclid')
-    ];
+    const defaultProjects = getDefaultProjects(language);
     setProjects(defaultProjects);
     setActiveId(defaultProjects[0].id);
     saveProjects(defaultProjects);
     setActiveProjectId(defaultProjects[0].id);
-    showToast('已恢复官方默认示例体系');
-  }, []);
+    showToast(t('settings.resetSuccess'));
+  }, [language, t]);
 
   const handleSaveAs = useCallback(async () => {
     try {
@@ -596,7 +596,7 @@ export const App: React.FC = () => {
   };
 
   const handleCreateProject = (name: string, template: 'blank' | 'peano' | 'euclid') => {
-    const newProj = createNewProject(name, template);
+    const newProj = createNewProject(name, template, language);
     const updated = [...projects, newProj];
     setProjects(updated);
     setActiveId(newProj.id);

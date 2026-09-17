@@ -13,6 +13,7 @@ import {
 import { PropositionNode, NODE_TYPES, PropositionType, AppTheme } from '../types';
 import { MathRenderer } from './MathRenderer';
 import { MathSymbolToolbar } from './MathSymbolToolbar';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface NodeDetailDrawerProps {
   node: PropositionNode | null;
@@ -69,6 +70,7 @@ export const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
   const recordCursor = (e: React.SyntheticEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     activeElementRef.current = e.currentTarget;
   };
+  const { t } = useTranslation();
   const isDark = theme === 'dark';
 
   useEffect(() => {
@@ -158,7 +160,7 @@ export const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
   const handleSave = () => {
     const cleanTitle = formData.title.trim();
     if (!cleanTitle) {
-      alert('命题标题不能为空');
+      alert(t('createModal.titleRequired'));
       return;
     }
     onUpdateNode(formData);
@@ -212,11 +214,11 @@ export const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
                 isDark ? 'bg-[#18181B] border-[#3F3F46] text-white' : 'bg-white border-[#D4CDC0] text-[#2C2B29]'
               }`}
             >
-              <option value="axiom">公理</option>
-              <option value="definition">定义</option>
-              <option value="proposition">命题</option>
-              <option value="theorem">定理</option>
-              <option value="corollary">推论</option>
+              <option value="axiom">{t('nodeTypes.axiom')}</option>
+              <option value="definition">{t('nodeTypes.definition')}</option>
+              <option value="proposition">{t('nodeTypes.proposition')}</option>
+              <option value="theorem">{t('nodeTypes.theorem')}</option>
+              <option value="corollary">{t('nodeTypes.corollary')}</option>
             </select>
           ) : (
             <div
@@ -241,7 +243,7 @@ export const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
               title="保存修改 (Ctrl+Enter)"
             >
               <Check className="w-3.5 h-3.5" />
-              <span>保存 (Ctrl+Enter)</span>
+              <span>{t('drawer.saveChanges')}</span>
             </button>
           ) : (
             <button
@@ -255,7 +257,7 @@ export const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
 
           <button
             onClick={() => {
-              if (window.confirm(`确定要彻底删除命题「${node.title}」吗？`)) {
+              if (window.confirm(t('drawer.deleteConfirm', { title: node.title }))) {
                 onDeleteNode(node.id);
                 onClose();
               }

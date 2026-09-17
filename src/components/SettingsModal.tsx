@@ -32,6 +32,7 @@ import {
 } from '../types';
 import { calculateStorageUsage } from '../utils/storage';
 import { AiProvider, AiSettings } from '../types/ai';
+import { useTranslation } from '../i18n/LanguageContext';
 import { 
   loadAiSettings, 
   saveAiSettings, 
@@ -148,6 +149,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onManualSave,
   onOpenSponsor
 }) => {
+  const { t, language, setLanguage } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabType>('general');
   const [aiSettings, setAiSettings] = useState<AiSettings>(() => loadAiSettings());
   const [showAiKey, setShowAiKey] = useState<boolean>(false);
@@ -203,6 +205,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       nodeCount: totalNodes
     };
   }, [projects, isOpen]);
+
+
+  const getLocalizedPresetTitle = (id: BackgroundPresetType) => {
+    switch (id) {
+      case 'paper': return t('settings.presetPaper');
+      case 'chalkboard': return t('settings.presetChalkboard');
+      case 'grid': return t('settings.presetGrid');
+      case 'dots': return t('settings.presetDots');
+      case 'dark': return t('settings.presetDark');
+      default: return id;
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -263,12 +277,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
             <div className="min-w-0">
               <h2 id="settings-modal-title" className="font-serif font-bold text-sm sm:text-lg flex items-center space-x-1.5 sm:space-x-2">
-                <span>系统设置</span>
+                <span>{t('settings.title')}</span>
                 <span className="text-[10px] sm:text-xs font-mono px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-500 font-normal">
                   Ctrl + ,
                 </span>
               </h2>
-              <p className="text-[11px] sm:text-xs opacity-60 truncate">自定义 MathMind 外观、画布渲染与数据管理策略</p>
+              <p className="text-[11px] sm:text-xs opacity-60 truncate">{t('settings.languageDesc')}</p>
             </div>
           </div>
           <button
@@ -301,7 +315,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               }`}
             >
               <Palette className="w-4 h-4 shrink-0" />
-              <span>常规与外观</span>
+              <span>{t('settings.tabGeneral')}</span>
             </button>
 
             <button
@@ -315,7 +329,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               }`}
             >
               <Grid className="w-4 h-4 shrink-0" />
-              <span>画布与背景</span>
+              <span>{t('settings.tabCanvas')}</span>
             </button>
 
             <button
@@ -329,7 +343,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               }`}
             >
               <HardDrive className="w-4 h-4 shrink-0" />
-              <span>保存与数据</span>
+              <span>{t('settings.tabStorage')}</span>
             </button>
 
             <button
@@ -343,7 +357,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               }`}
             >
               <Keyboard className="w-4 h-4 shrink-0" />
-              <span>快捷键速查</span>
+              <span>{t('settings.tabShortcuts')}</span>
             </button>
 
             <button
@@ -357,7 +371,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               }`}
             >
               <Sparkles className="w-4 h-4 shrink-0 text-amber-400" />
-              <span>AI 模型配置</span>
+              <span>{t('settings.tabAi')}</span>
             </button>
 
             {onOpenSponsor && (
@@ -369,7 +383,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 className={`sm:mt-auto shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap text-amber-500 hover:bg-amber-500/10`}
               >
                 <Coffee className="w-4 h-4 shrink-0" />
-                <span>赞助支持</span>
+                <span>{t('header.sponsor')}</span>
               </button>
             )}
           </div>
@@ -379,12 +393,68 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {/* TAB 1: 常规与外观 */}
             {activeTab === 'general' && (
               <div className="space-y-6 animate-fadeIn">
+                {/* Language Switcher */}
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider mb-1 opacity-70">
-                    主题外观 (Theme)
+                    {t('settings.languageTitle')}
                   </h3>
                   <p className="text-xs opacity-60 mb-3">
-                    选择您喜爱的界面色调风格或跟随操作系统自动调整
+                    {t('settings.languageDesc')}
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Chinese */}
+                    <button
+                      type="button"
+                      onClick={() => setLanguage('zh')}
+                      className={`p-3.5 rounded-xl border flex items-center justify-between transition-all ${
+                        language === 'zh'
+                          ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/30'
+                          : isDark
+                          ? 'border-white/10 hover:border-white/20 bg-zinc-900/40'
+                          : 'border-black/10 hover:border-black/20 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <span className="text-2xl">🇨🇳</span>
+                        <div className="text-left">
+                          <div className="text-xs font-bold">{t('settings.langZh')}</div>
+                          <div className="text-[10px] opacity-60">Simplified Chinese</div>
+                        </div>
+                      </div>
+                      {language === 'zh' && <Check className="w-4 h-4 text-blue-500" />}
+                    </button>
+
+                    {/* English */}
+                    <button
+                      type="button"
+                      onClick={() => setLanguage('en')}
+                      className={`p-3.5 rounded-xl border flex items-center justify-between transition-all ${
+                        language === 'en'
+                          ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/30'
+                          : isDark
+                          ? 'border-white/10 hover:border-white/20 bg-zinc-900/40'
+                          : 'border-black/10 hover:border-black/20 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <span className="text-2xl">🇬🇧</span>
+                        <div className="text-left">
+                          <div className="text-xs font-bold">{t('settings.langEn')}</div>
+                          <div className="text-[10px] opacity-60">English</div>
+                        </div>
+                      </div>
+                      {language === 'en' && <Check className="w-4 h-4 text-blue-500" />}
+                    </button>
+                  </div>
+                </div>
+
+                <hr className={isDark ? 'border-white/10' : 'border-black/10'} />
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider mb-1 opacity-70">
+                    {t('settings.themeTitle')}
+                  </h3>
+                  <p className="text-xs opacity-60 mb-3">
+                    {t('settings.themeDesc')}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {/* Paper Light */}
@@ -402,7 +472,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         <Sun className="w-5 h-5" />
                       </div>
                       <div className="text-center">
-                        <div className="text-xs font-bold">浅色手稿 (Paper)</div>
+                        <div className="text-xs font-bold">{t('settings.themePaper')}</div>
                         <div className="text-[10px] opacity-60">羊皮纸暖色调</div>
                       </div>
                       {themeMode === 'paper' && <Check className="w-3.5 h-3.5 text-blue-500" />}
@@ -423,7 +493,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         <Moon className="w-5 h-5" />
                       </div>
                       <div className="text-center">
-                        <div className="text-xs font-bold">深色黑板 (Dark)</div>
+                        <div className="text-xs font-bold">{t('settings.themeDark')}</div>
                         <div className="text-[10px] opacity-60">护眼低对比暗黑</div>
                       </div>
                       {themeMode === 'dark' && <Check className="w-3.5 h-3.5 text-blue-500" />}
@@ -444,7 +514,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         <Laptop className="w-5 h-5" />
                       </div>
                       <div className="text-center">
-                        <div className="text-xs font-bold">跟随系统 (System)</div>
+                        <div className="text-xs font-bold">{t('settings.themeSystem')}</div>
                         <div className="text-[10px] opacity-60">自动匹配系统设置</div>
                       </div>
                       {themeMode === 'system' && <Check className="w-3.5 h-3.5 text-blue-500" />}
@@ -479,9 +549,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {/* Background Preset */}
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider mb-1 opacity-70">
-                    背景风格预设
+                    {t('settings.canvasPresetTitle')}
                   </h3>
-                  <p className="text-xs opacity-60 mb-3">为您的数学网络选择最契合的思考底色</p>
+                  <p className="text-xs opacity-60 mb-3">{t('settings.canvasPresetDesc')}</p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                     {PRESETS.map(preset => {
                       const isActive = canvasSettings.backgroundPreset === preset.id;
@@ -504,7 +574,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             <span className={isActive ? 'text-blue-500' : 'opacity-70'}>{preset.icon}</span>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-xs font-medium truncate">{preset.title}</div>
+                            <div className="text-xs font-medium truncate">{getLocalizedPresetTitle(preset.id)}</div>
                           </div>
                           {isActive && <Check className="w-3.5 h-3.5 text-blue-500 shrink-0" />}
                         </button>
@@ -548,7 +618,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     isDark ? 'border-white/10 bg-zinc-900/40' : 'border-black/10 bg-white'
                   }`}>
                     <div className="flex justify-between items-center text-xs font-medium">
-                      <span>背景不透明度</span>
+                      <span>{t('settings.bgOpacity')}</span>
                       <span className="font-mono text-blue-500 font-bold">{Math.round(canvasSettings.bgOpacity * 100)}%</span>
                     </div>
                     <input
@@ -566,7 +636,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     isDark ? 'border-white/10 bg-zinc-900/40' : 'border-black/10 bg-white'
                   }`}>
                     <div className="flex justify-between items-center text-xs font-medium">
-                      <span>背景模糊度 (毛玻璃)</span>
+                      <span>{t('settings.bgBlur')}</span>
                       <span className="font-mono text-blue-500 font-bold">{canvasSettings.bgBlur}px</span>
                     </div>
                     <input
@@ -606,7 +676,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                               : 'opacity-70 hover:opacity-100'
                           }`}
                         >
-                          层次 (Dagre)
+                          {t('header.dagreLayout')}
                         </button>
                         <button
                           onClick={() => onChangeLayout('cose')}
@@ -616,7 +686,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                               : 'opacity-70 hover:opacity-100'
                           }`}
                         >
-                          引力 (CoSE)
+                          {t('header.coseLayout')}
                         </button>
                       </div>
                     </div>
@@ -626,7 +696,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       isDark ? 'border-white/10 bg-zinc-900/40' : 'border-black/10 bg-white'
                     }`}>
                       <div>
-                        <div className="text-xs font-bold">拦截浏览器原生右键菜单</div>
+                        <div className="text-xs font-bold">{t('settings.preventContext')}</div>
                         <div className="text-[11px] opacity-60">优先展示 MathMind 画布专用快捷操作菜单</div>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -650,10 +720,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {/* Auto-save Strategy */}
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider mb-1 opacity-70">
-                    自动保存策略 (Auto-Save)
+                    {t('settings.autosaveTitle')}
                   </h3>
                   <p className="text-xs opacity-60 mb-3">
-                    实时保存将即时同步节点编辑与拖拽排版；您也可以自定义定时同步频率
+                    {t('settings.autosaveDesc')}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {AUTO_SAVE_OPTIONS.map(opt => {
@@ -693,7 +763,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {/* Storage usage stats */}
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wider mb-2 opacity-70">
-                    本地存储与数据统计
+                    {t('settings.storageTitle')}
                   </h3>
                   <div className={`p-4 rounded-xl border grid grid-cols-3 gap-3 text-center ${
                     isDark ? 'border-white/10 bg-zinc-900/40' : 'border-black/10 bg-white'
@@ -723,7 +793,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center justify-center space-x-2 transition-colors shadow-sm"
                     >
                       <Save className="w-4 h-4" />
-                      <span>立即保存所有更改 (Ctrl+S)</span>
+                      <span>{t('header.manualSave')} (Ctrl+S)</span>
                     </button>
 
                     <button
@@ -733,7 +803,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       }`}
                     >
                       <Download className="w-4 h-4 text-emerald-500" />
-                      <span>导出全量工程备份 (.json)</span>
+                      <span>{t('settings.exportBackupBtn')}</span>
                     </button>
                   </div>
 
@@ -741,14 +811,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <div className="pt-2">
                     <button
                       onClick={() => {
-                        if (confirm('确定要恢复官方预置体系吗？现有的修改将被官方示例（皮亚诺与欧几里得体系）覆盖重置。')) {
+                        if (confirm(t('settings.resetConfirm'))) {
                           onResetToDefaults();
                         }
                       }}
                       className={`w-full px-3.5 py-2 rounded-xl text-xs flex items-center justify-center space-x-2 transition-colors text-amber-600 dark:text-amber-400 hover:bg-amber-500/10`}
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
-                      <span>恢复官方默认示例项目</span>
+                      <span>{t('settings.resetDefaultsBtn')}</span>
                     </button>
                   </div>
                 </div>
@@ -801,7 +871,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <div>
                     <h3 className="text-sm font-bold uppercase tracking-wider mb-1 opacity-70 flex items-center space-x-1.5">
                       <Sparkles className="w-4 h-4 text-amber-500" />
-                      <span>AI 大模型服务配置</span>
+                      <span>{t('settings.tabAi')}</span>
                     </h3>
                     <p className="text-xs opacity-60">
                       配置用于教材智能提炼的 AI 服务商。API Key 仅保存在浏览器本地，请求直接从本机发起。
@@ -817,7 +887,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                 {/* Provider Selector Cards */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold opacity-80">选择服务商</label>
+                  <label className="text-xs font-bold opacity-80">{t('settings.aiProviderTitle')}</label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                     {(Object.keys(PROVIDER_CONFIGS) as AiProvider[]).map(pKey => {
                       const meta = PROVIDER_CONFIGS[pKey];
@@ -857,7 +927,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   {/* Model Name & Quick Choices */}
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs font-bold opacity-80">模型代号 (Model)</label>
+                      <label className="text-xs font-bold opacity-80">{t('settings.aiModelTitle')}</label>
                       <div className="flex items-center space-x-1 text-[10px]">
                         <span className="opacity-50">推荐:</span>
                         {PROVIDER_CONFIGS[aiSettings.provider].candidateModels.map(m => (
@@ -890,7 +960,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   {/* API Key */}
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs font-bold opacity-80">API Key 密钥</label>
+                      <label className="text-xs font-bold opacity-80">{t('settings.apiKeyTitle')}</label>
                       {PROVIDER_CONFIGS[aiSettings.provider].docUrl && (
                         <a
                           href={PROVIDER_CONFIGS[aiSettings.provider].docUrl}

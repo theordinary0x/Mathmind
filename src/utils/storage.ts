@@ -1,5 +1,11 @@
 import { GraphDataset, Project, PropositionNode, AppTheme, CanvasSettings, DEFAULT_CANVAS_SETTINGS, AutoSaveMode } from '../types';
 import { DEFAULT_PROJECTS, PEANO_DATASET, EUCLID_DATASET } from '../data/seedData';
+import { DEFAULT_PROJECTS_EN, PEANO_DATASET_EN, EUCLID_DATASET_EN } from '../data/seedDataEn';
+import { Language } from '../i18n/types';
+
+export function getDefaultProjects(lang: Language = 'zh'): Project[] {
+  return lang === 'en' ? DEFAULT_PROJECTS_EN : DEFAULT_PROJECTS;
+}
 
 const PROJECTS_STORAGE_KEY = 'mathmind_projects_v2';
 const ACTIVE_PROJ_KEY = 'mathmind_active_project_id_v2';
@@ -118,13 +124,14 @@ export function setActiveProjectId(id: string): void {
 
 export function createNewProject(
   name: string,
-  template: 'blank' | 'peano' | 'euclid' = 'blank'
+  template: 'blank' | 'peano' | 'euclid' = 'blank',
+  lang: Language = 'zh'
 ): Project {
   let dataset: GraphDataset;
   if (template === 'peano') {
-    dataset = JSON.parse(JSON.stringify(PEANO_DATASET));
+    dataset = JSON.parse(JSON.stringify(lang === 'en' ? PEANO_DATASET_EN : PEANO_DATASET));
   } else if (template === 'euclid') {
-    dataset = JSON.parse(JSON.stringify(EUCLID_DATASET));
+    dataset = JSON.parse(JSON.stringify(lang === 'en' ? EUCLID_DATASET_EN : EUCLID_DATASET));
   } else {
     dataset = {
       version: '1.0.0',
@@ -133,9 +140,9 @@ export function createNewProject(
         {
           id: 'axiom-1',
           type: 'axiom',
-          title: '初始公理 1',
-          statement: '请在此输入系统的初始公理陈述...',
-          proof_sketch: '作为体系的第一公理，无需证明。',
+          title: lang === 'en' ? 'Foundational Axiom 1' : '初始公理 1',
+          statement: lang === 'en' ? 'Enter the initial axiom statement here...' : '请在此输入系统的初始公理陈述...',
+          proof_sketch: lang === 'en' ? 'First principle of the system, requires no proof.' : '作为体系的第一公理，无需证明。',
           depends_on: []
         }
       ]
@@ -144,7 +151,7 @@ export function createNewProject(
 
   const newProject: Project = {
     id: `proj-${Date.now()}`,
-    name: name.trim() || '未命名数学体系',
+    name: name.trim() || (lang === 'en' ? 'Untitled Mathematical System' : '未命名数学体系'),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     dataset

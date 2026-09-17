@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { AppTheme, AutoSaveMode, AUTO_SAVE_OPTIONS } from '../types';
 import { latexToUnicode } from '../utils/latexToUnicode';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface StatusBarProps {
   theme: AppTheme;
@@ -50,6 +51,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const { t } = useTranslation();
   const isDark = theme === 'dark';
 
   // Click outside listener for the auto-save selector popover
@@ -94,7 +96,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-black/10 dark:border-white/10">
             <div className="flex items-center space-x-1.5 font-sans font-semibold text-xs">
               <Zap className="w-3.5 h-3.5 text-amber-500" />
-              <span>保存方式与自动保存间隔</span>
+              <span>{t('settings.autosaveTitle')}</span>
             </div>
             <button
               onClick={() => setIsMenuOpen(false)}
@@ -145,7 +147,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
           {/* Popover Footer Action */}
           <div className="mt-2.5 pt-2 border-t border-black/10 dark:border-white/10 flex items-center justify-between font-sans">
             <span className="text-[10px] opacity-50 font-mono">
-              上次保存: {lastSavedTime || '暂无'}
+              {t('statusBar.lastSaved', { time: lastSavedTime || '---' })}
             </span>
             <button
               onClick={() => {
@@ -161,12 +163,12 @@ export const StatusBar: React.FC<StatusBarProps> = ({
               {isSaving ? (
                 <>
                   <RefreshCw className="w-3 h-3 animate-spin" />
-                  <span>保存中...</span>
+                  <span>{t('common.saving')}</span>
                 </>
               ) : (
                 <>
                   <Save className="w-3 h-3" />
-                  <span>立即保存 (Ctrl+S)</span>
+                  <span>{t('common.save')} (Ctrl+S)</span>
                 </>
               )}
             </button>
@@ -187,7 +189,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
                 ? 'text-amber-500 bg-amber-500/10 hover:bg-amber-500/20'
                 : 'text-emerald-500 hover:bg-emerald-500/10'
           }`}
-          title="点击切换自动保存间隔或立即保存"
+          title={t('settings.autosaveDesc')}
         >
           {isSaving ? (
             <RefreshCw className="w-3 h-3 animate-spin text-blue-400" />
@@ -203,15 +205,15 @@ export const StatusBar: React.FC<StatusBarProps> = ({
 
           <span className="hidden sm:inline">
             {isSaving
-              ? '正在保存...'
+              ? t('common.saving')
               : isDirty
-                ? '未保存修改'
+                ? t('statusBar.saveStatusDirty')
                 : autoSaveMode === 'realtime'
-                  ? `实时保存 (${lastSavedTime})`
-                  : `已保存 (${lastSavedTime})`}
+                  ? `${t('statusBar.saveStatusSaved')} (${lastSavedTime})`
+                  : `${t('common.saved')} (${lastSavedTime})`}
           </span>
           <span className="sm:hidden">
-            {isSaving ? '保存中' : isDirty ? '未保存' : '已保存'}
+            {isSaving ? t('common.saving') : isDirty ? t('statusBar.saveStatusDirty') : t('common.saved')}
           </span>
 
           <ChevronUp className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100 transition-transform" />
@@ -220,20 +222,20 @@ export const StatusBar: React.FC<StatusBarProps> = ({
         <span className="opacity-30">|</span>
 
         <div className="truncate max-w-[120px] sm:max-w-[180px] md:max-w-[260px]">
-          项目: <span className={isDark ? 'text-white font-bold' : 'text-[#2C2B29] font-bold font-serif'}>{projectName}</span>
+          {t('statusBar.projectLabel')}: <span className={isDark ? 'text-white font-bold' : 'text-[#2C2B29] font-bold font-serif'}>{projectName}</span>
         </div>
 
         <span className="opacity-30 hidden sm:inline">|</span>
 
         <div className="shrink-0 hidden sm:block">
-          节点: <span className="font-bold">{nodeCount}</span> · 边: <span className="font-bold">{edgeCount}</span>
+          {t('statusBar.nodeCount', { count: nodeCount })} · {t('statusBar.edgeCount', { count: edgeCount })}
         </div>
 
         {selectedTitle && (
           <>
             <span className="opacity-30 hidden md:inline">|</span>
             <div className="truncate max-w-[160px] md:max-w-[220px] hidden md:block">
-              选中: <span className={isDark ? 'text-blue-300 font-serif' : 'text-[#1E3A5F] font-serif'}>{latexToUnicode(selectedTitle)}</span>
+              {t('statusBar.selectedLabel')}: <span className={isDark ? 'text-blue-300 font-serif' : 'text-[#1E3A5F] font-serif'}>{latexToUnicode(selectedTitle)}</span>
             </div>
           </>
         )}
@@ -243,30 +245,30 @@ export const StatusBar: React.FC<StatusBarProps> = ({
       <div className="flex items-center space-x-2 text-[10px] shrink-0">
         <div className="hidden xl:flex items-center space-x-2">
           <span className={canUndo ? (isDark ? 'text-[#E4E4E7]' : 'text-[#2C2B29]') : (isDark ? 'text-[#52525B]' : 'text-[#B5AFA4]')}>
-            Ctrl+Z 撤销
+            Ctrl+Z {t('common.undo')}
           </span>
           <span className={canRedo ? (isDark ? 'text-[#E4E4E7]' : 'text-[#2C2B29]') : (isDark ? 'text-[#52525B]' : 'text-[#B5AFA4]')}>
-            Ctrl+Y 重做
+            Ctrl+Y {t('common.redo')}
           </span>
-          <span>Ctrl+S 保存</span>
-          <span>N / Ctrl+N 新建</span>
-          <span>L 连线</span>
-          <span>F 聚焦</span>
-          <span>1/2 布局</span>
-          <span>0 全览</span>
+          <span>Ctrl+S {t('common.save')}</span>
+          <span>N {t('common.edit')}</span>
+          <span>L {t('header.connectMode')}</span>
+          <span>F {t('header.focusMode')}</span>
+          <span>1/2 {t('header.switchLayout')}</span>
+          <span>0 {t('canvas.fitView')}</span>
         </div>
         <div className="hidden sm:flex xl:hidden items-center space-x-2">
           <span>Ctrl+S 保存</span>
-          <span>N 新建</span>
+          <span>N {t('common.edit')}</span>
           <span>0 全览</span>
         </div>
         {onOpenShortcuts && (
           <button
             onClick={onOpenShortcuts}
             className="hover:underline opacity-80 hover:opacity-100 flex items-center space-x-0.5 ml-1 text-blue-400 font-semibold cursor-pointer"
-            title="查看快捷键速查表 (?)"
+            title={`${t('shortcuts.title')} (?)`}
           >
-            <span>? 快捷键</span>
+            <span>? {t('statusBar.shortcutsTip')}</span>
           </button>
         )}
       </div>

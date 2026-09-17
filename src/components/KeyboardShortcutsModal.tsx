@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { X, Keyboard } from 'lucide-react';
 import { AppTheme } from '../types';
+import { useTranslation } from '../i18n/LanguageContext';
 
 interface KeyboardShortcutsModalProps {
   isOpen: boolean;
@@ -76,11 +77,73 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
 ];
 
 export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
+
   isOpen,
   onClose,
   theme
 }) => {
+  const { t } = useTranslation();
   const isDark = theme === 'dark';
+
+  const shortcutGroups: ShortcutGroup[] = [
+    {
+      category: t('shortcuts.catProposition'),
+      items: [
+        { keys: ['N', 'Ctrl + N'], description: t('shortcuts.newProp') },
+        { keys: ['双击画布 / DblClick'], description: t('shortcuts.dblClickCanvas') },
+        { keys: ['Ctrl + Enter'], description: t('shortcuts.saveSubmit') },
+        { keys: ['Delete', 'Backspace'], description: t('shortcuts.deleteProp') },
+        { keys: ['Ctrl + C'], description: t('shortcuts.copyProp') },
+        { keys: ['Ctrl + X'], description: t('shortcuts.cutProp') },
+        { keys: ['Ctrl + V'], description: t('shortcuts.pasteProp') }
+      ]
+    },
+    {
+      category: t('shortcuts.catConnection'),
+      items: [
+        { keys: ['L'], description: t('shortcuts.toggleConnect') },
+        { keys: ['Esc'], description: t('shortcuts.exitConnect') }
+      ]
+    },
+    {
+      category: t('shortcuts.catCanvas'),
+      items: [
+        { keys: ['1'], description: t('shortcuts.layoutDagre') },
+        { keys: ['2'], description: t('shortcuts.layoutCose') },
+        { keys: ['F'], description: t('shortcuts.toggleFocus') },
+        { keys: ['0'], description: t('shortcuts.fitView') },
+        { keys: ['+', '='], description: t('shortcuts.zoomIn') },
+        { keys: ['-'], description: t('shortcuts.zoomOut') },
+        { keys: ['T'], description: t('shortcuts.toggleTheme') }
+      ]
+    },
+    {
+      category: t('shortcuts.catMultiSelect'),
+      items: [
+        { keys: ['Ctrl + Click'], description: t('shortcuts.ctrlClickSelect') },
+        { keys: ['Shift + Drag'], description: t('shortcuts.shiftDragBox') },
+        { keys: ['Alt + Drag'], description: t('shortcuts.altDragLasso') },
+        { keys: ['B'], description: t('shortcuts.toggleBoxMode') },
+        { keys: ['Delete', 'Backspace'], description: t('shortcuts.batchDelete') },
+        { keys: ['Esc'], description: t('shortcuts.clearSelection') }
+      ]
+    },
+    {
+      category: t('shortcuts.catSystem'),
+      items: [
+        { keys: ['Ctrl + ,'], description: t('shortcuts.openSettings') },
+        { keys: ['Ctrl + Z'], description: t('shortcuts.undo') },
+        { keys: ['Ctrl + Y', 'Ctrl + Shift + Z'], description: t('shortcuts.redo') },
+        { keys: ['Ctrl + S'], description: t('shortcuts.saveStorage') },
+        { keys: ['Alt + S', 'Ctrl + Shift + S'], description: t('shortcuts.saveAsJson') },
+        { keys: ['P', 'Ctrl + P'], description: t('shortcuts.openProjects') },
+        { keys: ['/'], description: t('shortcuts.focusSearch') },
+        { keys: ['I', 'Shift + I', 'Ctrl + I'], description: t('shortcuts.openAi') },
+        { keys: ['?'], description: t('shortcuts.openShortcuts') }
+      ]
+    }
+  ];
+
 
   useEffect(() => {
     if (!isOpen) return;
@@ -117,7 +180,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
         >
           <div className="flex items-center space-x-2">
             <Keyboard className="w-4 h-4 text-[#60A5FA]" />
-            <h3 className="font-serif font-bold text-sm tracking-tight">键盘快捷键指南</h3>
+            <h3 className="font-serif font-bold text-sm tracking-tight">{t('shortcuts.title')}</h3>
           </div>
           <button
             onClick={onClose}
@@ -131,7 +194,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
         {/* Content */}
         <div className="p-5 space-y-5 overflow-y-auto max-h-[calc(85vh-56px)] font-serif">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {SHORTCUT_GROUPS.map((group, gIdx) => (
+            {shortcutGroups.map((group, gIdx) => (
               <div
                 key={gIdx}
                 className={`p-3.5 rounded-lg border ${

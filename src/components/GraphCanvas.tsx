@@ -13,6 +13,7 @@ import { SelectionOverlay, SelectionToolMode } from './canvas/SelectionOverlay';
 import { BatchSelectionBar } from './canvas/BatchSelectionBar';
 import { isPointInBox, isPointInPolygon, Point, BoundingBox } from '../utils/selectionHelper';
 import { BoxSelect, Lasso, MousePointer } from 'lucide-react';
+import { useTranslation } from '../i18n/LanguageContext';
 
 cytoscape.use(dagre);
 
@@ -64,6 +65,7 @@ export function formatCanvasTitle(title: string): string {
 }
 
 export const GraphCanvas: React.FC<GraphCanvasProps> = ({
+
   nodes,
   selectedNodeId,
   selectedNodeIds = new Set(),
@@ -96,6 +98,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
   canvasSettings: canvasSettingsProp,
   onUpdateCanvasSettings: onUpdateCanvasSettingsProp,
 }) => {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<Core | null>(null);
   const [cyInstance, setCyInstance] = useState<Core | null>(null);
@@ -1052,9 +1055,9 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
           className={`px-2.5 py-1 font-medium rounded-lg transition-colors flex items-center gap-1 whitespace-nowrap ${
             isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
           }`}
-          title="全览居中 (0)"
+          title={`${t('canvas.fitView')} (0)`}
         >
-          <span>全览</span>
+          <span>{t('canvas.fitView')}</span>
           <kbd className={`px-1 py-0.5 text-[9px] font-mono rounded ${
             isDark ? 'bg-white/10 text-zinc-400' : 'bg-black/5 text-stone-500'
           }`}>0</kbd>
@@ -1065,9 +1068,9 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
           className={`px-2 py-1 font-medium rounded-lg transition-colors whitespace-nowrap ${
             isDark ? 'hover:bg-white/10 text-blue-400' : 'hover:bg-black/5 text-blue-600'
           }`}
-          title="重新计算布局"
+          title={t('canvas.recalculateLayout')}
         >
-          重排
+          {t('canvas.recalculateLayout')}
         </button>
 
         <div className="w-[1px] h-3.5 bg-black/10 dark:bg-white/10 mx-0.5 hidden sm:block" />
@@ -1096,7 +1099,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
           className={`w-6 h-6 flex items-center justify-center font-bold text-sm rounded-md transition-colors ${
             isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
           }`}
-          title="放大 (+)"
+          title={`${t('canvas.zoomIn')} (+)`}
         >
           +
         </button>
@@ -1105,7 +1108,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
           className={`w-6 h-6 flex items-center justify-center font-bold text-sm rounded-md transition-colors ${
             isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
           }`}
-          title="缩小 (-)"
+          title={`${t('canvas.zoomOut')} (-)`}
         >
           -
         </button>
@@ -1124,7 +1127,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
               ? isDark ? 'bg-white/20 text-white' : 'bg-black/10 text-stone-900 font-bold'
               : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'
           }`}
-          title="默认选择与拖拽模式"
+          title={t('canvas.defaultMode')}
         >
           <MousePointer className="w-3.5 h-3.5" />
         </button>
@@ -1136,7 +1139,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
               ? 'bg-blue-600 text-white'
               : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'
           }`}
-          title="矩形框选模式 (Shift+拖拽 / B)"
+          title={t('canvas.boxMode')}
         >
           <BoxSelect className="w-3.5 h-3.5" />
         </button>
@@ -1148,7 +1151,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
               ? 'bg-blue-600 text-white'
               : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'
           }`}
-          title="自由套索圈选模式 (Alt+拖拽)"
+          title={t('canvas.lassoMode')}
         >
           <Lasso className="w-3.5 h-3.5" />
         </button>
@@ -1158,13 +1161,13 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
       {toolMode !== 'none' && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1.5 rounded-full shadow-2xl flex items-center space-x-3 text-xs z-30 animate-in fade-in slide-in-from-top-2 duration-150">
           <span className="font-medium">
-            {toolMode === 'box' ? '矩形框选模式：在画布上按住并拖拽框选' : '自由套索模式：在画布上按住并划线圈选'}
+            {toolMode === 'box' ? t('canvas.boxModeActive') : t('canvas.lassoModeActive')}
           </span>
           <button
             onClick={() => setToolMode('none')}
             className="text-[11px] bg-white/20 hover:bg-white/30 px-2 py-0.5 rounded-full transition-colors font-medium flex items-center space-x-1"
           >
-            <span>退出</span>
+            <span>{t('canvas.exit')}</span>
             <kbd className="px-1 text-[9px] font-mono bg-white/25 rounded">Esc</kbd>
           </button>
         </div>
@@ -1180,8 +1183,8 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
             <span className="inline-block w-2 h-2 bg-blue-300 animate-ping" />
             <span className="font-medium">
               {connectSourceId
-                ? `已选前提：【${nodes.find(n => n.id === connectSourceId)?.title || connectSourceId}】，请点击目标节点`
-                : '请点击作为前提的节点'}
+                ? t('canvas.connectPromptTarget', { title: nodes.find(n => n.id === connectSourceId)?.title || connectSourceId })
+                : t('canvas.connectPromptStart')}
             </span>
           </div>
           <button
@@ -1193,7 +1196,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
             }}
             className="text-[11px] bg-white/20 hover:bg-white/30 px-2.5 py-0.5 border border-white/40 transition-colors font-medium flex items-center space-x-1"
           >
-            <span>退出连线</span>
+            <span>{t('canvas.exitConnectMode')}</span>
             <kbd className="px-1 py-0.2 text-[9px] font-mono bg-white/25 rounded">Esc / L</kbd>
           </button>
         </div>

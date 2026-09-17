@@ -1,5 +1,6 @@
 import React from 'react';
-import { CheckSquare, Trash2, X, Layers } from 'lucide-react';
+import { CheckSquare, Trash2, X } from 'lucide-react';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 interface BatchSelectionBarProps {
   selectedCount: number;
@@ -18,6 +19,7 @@ export const BatchSelectionBar: React.FC<BatchSelectionBarProps> = ({
   onBatchDelete,
   isDark
 }) => {
+  const { t, language } = useTranslation();
   if (selectedCount < 2) return null;
 
   return (
@@ -31,7 +33,11 @@ export const BatchSelectionBar: React.FC<BatchSelectionBarProps> = ({
       <div className="flex items-center space-x-2 pr-2 border-r border-black/10 dark:border-white/10">
         <CheckSquare className="w-4 h-4 text-blue-500" />
         <span className="font-serif font-bold">
-          已选中 <span className="text-blue-500 font-mono font-extrabold">{selectedCount}</span> 个命题
+          {language === 'zh' ? (
+            <>已选中 <span className="text-blue-500 font-mono font-extrabold">{selectedCount}</span> 个命题</>
+          ) : (
+            <><span className="text-blue-500 font-mono font-extrabold">{selectedCount}</span> propositions selected</>
+          )}
         </span>
       </div>
 
@@ -45,7 +51,7 @@ export const BatchSelectionBar: React.FC<BatchSelectionBarProps> = ({
               : 'hover:bg-black/5 text-stone-600 hover:text-stone-900'
           }`}
         >
-          全选 ({totalNodeCount})
+          {t('batch.selectAll')} ({totalNodeCount})
         </button>
 
         <button
@@ -56,10 +62,10 @@ export const BatchSelectionBar: React.FC<BatchSelectionBarProps> = ({
               ? 'hover:bg-white/10 text-zinc-400 hover:text-white'
               : 'hover:bg-black/5 text-stone-500 hover:text-stone-800'
           }`}
-          title="取消多选 (Esc)"
+          title={language === 'zh' ? '取消多选 (Esc)' : 'Deselect all (Esc)'}
         >
           <X className="w-3.5 h-3.5" />
-          <span>取消 (Esc)</span>
+          <span>{t('batch.cancel')}</span>
         </button>
       </div>
 
@@ -68,10 +74,10 @@ export const BatchSelectionBar: React.FC<BatchSelectionBarProps> = ({
           type="button"
           onClick={onBatchDelete}
           className="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold flex items-center space-x-1.5 shadow-sm transition-all"
-          title="批量删除选中的命题 (Delete / Backspace)"
+          title={language === 'zh' ? '批量删除选中的命题 (Delete / Backspace)' : 'Batch delete selected propositions (Delete / Backspace)'}
         >
           <Trash2 className="w-3.5 h-3.5" />
-          <span>批量删除 (Del)</span>
+          <span>{t('batch.batchDelete')}</span>
         </button>
       </div>
     </div>

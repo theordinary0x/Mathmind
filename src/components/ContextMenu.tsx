@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { PropositionNode, PropositionType, AppTheme, NODE_TYPES } from '../types';
 import { latexToUnicode } from '../utils/latexToUnicode';
+import { useTranslation } from '../i18n/LanguageContext';
 
 export interface ContextMenuState {
   isOpen: boolean;
@@ -68,6 +69,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
 }) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const isDark = theme === 'dark';
+  const { t, language } = useTranslation();
 
   useEffect(() => {
     const handleClickOutside = (e: Event) => {
@@ -83,46 +85,58 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
     };
 
     if (menuState.isOpen) {
-      window.addEventListener('pointerdown', handleClickOutside, { capture: true });
-      window.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
     }
 
     return () => {
-      window.removeEventListener('pointerdown', handleClickOutside, { capture: true });
-      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [menuState.isOpen, onClose]);
 
   if (!menuState.isOpen) return null;
 
-  // Ensure menu stays within screen viewport
-  const adjustedX = Math.min(menuState.x, window.innerWidth - 220);
-  const adjustedY = Math.min(menuState.y, window.innerHeight - 300);
+  // Smart boundary collision detection
+  const menuWidth = 220;
+  const menuHeight = menuState.type === 'node' ? 320 : 180;
+  const screenW = window.innerWidth;
+  const screenH = window.innerHeight;
+
+  let posX = menuState.x;
+  let posY = menuState.y;
+
+  if (posX + menuWidth > screenW - 10) {
+    posX = screenW - menuWidth - 10;
+  }
+  if (posY + menuHeight > screenH - 10) {
+    posY = screenH - menuHeight - 10;
+  }
+  if (posX < 10) posX = 10;
+  if (posY < 10) posY = 10;
 
   return (
     <>
       <div
-        className="fixed inset-0 z-40 bg-transparent"
-        onClick={onClose}
-        onContextMenu={e => {
-          e.preventDefault();
-          onClose();
-        }}
-      />
-      <div
         ref={menuRef}
-        style={{ left: `${adjustedX}px`, top: `${adjustedY}px` }}
-        className={`fixed z-50 w-52 rounded-xl border shadow-2xl p-1 text-xs select-none animate-in fade-in duration-100 font-serif backdrop-blur-md ${
+        style={{ left: `${posX}px`, top: `${posY}px` }}
+        className={`fixed z-50 w-56 rounded-xl border shadow-2xl py-1.5 text-xs select-none backdrop-blur-md transition-all animate-in fade-in zoom-in-95 duration-100 ${
           isDark
-            ? 'bg-[#18181B]/95 border-white/10 text-[#EDECE8] shadow-black/80'
-            : 'bg-white/95 border-black/10 text-[#2C2B29] shadow-xl'
+            ? 'bg-[#18181B]/95 border-white/10 text-zinc-200 divide-white/10'
+            : 'bg-white/95 border-black/10 text-stone-800 divide-black/5'
         }`}
       >
       {menuState.type === 'node' && menuState.node ? (
         /* Node Right-Click Actions */
         <div className="divide-y divide-inherit">
-          <div className="px-3 py-1.5 font-bold text-[11px] opacity-60 truncate border-b border-inherit font-serif">
-            命题: {latexToUnicode(menuState.node.title)}
+          {/* Header Preview */}
+          <div className="px-3 py-1.5 font-serif border-b border-inherit">
+            <div className="text-[10px] opacity-50 uppercase tracking-wider font-mono">
+              {menuState.node.id}
+            </div>
+            <div className="font-bold text-xs truncate max-w-full">
+              {latexToUnicode(menuState.node.title)}
+            </div>
           </div>
 
           <div className="py-1">
@@ -135,7 +149,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             >
               <div className="flex items-center space-x-2">
                 <Link2 className="w-3.5 h-3.5" />
-                <span>从此节点连线...</span>
+                <span>{t('contextMenu.startConnect')}</span>
               </div>
               <span className="text-[10px] opacity-60 font-mono">L</span>
             </button>
@@ -149,7 +163,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             >
               <div className="flex items-center space-x-2">
                 <Edit3 className="w-3.5 h-3.5" />
-                <span>编辑详细与批注</span>
+                <span>{t('contextMenu.editNode')}</span>
               </div>
               <span className="text-[10px] opacity-60 font-mono">E</span>
             </button>
@@ -165,7 +179,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             >
               <div className="flex items-center space-x-2">
                 <Copy className="w-3.5 h-3.5" />
-                <span>复制命题</span>
+                <span>{t('contextMenu.copyNode')}</span>
               </div>
               <span className="text-[10px] opacity-50 font-mono">Ctrl+C</span>
             </button>
@@ -179,7 +193,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             >
               <div className="flex items-center space-x-2">
                 <Scissors className="w-3.5 h-3.5" />
-                <span>剪切命题</span>
+                <span>{t('contextMenu.cutNode')}</span>
               </div>
               <span className="text-[10px] opacity-50 font-mono">Ctrl+X</span>
             </button>
@@ -188,16 +202,17 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
           {/* Type Quick Conversion */}
           <div className="py-1">
             <div className="px-3 py-1 text-[10px] uppercase tracking-wider opacity-50 font-mono">
-              转换为类型:
+              {t('contextMenu.changeType')}:
             </div>
-            {(['axiom', 'definition', 'proposition', 'theorem', 'corollary'] as PropositionType[]).map(t => {
-              const conf = NODE_TYPES[t] || NODE_TYPES.theorem;
-              const isCurrent = menuState.node!.type === t;
+            {(['axiom', 'definition', 'proposition', 'theorem', 'corollary'] as PropositionType[]).map(tKey => {
+              const conf = NODE_TYPES[tKey] || NODE_TYPES.theorem;
+              const isCurrent = menuState.node!.type === tKey;
+              const typeLabel = t(`nodeTypes.${tKey}` as any) || conf.label;
               return (
                 <button
-                  key={t}
+                  key={tKey}
                   onClick={() => {
-                    onChangeNodeType(menuState.node!.id, t);
+                    onChangeNodeType(menuState.node!.id, tKey);
                     onClose();
                   }}
                   className="w-full px-3 py-1 text-left flex items-center justify-between hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-[11px]"
@@ -207,7 +222,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
                       className="w-2 h-2"
                       style={{ backgroundColor: isDark ? conf.darkColor : conf.color }}
                     />
-                    <span>{conf.label}</span>
+                    <span>{typeLabel}</span>
                   </div>
                   {isCurrent && <Check className="w-3 h-3 text-emerald-500" />}
                 </button>
@@ -226,7 +241,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
               >
                 <div className="flex items-center space-x-2">
                   <Trash2 className="w-3.5 h-3.5" />
-                  <span>批量删除选中的 {selectedNodeCount} 个命题</span>
+                  <span>{language === 'zh' ? `批量删除选中的 ${selectedNodeCount} 个命题` : `Batch delete ${selectedNodeCount} selected`}</span>
                 </div>
                 <span className="text-[10px] opacity-70 font-mono">Del</span>
               </button>
@@ -240,7 +255,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
               >
                 <div className="flex items-center space-x-2">
                   <Trash2 className="w-3.5 h-3.5" />
-                  <span>删除此命题</span>
+                  <span>{t('contextMenu.deleteNode')}</span>
                 </div>
                 <span className="text-[10px] opacity-70 font-mono">Del</span>
               </button>
@@ -260,7 +275,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             >
               <div className="flex items-center space-x-2">
                 <Plus className="w-3.5 h-3.5" />
-                <span>在此处新建命题</span>
+                <span>{t('header.newProposition')}</span>
               </div>
               <span className="text-[10px] opacity-60 font-mono">N</span>
             </button>
@@ -275,7 +290,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
               >
                 <div className="flex items-center space-x-2">
                   <ClipboardPaste className="w-3.5 h-3.5" />
-                  <span>粘贴命题到此处</span>
+                  <span>{t('contextMenu.pasteHere')}</span>
                 </div>
                 <span className="text-[10px] opacity-50 font-mono">Ctrl+V</span>
               </button>
@@ -292,7 +307,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             >
               <div className="flex items-center space-x-2">
                 {currentLayout === 'dagre' ? <Network className="w-3.5 h-3.5" /> : <GitFork className="w-3.5 h-3.5" />}
-                <span>切换为 {currentLayout === 'dagre' ? '力导向布局' : '分层 DAG 布局'}</span>
+                <span>{currentLayout === 'dagre' ? t('contextMenu.switchToCose') : t('contextMenu.switchToDagre')}</span>
               </div>
               <span className="text-[10px] opacity-60 font-mono">1 / 2</span>
             </button>
@@ -306,9 +321,9 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             >
               <div className="flex items-center space-x-2">
                 <Maximize2 className="w-3.5 h-3.5" />
-                <span>适应画布</span>
+                <span>{t('contextMenu.fitCanvas')}</span>
               </div>
-              <span className="text-[10px] opacity-60 font-mono">0 / 双击</span>
+              <span className="text-[10px] opacity-60 font-mono">0</span>
             </button>
           </div>
 
@@ -322,7 +337,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             >
               <div className="flex items-center space-x-2">
                 <Image className="w-3.5 h-3.5" />
-                <span>导出图片</span>
+                <span>{t('contextMenu.exportPng')}</span>
               </div>
             </button>
           </div>
