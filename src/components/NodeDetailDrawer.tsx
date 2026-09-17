@@ -7,12 +7,13 @@ import {
   ChevronDown, 
   ChevronRight, 
   ArrowDownRight,
-  Search,
   BookMarked
 } from 'lucide-react';
 import { PropositionNode, NODE_TYPES, PropositionType, AppTheme } from '../types';
 import { MathRenderer } from './MathRenderer';
 import { MathSymbolToolbar } from './MathSymbolToolbar';
+import { FieldLatexPreview } from './drawer/FieldLatexPreview';
+import { PrerequisitePicker } from './drawer/PrerequisitePicker';
 import { useTranslation } from '../i18n/LanguageContext';
 
 interface NodeDetailDrawerProps {
@@ -26,24 +27,7 @@ interface NodeDetailDrawerProps {
   theme: AppTheme;
 }
 
-const FieldLatexPreview: React.FC<{
-  label: string;
-  content: string;
-  isDark: boolean;
-  className?: string;
-}> = ({ label, content, isDark, className = '' }) => {
-  if (!content || (!content.includes('$') && !content.includes('\\'))) return null;
-  return (
-    <div
-      className={`mt-1.5 p-2 rounded border border-dashed text-xs ${
-        isDark ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-stone-100/80 border-stone-300 text-stone-800'
-      } ${className}`}
-    >
-      <div className="text-[9px] font-mono opacity-50 mb-0.5 font-normal">{label}:</div>
-      <MathRenderer content={content.replace(/\\\\|\\n|<br\s*\/?>/gi, '\n')} />
-    </div>
-  );
-};
+
 
 export const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
   node,
@@ -60,7 +44,7 @@ export const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<PropositionNode>(node);
   const [isFullProofExpanded, setIsFullProofExpanded] = useState(false);
-  const [prereqSearch, setPrereqSearch] = useState('');
+  
   const [activeField, setActiveField] = useState<'title' | 'statement' | 'proof_sketch' | 'note' | 'full_proof'>('statement');
 
   const statementRef = useRef<HTMLTextAreaElement>(null);
@@ -77,7 +61,7 @@ export const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
     setFormData(node);
     setIsEditing(false);
     setIsFullProofExpanded(false);
-    setPrereqSearch('');
+    
   }, [node]);
 
   const typeConfig = NODE_TYPES[formData.type] || NODE_TYPES.theorem;
@@ -90,16 +74,7 @@ export const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
       .filter((n): n is PropositionNode => !!n);
   }, [node.id, downstreamMap, allNodes]);
 
-  // Candidates for prerequisites
-  const candidatePrereqs = useMemo(() => {
-    const q = prereqSearch.trim().toLowerCase();
-    return allNodes
-      .filter(n => n.id !== node.id)
-      .filter(n => {
-        if (!q) return true;
-        return n.title.toLowerCase().includes(q) || n.statement.toLowerCase().includes(q);
-      });
-  }, [allNodes, node.id, prereqSearch]);
+  
 
   const handleTogglePrerequisite = (candId: string) => {
     const current = new Set(formData.depends_on);
@@ -536,71 +511,13 @@ export const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
         </div>
 
         {/* Prerequisites */}
-        <div className="border-t border-inherit pt-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-[11px] uppercase tracking-wider font-semibold opacity-60 font-serif">
-              直接依赖前提 (Depends On: {formData.depends_on.length})
-            </div>
-            <span className="text-[10px] opacity-60">方式二：勾选建立关系</span>
-          </div>
-
-          <div className="relative mb-2">
-            <Search className="w-3 h-3 opacity-50 absolute left-2.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={prereqSearch}
-              onChange={e => setPrereqSearch(e.target.value)}
-              placeholder="搜索前置命题..."
-              className={`w-full pl-7 pr-3 py-1 text-xs border focus:outline-none font-serif ${
-                isDark
-                  ? 'bg-[#27272A] border-[#3F3F46] text-white'
-                  : 'bg-[#FAF8F5] border-[#D4CDC0] text-[#2C2B29]'
-              }`}
-            />
-          </div>
-
-          <div
-            className={`max-h-40 overflow-y-auto space-y-1 border p-1.5 ${
-              isDark ? 'bg-[#222226] border-[#2E2E33]' : 'bg-[#FAF8F5] border-[#D4CDC0]'
-            }`}
-          >
-            {candidatePrereqs.map(cand => {
-              const isChecked = formData.depends_on.includes(cand.id);
-              const candType = NODE_TYPES[cand.type] || NODE_TYPES.theorem;
-
-              return (
-                <label
-                  key={cand.id}
-                  className={`flex items-start space-x-2 p-1 text-xs cursor-pointer border transition-colors ${
-                    isChecked
-                      ? isDark
-                        ? 'bg-[#2E2E33] border-[#60A5FA] font-medium'
-                        : 'bg-white border-[#2C2B29] font-medium'
-                      : 'border-transparent hover:bg-black/5 dark:hover:bg-white/5'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={() => handleTogglePrerequisite(cand.id)}
-                    className="mt-0.5 text-[#1E3A5F] cursor-pointer"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-1.5">
-                      <span
-                        className="w-1.5 h-1.5 shrink-0"
-                        style={{ backgroundColor: isDark ? candType.darkBorderColor : candType.borderColor }}
-                      />
-                      <span className="font-serif truncate">
-                        {cand.title}
-                      </span>
-                    </div>
-                  </div>
-                </label>
-              );
-            })}
-          </div>
-        </div>
+        <PrerequisitePicker
+          allNodes={allNodes}
+          currentNodeId={node.id}
+          selectedPrereqIds={formData.depends_on}
+          onTogglePrereq={handleTogglePrerequisite}
+          isDark={isDark}
+        />
 
         {/* Downstream */}
         <div className="border-t border-inherit pt-4">

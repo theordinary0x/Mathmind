@@ -11,8 +11,9 @@ import { getCytoscapeStyles } from '../styles/cytoscapeStyles';
 import { getGraphLayoutConfig } from '../utils/layoutConfigs';
 import { SelectionOverlay, SelectionToolMode } from './canvas/SelectionOverlay';
 import { BatchSelectionBar } from './canvas/BatchSelectionBar';
+import { CanvasControlsIsland } from './canvas/CanvasControlsIsland';
+import { CanvasModeBanners } from './canvas/CanvasModeBanners';
 import { isPointInBox, isPointInPolygon, Point, BoundingBox } from '../utils/selectionHelper';
-import { BoxSelect, Lasso, MousePointer } from 'lucide-react';
 import { useTranslation } from '../i18n/LanguageContext';
 
 cytoscape.use(dagre);
@@ -1043,164 +1044,34 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
       />
 
       {/* Floating Canvas Controls - Modern Frosted Glass Island */}
-      <div
-        className={`absolute bottom-4 sm:bottom-6 left-3 sm:left-6 flex items-center rounded-xl border shadow-lg text-xs z-10 p-1 backdrop-blur-md transition-all ${
-          isDark
-            ? 'bg-[#18181B]/90 border-white/10 text-zinc-300'
-            : 'bg-white/90 border-black/10 text-stone-700'
-        }`}
-      >
-        <button
-          onClick={handleResetZoom}
-          className={`px-2.5 py-1 font-medium rounded-lg transition-colors flex items-center gap-1 whitespace-nowrap ${
-            isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
-          }`}
-          title={`${t('canvas.fitView')} (0)`}
-        >
-          <span>{t('canvas.fitView')}</span>
-          <kbd className={`px-1 py-0.5 text-[9px] font-mono rounded ${
-            isDark ? 'bg-white/10 text-zinc-400' : 'bg-black/5 text-stone-500'
-          }`}>0</kbd>
-        </button>
+      <CanvasControlsIsland
+        currentZoomPercent={currentZoomPercent}
+        onResetZoom={handleResetZoom}
+        onRelayout={() => runLayout(layoutType)}
+        onSetZoomLevel={setZoomLevel}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        toolMode={toolMode}
+        onChangeToolMode={setToolMode}
+        isDark={isDark}
+      />
 
-        <button
-          onClick={() => runLayout(layoutType)}
-          className={`px-2 py-1 font-medium rounded-lg transition-colors whitespace-nowrap ${
-            isDark ? 'hover:bg-white/10 text-blue-400' : 'hover:bg-black/5 text-blue-600'
-          }`}
-          title={t('canvas.recalculateLayout')}
-        >
-          {t('canvas.recalculateLayout')}
-        </button>
-
-        <div className="w-[1px] h-3.5 bg-black/10 dark:bg-white/10 mx-0.5 hidden sm:block" />
-
-        <button
-          onClick={() => setZoomLevel(0.5)}
-          className={`px-1.5 py-1 font-mono text-[11px] rounded-md transition-colors hidden sm:inline-block ${
-            isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'
-          }`}
-        >
-          50%
-        </button>
-        <button
-          onClick={() => setZoomLevel(1.0)}
-          className={`px-1.5 py-1 font-mono text-[11px] font-bold rounded-md transition-colors hidden sm:inline-block ${
-            isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
-          }`}
-        >
-          100%
-        </button>
-
-        <div className="w-[1px] h-3.5 bg-black/10 dark:bg-white/10 mx-0.5" />
-
-        <button
-          onClick={handleZoomIn}
-          className={`w-6 h-6 flex items-center justify-center font-bold text-sm rounded-md transition-colors ${
-            isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
-          }`}
-          title={`${t('canvas.zoomIn')} (+)`}
-        >
-          +
-        </button>
-        <button
-          onClick={handleZoomOut}
-          className={`w-6 h-6 flex items-center justify-center font-bold text-sm rounded-md transition-colors ${
-            isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
-          }`}
-          title={`${t('canvas.zoomOut')} (-)`}
-        >
-          -
-        </button>
-
-        <span className="px-1.5 py-1 font-mono text-[10px] opacity-60">
-          {currentZoomPercent}%
-        </span>
-
-        <div className="w-[1px] h-3.5 bg-black/10 dark:bg-white/10 mx-0.5" />
-
-        {/* Selection Tool Mode Toggles */}
-        <button
-          onClick={() => setToolMode('none')}
-          className={`p-1.5 rounded-md transition-colors ${
-            toolMode === 'none'
-              ? isDark ? 'bg-white/20 text-white' : 'bg-black/10 text-stone-900 font-bold'
-              : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'
-          }`}
-          title={t('canvas.defaultMode')}
-        >
-          <MousePointer className="w-3.5 h-3.5" />
-        </button>
-
-        <button
-          onClick={() => setToolMode(prev => prev === 'box' ? 'none' : 'box')}
-          className={`p-1.5 rounded-md transition-colors ${
-            toolMode === 'box'
-              ? 'bg-blue-600 text-white'
-              : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'
-          }`}
-          title={t('canvas.boxMode')}
-        >
-          <BoxSelect className="w-3.5 h-3.5" />
-        </button>
-
-        <button
-          onClick={() => setToolMode(prev => prev === 'lasso' ? 'none' : 'lasso')}
-          className={`p-1.5 rounded-md transition-colors ${
-            toolMode === 'lasso'
-              ? 'bg-blue-600 text-white'
-              : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'
-          }`}
-          title={t('canvas.lassoMode')}
-        >
-          <Lasso className="w-3.5 h-3.5" />
-        </button>
-      </div>
-
-      {/* Box / Lasso Mode Active Banner */}
-      {toolMode !== 'none' && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1.5 rounded-full shadow-2xl flex items-center space-x-3 text-xs z-30 animate-in fade-in slide-in-from-top-2 duration-150">
-          <span className="font-medium">
-            {toolMode === 'box' ? t('canvas.boxModeActive') : t('canvas.lassoModeActive')}
-          </span>
-          <button
-            onClick={() => setToolMode('none')}
-            className="text-[11px] bg-white/20 hover:bg-white/30 px-2 py-0.5 rounded-full transition-colors font-medium flex items-center space-x-1"
-          >
-            <span>{t('canvas.exit')}</span>
-            <kbd className="px-1 text-[9px] font-mono bg-white/25 rounded">Esc</kbd>
-          </button>
-        </div>
-      )}
+      {/* Mode Banners (Box, Lasso, Connect) */}
+      <CanvasModeBanners
+        toolMode={toolMode}
+        onExitToolMode={() => setToolMode('none')}
+        isConnectingMode={isConnectingMode}
+        connectSourceTitle={connectSourceId ? (nodes.find(n => n.id === connectSourceId)?.title || connectSourceId) : null}
+        onExitConnectMode={() => {
+          setIsConnectingMode(false);
+          setConnectSourceId(null);
+          connectSourceIdRef.current = null;
+          cyRef.current?.nodes().removeClass('connect-source');
+        }}
+      />
 
       {/* MiniMap */}
       <MiniMap cy={cyInstance} theme={theme} />
-
-      {/* Connect Mode Banner */}
-      {isConnectingMode && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-[#1E3A5F] text-white px-5 py-2.5 shadow-2xl flex items-center space-x-4 text-xs z-50 border border-white/30 animate-in fade-in slide-in-from-top-2 duration-150">
-          <div className="flex items-center space-x-2">
-            <span className="inline-block w-2 h-2 bg-blue-300 animate-ping" />
-            <span className="font-medium">
-              {connectSourceId
-                ? t('canvas.connectPromptTarget', { title: nodes.find(n => n.id === connectSourceId)?.title || connectSourceId })
-                : t('canvas.connectPromptStart')}
-            </span>
-          </div>
-          <button
-            onClick={() => {
-              setIsConnectingMode(false);
-              setConnectSourceId(null);
-              connectSourceIdRef.current = null;
-              cyRef.current?.nodes().removeClass('connect-source');
-            }}
-            className="text-[11px] bg-white/20 hover:bg-white/30 px-2.5 py-0.5 border border-white/40 transition-colors font-medium flex items-center space-x-1"
-          >
-            <span>{t('canvas.exitConnectMode')}</span>
-            <kbd className="px-1 py-0.2 text-[9px] font-mono bg-white/25 rounded">Esc / L</kbd>
-          </button>
-        </div>
-      )}
 
       {/* Right Click Context Menu */}
       <ContextMenu
