@@ -30,6 +30,9 @@ import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { SettingsModal } from './components/SettingsModal';
 import { SponsorModal } from './components/SponsorModal';
 import { AiIngestionModal } from './components/AiIngestionModal';
+import { CopilotSidebar } from './components/copilot/CopilotSidebar';
+import { applyGraphMutation } from './utils/graphMutationEngine';
+import { GraphMutationDiff } from './types/copilot';
 import { StatusBar } from './components/StatusBar';
 
 export const App: React.FC = () => {
@@ -95,6 +98,7 @@ export const App: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isSponsorOpen, setIsSponsorOpen] = useState<boolean>(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
+  const [isCopilotOpen, setIsCopilotOpen] = useState<boolean>(false);
   const [initialCreateNodeData, setInitialCreateNodeData] = useState<Partial<PropositionNode> | null>(null);
   const [canvasSettings, setCanvasSettings] = useState<CanvasSettings>(() => getSavedCanvasSettings());
 
@@ -325,6 +329,28 @@ export const App: React.FC = () => {
     showToast(`成功录入 ${createdNodes.length} 个数学命题`);
   }, [dataset.nodes, commitNodesUpdate, showToast]);
 
+  // Selected Nodes list for Copilot context
+  const selectedNodesList = useMemo(() => {
+    if (selectedNodeIds.size > 0) {
+      return dataset.nodes.filter(n => selectedNodeIds.has(n.id));
+    }
+    if (selectedNodeId) {
+      const single = dataset.nodes.find(n => n.id === selectedNodeId);
+      return single ? [single] : [];
+    }
+    return [];
+  }, [dataset.nodes, selectedNodeIds, selectedNodeId]);
+
+  // Apply Graph Mutation proposal from Copilot
+  const handleApplyCopilotMutation = useCallback((diff: GraphMutationDiff, enabledActionIds?: Set<string>) => {
+    const result = applyGraphMutation(dataset.nodes, diff, { enabledActionIds });
+    if (!result.success) {
+      showToast(`⚠️ ${result.error}`);
+      return;
+    }
+    commitNodesUpdate(result.newNodes, result.summary);
+  }, [dataset.nodes, commitNodesUpdate, showToast]);
+
   // Paste
   const handlePasteNode = useCallback((position?: { x: number; y: number }) => {
     if (!clipboardNode) {
@@ -499,12 +525,12 @@ export const App: React.FC = () => {
     isProjectManagerOpen,
     isShortcutsModalOpen,
     isSettingsOpen,
-    isAiModalOpen,
+    isAiModalOpen: isAiModalOpen || isCopilotOpen,
     setIsSettingsOpen,
     setIsShortcutsModalOpen,
     setIsProjectManagerOpen,
     handleOpenCreateModal,
-    handleOpenAiModal: () => setIsAiModalOpen(true),
+    handleOpenAiModal: () => setIsCopilotOpen(prev => !prev),
     isConnectingMode,
     setIsConnectingMode,
     setLayoutType,
@@ -665,7 +691,9 @@ export const App: React.FC = () => {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onOpenCreateModal={() => handleOpenCreateModal()}
-        onOpenAiIngestion={() => setIsAiModalOpen(true)}
+        isCopilotOpen={isCopilotOpen}
+        onToggleCopilot={() => setIsCopilotOpen(prev => !prev)}
+        onOpenAiIngestion={() => setIsCopilotOpen(true)}
         onSaveAs={handleSaveAs}
         onManualSave={() => doSaveNow(true)}
         onImport={handleImportJson}
@@ -727,6 +755,18 @@ export const App: React.FC = () => {
           onUpdateNode={handleUpdateNode}
           onDeleteNode={handleDeleteNode}
           onNavigateToNode={id => handleSelectSingleNode(id)}
+          theme={effectiveTheme}
+        />
+
+        {/* AI Copilot Sidebar */}
+        <CopilotSidebar
+          isOpen={isCopilotOpen}
+          onClose={() => setIsCopilotOpen(false)}
+          allNodes={dataset.nodes}
+          selectedNodes={selectedNodesList}
+          onApplyMutation={handleApplyCopilotMutation}
+          onNavigateToNode={handleSelectSingleNode}
+          onOpenSettings={() => setIsSettingsOpen(true)}
           theme={effectiveTheme}
         />
       </main>

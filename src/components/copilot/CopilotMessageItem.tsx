@@ -1,0 +1,122 @@
+import React, { useState } from 'react';
+import { CopilotMessage } from '../../types/copilot';
+import { MathRenderer } from '../MathRenderer';
+import { DiffReviewCard } from './DiffReviewCard';
+import { Sparkles, User, Copy, Check, AlertCircle, Loader2 } from 'lucide-react';
+
+interface CopilotMessageItemProps {
+  message: CopilotMessage;
+  onApplyDiff: (messageId: string, selectedActionIds?: Set<string>) => void;
+  onNavigateToNode?: (nodeId: string) => void;
+  isDark: boolean;
+}
+
+export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
+  message,
+  onApplyDiff,
+  onNavigateToNode,
+  isDark
+}) => {
+  const [copied, setCopied] = useState(false);
+  const isUser = message.role === 'user';
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(message.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  };
+
+  return (
+    <div className={`flex flex-col space-y-1.5 my-3 ${isUser ? 'items-end' : 'items-start'}`}>
+      {/* 角色与时间栏 */}
+      <div className="flex items-center space-x-1.5 text-[10px] opacity-50 px-1">
+        {isUser ? (
+          <>
+            <span>我</span>
+            <User className="w-3 h-3" />
+          </>
+        ) : (
+          <>
+            <Sparkles className="w-3 h-3 text-blue-500" />
+            <span>Math Copilot</span>
+          </>
+        )}
+      </div>
+
+      {/* 消息主体容器 */}
+      <div
+        className={`max-w-[92%] rounded-xl px-3.5 py-2.5 text-xs transition-all shadow-xs relative group ${
+          isUser
+            ? isDark
+              ? 'bg-blue-600 text-white rounded-tr-none'
+              : 'bg-[#2C2B29] text-[#FAF8F5] rounded-tr-none'
+            : isDark
+            ? 'bg-[#232328] border border-[#333338] text-zinc-100 rounded-tl-none'
+            : 'bg-white border border-stone-200 text-stone-800 rounded-tl-none'
+        }`}
+      >
+        {/* 用户附带的选区上下文快照展示 */}
+        {isUser && message.contextSnapshot && message.contextSnapshot.nodeIds.length > 0 && (
+          <div className="mb-2 pb-1.5 border-b border-white/20 text-[10px] opacity-80 flex items-center space-x-1">
+            <span>📍 基于选区:</span>
+            <span className="font-serif truncate max-w-[200px]">
+              {message.contextSnapshot.nodeTitles.slice(0, 3).join(', ')}
+              {message.contextSnapshot.nodeTitles.length > 3 ? ' 等' : ''}
+            </span>
+          </div>
+        )}
+
+        {/* 错误提示 */}
+        {message.error ? (
+          <div className="flex items-start space-x-1.5 text-rose-400 py-1">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <div className="font-semibold">请求遇到问题</div>
+              <div className="opacity-90">{message.error}</div>
+            </div>
+          </div>
+        ) : (
+          /* 正文文本渲染 (支持 Markdown 与 LaTeX) */
+          <div className="leading-relaxed break-words font-serif">
+            {isUser ? (
+              <div className="whitespace-pre-wrap">{message.content}</div>
+            ) : (
+              <MathRenderer content={message.content} />
+            )}
+          </div>
+        )}
+
+        {/* 流式生成中动画 */}
+        {message.isStreaming && (
+          <div className="flex items-center space-x-2 mt-2 pt-2 border-t border-inherit text-blue-400">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <span className="text-[11px] animate-pulse">正在严密推导数学逻辑并生成图谱方案...</span>
+          </div>
+        )}
+
+        {/* 附带的图变更审查卡片 */}
+        {message.diffProposal && (
+          <DiffReviewCard
+            proposal={message.diffProposal}
+            onApply={(selectedIds) => onApplyDiff(message.id, selectedIds)}
+            onNavigateToNode={onNavigateToNode}
+            isDark={isDark}
+          />
+        )}
+
+        {/* 复制按钮浮层 */}
+        {!message.isStreaming && !message.error && (
+          <button
+            onClick={handleCopy}
+            className={`absolute top-1.5 right-1.5 p-1 rounded opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity ${
+              isUser ? 'text-white' : isDark ? 'text-zinc-400' : 'text-stone-500'
+            }`}
+            title="复制消息内容"
+          >
+            {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
