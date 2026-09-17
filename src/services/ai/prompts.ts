@@ -28,8 +28,12 @@ export const buildSystemPrompt = (
 【必须严格区分的四大结构化字段】
 1. title: 标题。学术规范的简练名称（如“闭区间连续函数的介值定理”）。
 2. statement: 命题陈述。严谨完整的数学叙述，清晰交代前提条件与最终结论（公式需用 LaTeX）。
-3. proof_sketch: 证明思路。直观思考图景、关键技巧、构造法或引理要点（1~3 句话直击证明核心）。
-4. full_proof: 命题证明。详尽严密的分步推导与论证过程；若为公理或定义，写“根据定义本身成立”或“不证自明的基础公理”。
+3. proof_sketch: 证明思路。极致精炼（1~2 句话），直击证明的核心手法、构造方法或几何直观图景。
+4. full_proof: 命题证明。要求【简明明确且步步严谨】：
+   - 严禁任何修辞废话（绝不出现“我们显然可以看出”、“不难发现”、“综上所述易证”等文字）；
+   - 必须采用清晰紧凑的编号分步推导（1. ... \n2. ... \n3. ... \n证毕。）；
+   - 步步有据：每一推导步骤均必须明确标注理论依据（如“由连续性假设”、“由零点定理”、“由三角形两边之和大于第三边”），杜绝无依据跳步；
+   - 若为公理或基础定义，写“根据定义本身成立”或“不证自明的基础公理”。
 
 【因果图谱依赖关联原则】
 当前画布已有命题列表如下：
@@ -41,7 +45,7 @@ ${existingListSummary}
 3. 严格禁止出现循环依赖（如 A 依赖 B，B 又依赖 A）。
 
 【提炼模式要求】
-当前模式: ${mode === 'single' ? '🎯 单个精修模式（仅提取 1 个最核心的命题/定理，给出最详尽的 statement 与 proof_sketch、full_proof）' : '⚡ 批量抽取模式（提取文档中出现的全部核心定义、定理与推论，通常 1~6 个，理清先后脉络）'}
+当前模式: ${mode === 'single' ? '🎯 单个精修模式（仅提取 1 个最核心的命题/定理，给出最详尽严密的 statement 与 proof_sketch、full_proof）' : '⚡ 批量抽取模式（提取文档中出现的全部核心定义、定理与推论，通常 1~6 个，理清先后脉络）'}
 
 【必须返回纯 JSON 格式】
 严禁输出任何多余的开场白、问候语或解释文字，直接返回以下 JSON 结构：
@@ -62,8 +66,8 @@ ${existingListSummary}
       "type": "theorem",
       "title": "闭区间上连续函数的介值定理",
       "statement": "若 $f \\in C[a, b]$ 且 $f(a) \\neq f(b)$，则对于介于 $f(a)$ 与 $f(b)$ 之间的任一实数 $\\mu$，至少存在一点 $\\xi \\in (a, b)$，使得 $f(\\xi) = \\mu$。",
-      "proof_sketch": "构造辅助函数 $g(x) = f(x) - \\mu$，结合连续函数的零点定理完成证明。",
-      "full_proof": "不妨设 $f(a) < \\mu < f(b)$。构造连续辅助函数 $g(x) = f(x) - \\mu$。\\n由条件可知 $g(a) = f(a) - \\mu < 0$，$g(b) = f(b) - \\mu > 0$。\\n根据根的存在定理（零点定理），连续函数 $g(x)$ 在区间 $(a, b)$ 内至少存在一个零点 $\\xi$，使得 $g(\\xi) = 0$。\\n即 $f(\\xi) - \\mu = 0$，也就是 $f(\\xi) = \\mu$。定理获证。",
+      "proof_sketch": "构造辅助函数 $g(x) = f(x) - \\mu$，将介值问题转化为零点定理的应用。",
+      "full_proof": "1. 不妨设 $f(a) < \\mu < f(b)$。\\n2. 构造辅助函数 $g(x) = f(x) - \\mu$。由 $f \\in C[a, b]$ 可知 $g \\in C[a, b]$。\\n3. 代入端点值：$g(a) = f(a) - \\mu < 0$，$g(b) = f(b) - \\mu > 0$。\\n4. 由连续函数的零点定理，在开区间 $(a, b)$ 内至少存在一点 $\\xi$，使得 $g(\\xi) = 0$。\\n5. 从而 $f(\\xi) - \\mu = 0 \\implies f(\\xi) = \\mu$。证毕。",
       "depends_on_existing_ids": [],
       "depends_on_new_temp_ids": ["node_1"]
     }
@@ -79,7 +83,7 @@ export const buildUserPromptText = (textInput?: string, fileName?: string): stri
   if (textInput && textInput.trim()) {
     prompt += `【用户输入内容 / 辅助说明】:\n${textInput.trim()}\n\n`;
   }
-  prompt += '请仔细分析上述内容或所附多模态材料中的全部数学逻辑，严格按系统提示的 JSON 格式输出命题与拓扑前置依赖。确保 title、statement、proof_sketch、full_proof 四大字段明确拆分。';
+  prompt += '请仔细分析上述内容或所附多模态材料中的全部数学逻辑，严格按系统提示的 JSON 格式输出命题与拓扑前置依赖。必须确保 title、statement、proof_sketch、full_proof 四大字段明确拆分，且证明过程（full_proof）要求简明明确、步步严谨，采用分步编号形式，杜绝任何多余修辞废话。';
   return prompt;
 };
 
@@ -105,7 +109,8 @@ ${JSON.stringify(currentNodes, null, 2)}
 
 【任务要求】:
 请以上一轮提炼结果为基础，严格根据用户的微调指令进行针对性修改、增删、补充证明或优化拓扑依赖。
-必须保持纯 JSON 格式输出，返回完整的 propositions 数组，每个命题必须继续清晰区分包含 tempId, type, title, statement, proof_sketch, full_proof, depends_on_existing_ids, depends_on_new_temp_ids。`;
+必须保持纯 JSON 格式输出，返回完整的 propositions 数组。每个命题必须继续清晰区分包含 tempId, type, title, statement, proof_sketch, full_proof, depends_on_existing_ids, depends_on_new_temp_ids。
+证明内容（full_proof）务必坚持简明明确、步步严谨，采用分步编号格式，严禁套话。`;
 
   return prompt;
 };
