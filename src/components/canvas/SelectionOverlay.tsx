@@ -236,7 +236,7 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
             width: `${boxStyle.width}px`,
             height: `${boxStyle.height}px`
           }}
-          className="border-2 border-dashed border-blue-500 bg-blue-500/15 rounded-sm pointer-events-none backdrop-blur-[0.5px]"
+          className="border-2 border-dashed border-blue-500 bg-blue-500/15 pointer-events-none backdrop-blur-[0.5px]"
         />
       )}
 

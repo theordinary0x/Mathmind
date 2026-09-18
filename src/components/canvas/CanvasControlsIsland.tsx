@@ -30,7 +30,7 @@ export const CanvasControlsIsland: React.FC<CanvasControlsIslandProps> = ({
 
   return (
     <div
-      className={`absolute bottom-4 sm:bottom-6 left-3 sm:left-6 flex items-center rounded-xl border shadow-lg text-xs z-10 p-1 backdrop-blur-md transition-all ${
+      className={`absolute bottom-4 sm:bottom-6 left-3 sm:left-6 flex items-center border shadow-lg text-xs z-10 p-1 backdrop-blur-md transition-all ${
         isDark
           ? 'bg-[#18181B]/90 border-white/10 text-zinc-300'
           : 'bg-white/90 border-black/10 text-stone-700'
@@ -38,20 +38,20 @@ export const CanvasControlsIsland: React.FC<CanvasControlsIslandProps> = ({
     >
       <button
         onClick={onResetZoom}
-        className={`px-2.5 py-1 font-medium rounded-lg transition-colors flex items-center gap-1 whitespace-nowrap ${
+        className={`px-2.5 py-1 font-medium transition-colors flex items-center gap-1 whitespace-nowrap ${
           isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
         }`}
         title={`${t('canvas.fitView')} (0)`}
       >
         <span>{t('canvas.fitView')}</span>
-        <kbd className={`px-1 py-0.5 text-[9px] font-mono rounded ${
+        <kbd className={`px-1 py-0.5 text-[9px] font-mono ${
           isDark ? 'bg-white/10 text-zinc-400' : 'bg-black/5 text-stone-500'
         }`}>0</kbd>
       </button>
 
       <button
         onClick={onRelayout}
-        className={`px-2 py-1 font-medium rounded-lg transition-colors whitespace-nowrap ${
+        className={`px-2 py-1 font-medium transition-colors whitespace-nowrap ${
           isDark ? 'hover:bg-white/10 text-blue-400' : 'hover:bg-black/5 text-blue-600'
         }`}
         title={t('canvas.recalculateLayout')}
@@ -63,7 +63,7 @@ export const CanvasControlsIsland: React.FC<CanvasControlsIslandProps> = ({
 
       <button
         onClick={() => onSetZoomLevel(0.5)}
-        className={`px-1.5 py-1 font-mono text-[11px] rounded-md transition-colors hidden sm:inline-block ${
+        className={`px-1.5 py-1 font-mono text-[11px] transition-colors hidden sm:inline-block ${
           isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'
         }`}
       >
@@ -71,7 +71,7 @@ export const CanvasControlsIsland: React.FC<CanvasControlsIslandProps> = ({
       </button>
       <button
         onClick={() => onSetZoomLevel(1.0)}
-        className={`px-1.5 py-1 font-mono text-[11px] font-bold rounded-md transition-colors hidden sm:inline-block ${
+        className={`px-1.5 py-1 font-mono text-[11px] font-bold transition-colors hidden sm:inline-block ${
           isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
         }`}
       >
@@ -82,7 +82,7 @@ export const CanvasControlsIsland: React.FC<CanvasControlsIslandProps> = ({
 
       <button
         onClick={onZoomIn}
-        className={`w-6 h-6 flex items-center justify-center font-bold text-sm rounded-md transition-colors ${
+        className={`w-6 h-6 flex items-center justify-center font-bold text-sm transition-colors ${
           isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
         }`}
         title={`${t('canvas.zoomIn')} (+)`}
@@ -91,7 +91,7 @@ export const CanvasControlsIsland: React.FC<CanvasControlsIslandProps> = ({
       </button>
       <button
         onClick={onZoomOut}
-        className={`w-6 h-6 flex items-center justify-center font-bold text-sm rounded-md transition-colors ${
+        className={`w-6 h-6 flex items-center justify-center font-bold text-sm transition-colors ${
           isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
         }`}
         title={`${t('canvas.zoomOut')} (-)`}
@@ -108,7 +108,7 @@ export const CanvasControlsIsland: React.FC<CanvasControlsIslandProps> = ({
       {/* Selection Tool Mode Toggles */}
       <button
         onClick={() => onChangeToolMode('none')}
-        className={`p-1.5 rounded-md transition-colors ${
+        className={`p-1.5 transition-colors ${
           toolMode === 'none'
             ? isDark ? 'bg-white/20 text-white' : 'bg-black/10 text-stone-900 font-bold'
             : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'
@@ -120,7 +120,7 @@ export const CanvasControlsIsland: React.FC<CanvasControlsIslandProps> = ({
 
       <button
         onClick={() => onChangeToolMode(prev => prev === 'box' ? 'none' : 'box')}
-        className={`p-1.5 rounded-md transition-colors ${
+        className={`p-1.5 transition-colors ${
           toolMode === 'box'
             ? 'bg-blue-600 text-white'
             : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'
@@ -132,7 +132,7 @@ export const CanvasControlsIsland: React.FC<CanvasControlsIslandProps> = ({
 
       <button
         onClick={() => onChangeToolMode(prev => prev === 'lasso' ? 'none' : 'lasso')}
-        className={`p-1.5 rounded-md transition-colors ${
+        className={`p-1.5 transition-colors ${
           toolMode === 'lasso'
             ? 'bg-blue-600 text-white'
             : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'

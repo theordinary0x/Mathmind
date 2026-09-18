@@ -28,7 +28,7 @@ const CodeBlock: React.FC<{
 
   return (
     <div
-      className={`my-3 rounded-lg overflow-hidden border font-mono text-xs transition-colors shadow-xs ${
+      className={`my-3 overflow-hidden border font-mono text-xs transition-colors shadow-xs ${
         isDark
           ? 'bg-[#1C1C20] border-[#333338] text-zinc-100'
           : 'bg-[#F5F4F0] border-stone-200 text-stone-800'
@@ -176,7 +176,7 @@ export const MarkdownMathRenderer: React.FC<MarkdownMathRendererProps> = ({
         });
         return `<div class="my-3 overflow-x-auto text-center py-1 font-serif">${rendered}</div>`;
       } catch {
-        return `<div class="my-2 p-2 bg-red-500/10 text-rose-500 font-mono text-xs border border-rose-500/30 rounded">${math}</div>`;
+        return `<div class="my-2 p-2 bg-red-500/10 text-rose-500 font-mono text-xs border border-rose-500/30">${math}</div>`;
       }
     });
 
@@ -258,12 +258,12 @@ export const MarkdownMathRenderer: React.FC<MarkdownMathRendererProps> = ({
           return (
             <div
               key={idx}
-              className={`my-3 p-3.5 rounded-lg border-l-4 border ${cfg.border} ${cfg.bg} transition-colors shadow-xs`}
+              className={`my-3 p-3.5 border-l-4 border ${cfg.border} ${cfg.bg} transition-colors shadow-xs`}
             >
               <div
                 className={`font-serif font-bold text-xs flex items-center space-x-1.5 mb-2 select-none ${cfg.text}`}
               >
-                <span className="px-1.5 py-0.5 rounded-sm bg-black/5 dark:bg-white/10 uppercase tracking-wider text-[10px]">
+                <span className="px-1.5 py-0.5 bg-black/5 dark:bg-white/10 uppercase tracking-wider text-[10px]">
                   {cfg.label}
                 </span>
                 <span className="opacity-50 text-[11px] font-sans">({cfg.en})</span>

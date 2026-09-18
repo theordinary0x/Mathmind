@@ -132,7 +132,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-100"
     >
       <div
-        className={`border shadow-2xl rounded-xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden backdrop-blur-md ${
+        className={`border shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden backdrop-blur-md ${
           isDark
             ? 'bg-[#18181B] border-white/10 text-zinc-100'
             : 'bg-white border-black/10 text-stone-800'
@@ -147,7 +147,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
           <div className="flex items-center space-x-2">
             <h3 className="font-serif font-bold text-sm">{initialNodeData ? t('createModal.modalTitleEdit') : t('createModal.modalTitleCreate')}</h3>
             {initialPosition && (
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border text-blue-500 border-blue-500/30 bg-blue-500/10">
+              <span className="text-[10px] font-mono px-2 py-0.5 border text-blue-500 border-blue-500/30 bg-blue-500/10">
                 ({Math.round(initialPosition.x)}, {Math.round(initialPosition.y)})
               </span>
             )}
@@ -155,7 +155,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-md opacity-60 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+            className="p-1 opacity-60 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -164,7 +164,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
           {errorMessage && (
-            <div className="p-2.5 rounded-lg text-xs bg-red-500/10 border border-red-500/30 text-red-500 font-serif">
+            <div className="p-2.5 text-xs bg-red-500/10 border border-red-500/30 text-red-500 font-serif">
               {errorMessage}
             </div>
           )}
@@ -194,14 +194,14 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
                   }
                 }}
                 placeholder="如: T5: 加法消去律 ($a+c=b+c \implies a=b$)"
-                className={`w-full text-xs font-serif p-2 rounded-lg border transition-colors focus:outline-none resize-none leading-relaxed ${
+                className={`w-full text-xs font-serif p-2 border transition-colors focus:outline-none resize-none leading-relaxed ${
                   isDark
                     ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'
                     : 'bg-[#FAF8F5] border-black/10 text-stone-900 focus:border-stone-800'
                 }`}
               />
               {title && (title.includes('$') || title.includes('\\')) && (
-                <div className="mt-1.5 p-2 rounded-lg border border-dashed border-black/10 dark:border-white/10 text-xs font-serif font-bold bg-black/5 dark:bg-white/5">
+                <div className="mt-1.5 p-2 border border-dashed border-black/10 dark:border-white/10 text-xs font-serif font-bold bg-black/5 dark:bg-white/5">
                   <span className="text-[9px] opacity-40 block mb-0.5 font-sans font-normal">标题实时预览：</span>
                   <MathRenderer content={title.replace(/\\\\|\\n|<br\s*\/?>/gi, '\n')} />
                 </div>
@@ -212,7 +212,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
               <select
                 value={type}
                 onChange={e => setType(e.target.value as PropositionType)}
-                className={`w-full text-xs p-2 rounded-lg border transition-colors focus:outline-none font-serif ${
+                className={`w-full text-xs p-2 border transition-colors focus:outline-none font-serif ${
                   isDark
                     ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'
                     : 'bg-[#FAF8F5] border-black/10 text-stone-900 focus:border-stone-800'
@@ -236,7 +236,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
               onChange={e => setStatement(e.target.value)}
               rows={2}
               placeholder="如: 对任意 $a, b, c \in \mathbb{N}$，若 $a + c = b + c$，则 $a = b$"
-              className={`w-full text-xs font-serif p-2 rounded-lg border transition-colors focus:outline-none leading-relaxed ${
+              className={`w-full text-xs font-serif p-2 border transition-colors focus:outline-none leading-relaxed ${
                 isDark
                   ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'
                   : 'bg-[#FAF8F5] border-black/10 text-stone-900 focus:border-stone-800'
@@ -244,7 +244,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
             />
             {statement && (statement.includes('$') || statement.includes('\\')) && (
               <div
-                className={`mt-1.5 p-2 rounded-lg text-xs font-serif border ${
+                className={`mt-1.5 p-2 text-xs font-serif border ${
                   isDark ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-stone-100 border-black/10 text-stone-800'
                 }`}
               >
@@ -263,7 +263,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
               value={proofSketch}
               onChange={e => setProofSketch(e.target.value)}
               placeholder="简要概括推导思路..."
-              className={`w-full text-xs p-2 rounded-lg border transition-colors focus:outline-none ${
+              className={`w-full text-xs p-2 border transition-colors focus:outline-none ${
                 isDark
                   ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'
                   : 'bg-[#FAF8F5] border-black/10 text-stone-900 focus:border-stone-800'
@@ -271,7 +271,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
             />
             {proofSketch && (proofSketch.includes('$') || proofSketch.includes('\\')) && (
               <div
-                className={`mt-1.5 p-2 rounded-lg text-xs font-serif border ${
+                className={`mt-1.5 p-2 text-xs font-serif border ${
                   isDark ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-stone-100 border-black/10 text-stone-800'
                 }`}
               >
@@ -293,7 +293,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
                 value={searchPrereq}
                 onChange={e => setSearchPrereq(e.target.value)}
                 placeholder="搜索前置命题..."
-                className={`w-full pl-7 pr-3 py-1.5 text-xs rounded-lg border transition-colors focus:outline-none font-serif ${
+                className={`w-full pl-7 pr-3 py-1.5 text-xs border transition-colors focus:outline-none font-serif ${
                   isDark
                     ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'
                     : 'bg-[#FAF8F5] border-black/10 text-stone-900 focus:border-stone-800'
@@ -301,7 +301,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
               />
             </div>
             <div
-              className={`max-h-32 overflow-y-auto space-y-1 border rounded-lg p-1.5 ${
+              className={`max-h-32 overflow-y-auto space-y-1 border p-1.5 ${
                 isDark ? 'bg-zinc-900/40 border-white/10' : 'bg-[#FAF8F5] border-black/10'
               }`}
             >
@@ -314,7 +314,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
                   return (
                     <label
                       key={cand.id}
-                      className={`flex items-center space-x-2 p-1.5 text-xs cursor-pointer rounded-md border transition-colors ${
+                      className={`flex items-center space-x-2 p-1.5 text-xs cursor-pointer border transition-colors ${
                         isChecked
                           ? isDark
                             ? 'bg-blue-500/10 border-blue-500/40 text-blue-300'
@@ -332,10 +332,10 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
                             setDependsOn([...dependsOn, cand.id]);
                           }
                         }}
-                        className="rounded text-blue-600 focus:ring-0"
+                        className="text-blue-600 focus:ring-0"
                       />
                       <span
-                        className="w-1.5 h-1.5 rounded-full shrink-0"
+                        className="w-1.5 h-1.5 shrink-0"
                         style={{ backgroundColor: isDark ? candType.darkBorderColor : candType.borderColor }}
                       />
                       <span className="font-serif truncate">{cand.title}</span>
@@ -351,13 +351,13 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-1.5 text-xs rounded-lg opacity-75 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              className="px-3.5 py-1.5 text-xs opacity-75 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             >
               取消 (Esc)
             </button>
             <button
               type="submit"
-              className={`flex items-center space-x-1 px-4 py-1.5 text-xs font-medium rounded-lg transition-colors shadow-xs ${
+              className={`flex items-center space-x-1 px-4 py-1.5 text-xs font-medium transition-colors shadow-xs ${
                 isDark
                   ? 'bg-blue-600 hover:bg-blue-500 text-white'
                   : 'bg-stone-900 hover:bg-stone-800 text-white'

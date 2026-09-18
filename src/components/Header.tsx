@@ -79,7 +79,7 @@ const KbdBadge: React.FC<{
 
   return (
     <kbd
-      className={`inline-flex items-center justify-center px-1 py-0.5 text-[9px] font-mono leading-none rounded select-none ${colorStyles} ${className}`}
+      className={`inline-flex items-center justify-center px-1 py-0.5 text-[9px] font-mono leading-none select-none ${colorStyles} ${className}`}
     >
       {children}
     </kbd>
@@ -140,7 +140,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Project Switcher Trigger */}
         <button
           onClick={onOpenProjectManager}
-          className={`flex items-center space-x-1 sm:space-x-1.5 px-2 py-1 text-xs rounded-md transition-colors group shrink-0 ${
+          className={`flex items-center space-x-1 sm:space-x-1.5 px-2 py-1 text-xs transition-colors group shrink-0 ${
             isDark
               ? 'hover:bg-white/5 text-zinc-200'
               : 'hover:bg-black/5 text-stone-800'
@@ -157,11 +157,11 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         {/* Undo / Redo Buttons */}
-        <div className={`hidden md:flex items-center rounded-md p-0.5 shrink-0 ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
+        <div className={`hidden md:flex items-center p-0.5 shrink-0 ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
           <button
             onClick={onUndo}
             disabled={!canUndo}
-            className={`p-1 rounded transition-colors ${
+            className={`p-1 transition-colors ${
               canUndo
                 ? isDark
                   ? 'hover:bg-white/10 text-white'
@@ -175,7 +175,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onRedo}
             disabled={!canRedo}
-            className={`p-1 rounded transition-colors ${
+            className={`p-1 transition-colors ${
               canRedo
                 ? isDark
                   ? 'hover:bg-white/10 text-white'
@@ -198,7 +198,7 @@ export const Header: React.FC<HeaderProps> = ({
           value={searchQuery}
           onChange={e => onSearchChange(e.target.value)}
           placeholder={t('header.searchPlaceholder')}
-          className={`w-full pl-7 pr-4 py-1 text-xs rounded-md border focus:outline-none transition-all font-serif ${
+          className={`w-full pl-7 pr-4 py-1 text-xs border focus:outline-none transition-all font-serif ${
             isDark
               ? 'bg-white/5 border-white/10 text-white placeholder-zinc-500 focus:border-blue-400/60 focus:bg-white/10'
               : 'bg-black/5 border-black/10 text-stone-900 placeholder-stone-400 focus:border-stone-400 focus:bg-white'
@@ -217,10 +217,10 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Right Controls */}
       <div className="flex items-center space-x-1 sm:space-x-1.5 shrink-0">
         {/* Layout Switcher (Sleek Segmented Capsule) */}
-        <div className={`hidden sm:flex items-center rounded-lg p-0.5 ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
+        <div className={`hidden sm:flex items-center p-0.5 ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
           <button
             onClick={() => onChangeLayout('dagre')}
-            className={`flex items-center space-x-1 px-1.5 sm:px-2 py-1 text-xs rounded-md transition-all whitespace-nowrap ${
+            className={`flex items-center space-x-1 px-1.5 sm:px-2 py-1 text-xs transition-all whitespace-nowrap ${
               layoutType === 'dagre'
                 ? isDark
                   ? 'bg-[#27272A] text-white shadow-xs font-semibold'
@@ -235,7 +235,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
           <button
             onClick={() => onChangeLayout('cose')}
-            className={`flex items-center space-x-1 px-1.5 sm:px-2 py-1 text-xs rounded-md transition-all whitespace-nowrap ${
+            className={`flex items-center space-x-1 px-1.5 sm:px-2 py-1 text-xs transition-all whitespace-nowrap ${
               layoutType === 'cose'
                 ? isDark
                   ? 'bg-[#27272A] text-white shadow-xs font-semibold'
@@ -253,7 +253,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Focus Mode Toggle */}
         <button
           onClick={onToggleFocusMode}
-          className={`hidden sm:flex items-center space-x-1 px-1.5 sm:px-2 py-1 rounded-md text-xs transition-colors whitespace-nowrap ${
+          className={`hidden sm:flex items-center space-x-1 px-1.5 sm:px-2 py-1 text-xs transition-colors whitespace-nowrap ${
             isFocusMode
               ? 'bg-blue-600 text-white font-medium shadow-xs'
               : isDark
@@ -270,7 +270,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Connect Mode Toggle */}
         <button
           onClick={onToggleConnectingMode}
-          className={`hidden sm:flex items-center space-x-1 px-1.5 sm:px-2 py-1 rounded-md text-xs transition-colors whitespace-nowrap ${
+          className={`hidden sm:flex items-center space-x-1 px-1.5 sm:px-2 py-1 text-xs transition-colors whitespace-nowrap ${
             isConnectingMode
               ? 'bg-blue-600 text-white font-medium shadow-xs'
               : isDark
@@ -287,7 +287,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* New Proposition Button */}
         <button
           onClick={onOpenCreateModal}
-          className={`flex items-center space-x-1 px-2 sm:px-2.5 py-1 text-xs font-medium rounded-md transition-all shadow-xs whitespace-nowrap ${
+          className={`flex items-center space-x-1 px-2 sm:px-2.5 py-1 text-xs font-medium transition-all shadow-xs whitespace-nowrap ${
             isDark
               ? 'bg-blue-600 hover:bg-blue-500 text-white'
               : 'bg-[#2C2B29] hover:bg-[#3F3E3A] text-white'
@@ -303,7 +303,7 @@ export const Header: React.FC<HeaderProps> = ({
         {onOpenAiIngestion && (
           <button
             onClick={onOpenAiIngestion}
-            className={`flex items-center space-x-1 px-2 sm:px-2.5 py-1 text-xs font-medium rounded-md transition-all shadow-xs whitespace-nowrap ${
+            className={`flex items-center space-x-1 px-2 sm:px-2.5 py-1 text-xs font-medium transition-all shadow-xs whitespace-nowrap ${
               isDark
                 ? 'bg-blue-900/40 hover:bg-blue-800/60 text-blue-200 border border-blue-700/50'
                 : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
@@ -320,7 +320,7 @@ export const Header: React.FC<HeaderProps> = ({
         {onToggleCopilot && (
           <button
             onClick={onToggleCopilot}
-            className={`flex items-center space-x-1 px-2 sm:px-2.5 py-1 text-xs font-medium rounded-md transition-all shadow-xs whitespace-nowrap ${
+            className={`flex items-center space-x-1 px-2 sm:px-2.5 py-1 text-xs font-medium transition-all shadow-xs whitespace-nowrap ${
               isCopilotOpen
                 ? 'bg-blue-600 text-white ring-2 ring-blue-400/50 font-semibold'
                 : isDark
@@ -342,7 +342,7 @@ export const Header: React.FC<HeaderProps> = ({
             e.preventDefault();
             onSaveAs();
           }}
-          className={`hidden sm:flex items-center space-x-1 px-1.5 sm:px-2 py-1 text-xs rounded-md transition-colors whitespace-nowrap ${
+          className={`hidden sm:flex items-center space-x-1 px-1.5 sm:px-2 py-1 text-xs transition-colors whitespace-nowrap ${
             isDark ? 'hover:bg-white/5 text-zinc-300' : 'hover:bg-black/5 text-stone-700'
           }`}
           title={language === 'zh' ? '立即保存 (Ctrl+S) · 右键或 Alt+S 另存为文件' : 'Save (Ctrl+S) · Right-click or Alt+S to Save As'}
@@ -355,7 +355,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Import JSON */}
         <button
           onClick={() => fileInputRef.current?.click()}
-          className={`hidden sm:block p-1.5 rounded-md transition-colors ${
+          className={`hidden sm:block p-1.5 transition-colors ${
             isDark ? 'hover:bg-white/5 text-zinc-300' : 'hover:bg-black/5 text-stone-700'
           }`}
           title={`${t('common.import')} JSON`}
@@ -374,7 +374,7 @@ export const Header: React.FC<HeaderProps> = ({
         {onOpenShortcutsModal && (
           <button
             onClick={onOpenShortcutsModal}
-            className={`hidden sm:flex items-center space-x-1 p-1.5 rounded-md transition-colors ${
+            className={`hidden sm:flex items-center space-x-1 p-1.5 transition-colors ${
               isDark ? 'hover:bg-white/5 text-zinc-300' : 'hover:bg-black/5 text-stone-700'
             }`}
             title={`${t('header.shortcuts')} (?)`}
@@ -387,7 +387,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Theme Toggle (Dark / Light) */}
         <button
           onClick={onToggleTheme}
-          className={`flex items-center space-x-1 p-1.5 rounded-md transition-colors text-amber-500 ${
+          className={`flex items-center space-x-1 p-1.5 transition-colors text-amber-500 ${
             isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'
           }`}
           title={isDark ? (language === 'zh' ? '切换浅色模式 (T)' : 'Switch to Light (T)') : (language === 'zh' ? '切换深色模式 (T)' : 'Switch to Dark (T)')}
@@ -400,7 +400,7 @@ export const Header: React.FC<HeaderProps> = ({
         {onOpenSponsor && (
           <button
             onClick={onOpenSponsor}
-            className={`flex items-center space-x-1 p-1.5 rounded-md transition-colors ${
+            className={`flex items-center space-x-1 p-1.5 transition-colors ${
               isDark ? 'hover:bg-white/5 text-amber-400 hover:text-amber-300' : 'hover:bg-black/5 text-amber-600 hover:text-amber-700'
             }`}
             title={`${t('header.sponsor')}`}
@@ -414,7 +414,7 @@ export const Header: React.FC<HeaderProps> = ({
         {onOpenSettings && (
           <button
             onClick={onOpenSettings}
-            className={`flex items-center space-x-1 p-1.5 rounded-md transition-colors ${
+            className={`flex items-center space-x-1 p-1.5 transition-colors ${
               isDark ? 'hover:bg-white/5 text-zinc-300 hover:text-white' : 'hover:bg-black/5 text-stone-700 hover:text-black'
             }`}
             title={`${t('header.settings')} (Ctrl+,)`}

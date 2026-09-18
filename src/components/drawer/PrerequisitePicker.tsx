@@ -76,7 +76,7 @@ export const PrerequisitePicker: React.FC<PrerequisitePickerProps> = ({
                   type="checkbox"
                   checked={isChecked}
                   onChange={() => onTogglePrereq(cand.id)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+                  className="border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
                 />
                 <span
                   className="text-[9px] px-1 py-0.2 uppercase font-mono border"

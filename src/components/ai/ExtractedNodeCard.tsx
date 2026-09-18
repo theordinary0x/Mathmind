@@ -30,7 +30,7 @@ export const ExtractedNodeCard: React.FC<ExtractedNodeCardProps> = ({
 
   return (
     <div
-      className={`p-3.5 rounded-xl border text-xs transition-all ${
+      className={`p-3.5 border text-xs transition-all ${
         isSelected
           ? isDark
             ? 'bg-blue-950/20 border-blue-500/50 shadow-sm'
@@ -47,9 +47,9 @@ export const ExtractedNodeCard: React.FC<ExtractedNodeCardProps> = ({
             type="checkbox"
             checked={isSelected}
             onChange={() => onToggleSelect(item.tempId)}
-            className="w-4 h-4 rounded accent-blue-600 cursor-pointer shrink-0 mt-0.5"
+            className="w-4 h-4 accent-blue-600 cursor-pointer shrink-0 mt-0.5"
           />
-          <span className={`px-2 py-0.5 rounded text-[10px] text-white font-medium shrink-0 ${typeMeta.color}`}>
+          <span className={`px-2 py-0.5 text-[10px] text-white font-medium shrink-0 ${typeMeta.color}`}>
             {typeMeta.label}
           </span>
           <h4 className="font-serif font-bold text-sm leading-snug break-words min-w-0 flex-1">
@@ -61,7 +61,7 @@ export const ExtractedNodeCard: React.FC<ExtractedNodeCardProps> = ({
           <button
             type="button"
             onClick={() => onOpenSingle(item)}
-            className="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-medium shrink-0 shadow-xs transition-colors"
+            className="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-medium shrink-0 shadow-xs transition-colors"
           >
             精修编辑 &rarr;
           </button>
@@ -75,7 +75,7 @@ export const ExtractedNodeCard: React.FC<ExtractedNodeCardProps> = ({
           <span className="text-[10px] font-mono uppercase tracking-wider text-blue-600 dark:text-blue-400 font-semibold mb-1 block">
             【命题陈述】
           </span>
-          <div className="p-2.5 rounded-lg bg-black/5 dark:bg-black/30 font-serif leading-relaxed text-xs overflow-x-auto break-words border border-black/5 dark:border-white/5">
+          <div className="p-2.5 bg-black/5 dark:bg-black/30 font-serif leading-relaxed text-xs overflow-x-auto break-words border border-black/5 dark:border-white/5">
             <MathRenderer content={item.statement} />
           </div>
         </div>
@@ -86,7 +86,7 @@ export const ExtractedNodeCard: React.FC<ExtractedNodeCardProps> = ({
             <span className="text-[10px] font-mono uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold mb-1 block">
               【证明思路】
             </span>
-            <div className="p-2 rounded-lg bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/15 text-[11px] font-serif leading-relaxed opacity-90 overflow-x-auto break-words">
+            <div className="p-2 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/15 text-[11px] font-serif leading-relaxed opacity-90 overflow-x-auto break-words">
               <MathRenderer content={item.proof_sketch} />
             </div>
           </div>
@@ -109,7 +109,7 @@ export const ExtractedNodeCard: React.FC<ExtractedNodeCardProps> = ({
             </button>
 
             {isProofExpanded && (
-              <div className="mt-1.5 p-2.5 rounded-lg bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20 text-xs font-serif leading-relaxed overflow-x-auto break-words whitespace-pre-wrap animate-in fade-in duration-150">
+              <div className="mt-1.5 p-2.5 bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20 text-xs font-serif leading-relaxed overflow-x-auto break-words whitespace-pre-wrap animate-in fade-in duration-150">
                 <MathRenderer content={item.full_proof} />
               </div>
             )}
@@ -128,7 +128,7 @@ export const ExtractedNodeCard: React.FC<ExtractedNodeCardProps> = ({
               return (
                 <span
                   key={id}
-                  className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono flex items-center border border-emerald-500/20"
+                  className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono flex items-center border border-emerald-500/20"
                 >
                   {existing?.title || id} (已有)
                 </span>
@@ -140,7 +140,7 @@ export const ExtractedNodeCard: React.FC<ExtractedNodeCardProps> = ({
               return (
                 <span
                   key={tempId}
-                  className="px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-mono flex items-center border border-blue-500/20"
+                  className="px-1.5 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 font-mono flex items-center border border-blue-500/20"
                 >
                   <ArrowRight className="w-2.5 h-2.5 mr-0.5" />
                   {targetNew?.title || tempId}

@@ -37,7 +37,7 @@ export const AiRefinementChat: React.FC<AiRefinementChatProps> = ({
 
   return (
     <div
-      className={`p-2.5 rounded-xl border text-xs ${
+      className={`p-2.5 border text-xs ${
         isDark ? 'bg-[#1e1e24] border-white/10' : 'bg-stone-50 border-black/10'
       }`}
     >
@@ -57,7 +57,7 @@ export const AiRefinementChat: React.FC<AiRefinementChatProps> = ({
             type="button"
             disabled={isRefining}
             onClick={() => handleQuickClick(s)}
-            className={`px-2 py-0.5 rounded-full text-[10px] border whitespace-nowrap transition-colors disabled:opacity-50 ${
+            className={`px-2 py-0.5 text-[10px] border whitespace-nowrap transition-colors disabled:opacity-50 ${
               isDark
                 ? 'border-white/15 bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white'
                 : 'border-black/15 bg-white text-stone-600 hover:bg-stone-100 hover:text-stone-900'
@@ -76,7 +76,7 @@ export const AiRefinementChat: React.FC<AiRefinementChatProps> = ({
           onChange={e => setInstruction(e.target.value)}
           disabled={isRefining}
           placeholder="输入调整命令（如：定理二证明更详细点、把定义拆成两个引理）..."
-          className={`flex-1 p-2 rounded-lg border text-xs outline-hidden disabled:opacity-50 ${
+          className={`flex-1 p-2 border text-xs outline-hidden disabled:opacity-50 ${
             isDark
               ? 'bg-[#121214] border-white/10 text-white placeholder-zinc-500 focus:border-blue-500/50'
               : 'bg-white border-black/10 text-stone-900 placeholder-stone-400 focus:border-blue-500/50'
@@ -85,7 +85,7 @@ export const AiRefinementChat: React.FC<AiRefinementChatProps> = ({
         <button
           type="submit"
           disabled={!instruction.trim() || isRefining}
-          className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-xs font-medium flex items-center space-x-1 shrink-0 transition-colors shadow-xs"
+          className="px-3 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-xs font-medium flex items-center space-x-1 shrink-0 transition-colors shadow-xs"
         >
           {isRefining ? (
             <>

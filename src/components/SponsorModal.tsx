@@ -36,7 +36,7 @@ export const SponsorModal: React.FC<SponsorModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-100"
     >
       <div
-        className={`rounded-xl border shadow-2xl w-full max-w-sm flex flex-col overflow-hidden ${
+        className={`border shadow-2xl w-full max-w-sm flex flex-col overflow-hidden ${
           isDark
             ? 'bg-[#18181B] border-white/10 text-[#EDECE8]'
             : 'bg-white border-black/10 text-[#2C2B29]'
@@ -54,7 +54,7 @@ export const SponsorModal: React.FC<SponsorModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            className="p-1 opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             title="关闭 (Esc)"
           >
             <X className="w-4 h-4" />
@@ -63,11 +63,11 @@ export const SponsorModal: React.FC<SponsorModalProps> = ({
 
         {/* Content */}
         <div className="p-6 flex flex-col items-center text-center">
-          <div className="p-3 bg-white rounded-xl shadow-md border border-black/5 mb-4">
+          <div className="p-3 bg-white shadow-md border border-black/5 mb-4">
             <img
               src="/sponsor-qrcode.jpg"
               alt="微信赞助二维码"
-              className="w-56 h-56 object-contain rounded-lg"
+              className="w-56 h-56 object-contain"
             />
           </div>
 
@@ -89,7 +89,7 @@ export const SponsorModal: React.FC<SponsorModalProps> = ({
         >
           <button
             onClick={onClose}
-            className={`px-4 py-1.5 text-xs rounded-lg font-medium transition-colors ${
+            className={`px-4 py-1.5 text-xs font-medium transition-colors ${
               isDark
                 ? 'bg-white/10 hover:bg-white/20 text-white'
                 : 'bg-black/5 hover:bg-black/10 text-stone-800'

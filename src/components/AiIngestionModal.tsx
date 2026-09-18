@@ -317,7 +317,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-xs p-2.5 sm:p-4 animate-in fade-in duration-100"
     >
       <div
-        className={`relative w-full max-w-5xl h-[90vh] max-h-[860px] rounded-2xl border shadow-2xl flex flex-col overflow-hidden font-sans ${
+        className={`relative w-full max-w-5xl h-[90vh] max-h-[860px] border shadow-2xl flex flex-col overflow-hidden font-sans ${
           isDark ? 'bg-[#18181B] border-white/10 text-[#EDECE8]' : 'bg-white border-black/10 text-[#2C2B29]'
         }`}
       >
@@ -328,13 +328,13 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
           }`}
         >
           <div className="flex items-center space-x-2.5 min-w-0 pr-2">
-            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500 shrink-0">
+            <div className="p-2 bg-indigo-500/10 text-indigo-500 shrink-0">
               <Sparkles className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center space-x-2">
                 <h2 className="text-sm sm:text-base font-serif font-bold truncate">AI 教材智能录入</h2>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 font-mono shrink-0">
+                <span className="text-[10px] px-2 py-0.5 bg-blue-500/10 text-blue-500 font-mono shrink-0">
                   {PROVIDER_CONFIGS[aiSettings.provider].name}
                 </span>
               </div>
@@ -347,7 +347,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
           <div className="flex items-center space-x-2 shrink-0">
             <button
               onClick={() => setShowSettingsPanel(!showSettingsPanel)}
-              className={`px-2.5 py-1.5 rounded-lg text-xs flex items-center space-x-1.5 transition-colors font-medium ${
+              className={`px-2.5 py-1.5 text-xs flex items-center space-x-1.5 transition-colors font-medium ${
                 showSettingsPanel 
                   ? 'bg-blue-600 text-white shadow-xs' 
                   : isDark ? 'hover:bg-white/5 text-zinc-400 hover:text-white' : 'hover:bg-black/5 text-stone-600 hover:text-black'
@@ -359,7 +359,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg opacity-60 hover:opacity-100 transition-opacity"
+              className="p-1.5 opacity-60 hover:opacity-100 transition-opacity"
               title="关闭 (Esc)"
             >
               <X className="w-4 h-4" />
@@ -381,7 +381,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                 <select
                   value={aiSettings.provider}
                   onChange={e => handleProviderChange(e.target.value as AiProvider)}
-                  className={`w-full p-2 rounded-lg border text-xs outline-hidden ${
+                  className={`w-full p-2 border text-xs outline-hidden ${
                     isDark ? 'bg-[#18181B] border-white/15 text-white' : 'bg-white border-black/15 text-stone-800'
                   }`}
                 >
@@ -401,7 +401,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                   value={aiSettings.model}
                   onChange={e => handleUpdateSettings({ model: e.target.value })}
                   placeholder="如 gemini-3.8-flash / deepseek-flash"
-                  className={`w-full p-2 rounded-lg border text-xs outline-hidden font-mono ${
+                  className={`w-full p-2 border text-xs outline-hidden font-mono ${
                     isDark ? 'bg-[#18181B] border-white/15 text-white' : 'bg-white border-black/15 text-stone-800'
                   }`}
                 />
@@ -428,7 +428,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                     value={aiSettings.apiKey}
                     onChange={e => handleUpdateSettings({ apiKey: e.target.value })}
                     placeholder="输入 API Key (本地保存)"
-                    className={`w-full p-2 pr-8 rounded-lg border text-xs outline-hidden font-mono ${
+                    className={`w-full p-2 pr-8 border text-xs outline-hidden font-mono ${
                       isDark ? 'bg-[#18181B] border-white/15 text-white' : 'bg-white border-black/15 text-stone-800'
                     }`}
                   />
@@ -452,11 +452,11 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
             {/* Build Mode Selector */}
             <div className="flex items-center justify-between mb-3 shrink-0">
               <label className="text-xs font-semibold uppercase tracking-wider opacity-60">提炼策略</label>
-              <div className="flex items-center p-0.5 rounded-lg border border-black/10 dark:border-white/10 text-xs">
+              <div className="flex items-center p-0.5 border border-black/10 dark:border-white/10 text-xs">
                 <button
                   type="button"
                   onClick={() => setBuildMode('batch')}
-                  className={`px-3 py-1 rounded-md font-medium transition-colors ${
+                  className={`px-3 py-1 font-medium transition-colors ${
                     buildMode === 'batch'
                       ? 'bg-blue-600 text-white shadow-xs'
                       : 'opacity-70 hover:opacity-100'
@@ -467,7 +467,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setBuildMode('single')}
-                  className={`px-3 py-1 rounded-md font-medium transition-colors ${
+                  className={`px-3 py-1 font-medium transition-colors ${
                     buildMode === 'single'
                       ? 'bg-blue-600 text-white shadow-xs'
                       : 'opacity-70 hover:opacity-100'
@@ -479,11 +479,11 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
             </div>
 
             {/* Input Form Tabs */}
-            <div className="flex items-center space-x-1 mb-3 p-1 rounded-xl bg-black/5 dark:bg-white/5 text-xs shrink-0">
+            <div className="flex items-center space-x-1 mb-3 p-1 bg-black/5 dark:bg-white/5 text-xs shrink-0">
               <button
                 type="button"
                 onClick={() => setInputTab('text')}
-                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center space-x-1.5 transition-all font-medium ${
+                className={`flex-1 py-1.5 flex items-center justify-center space-x-1.5 transition-all font-medium ${
                   inputTab === 'text'
                     ? isDark ? 'bg-[#27272A] text-white shadow-xs' : 'bg-white text-black shadow-xs'
                     : 'opacity-60 hover:opacity-100'
@@ -495,7 +495,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
               <button
                 type="button"
                 onClick={() => setInputTab('image')}
-                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center space-x-1.5 transition-all font-medium ${
+                className={`flex-1 py-1.5 flex items-center justify-center space-x-1.5 transition-all font-medium ${
                   inputTab === 'image'
                     ? isDark ? 'bg-[#27272A] text-white shadow-xs' : 'bg-white text-black shadow-xs'
                     : 'opacity-60 hover:opacity-100'
@@ -503,12 +503,12 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
               >
                 <ImageIcon className="w-3.5 h-3.5" />
                 <span>截图 / 识图</span>
-                {imageData && <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
+                {imageData && <span className="w-1.5 h-1.5 bg-blue-500" />}
               </button>
               <button
                 type="button"
                 onClick={() => setInputTab('pdf')}
-                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center space-x-1.5 transition-all font-medium ${
+                className={`flex-1 py-1.5 flex items-center justify-center space-x-1.5 transition-all font-medium ${
                   inputTab === 'pdf'
                     ? isDark ? 'bg-[#27272A] text-white shadow-xs' : 'bg-white text-black shadow-xs'
                     : 'opacity-60 hover:opacity-100'
@@ -516,7 +516,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
               >
                 <FileSpreadsheet className="w-3.5 h-3.5" />
                 <span>PDF 文档</span>
-                {pdfData && <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
+                {pdfData && <span className="w-1.5 h-1.5 bg-blue-500" />}
               </button>
             </div>
 
@@ -527,7 +527,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                   value={textContent}
                   onChange={e => setTextContent(e.target.value)}
                   placeholder="在此粘贴数学教材文本、定理、推论或证明过程（支持直接粘贴 LaTeX 公式）..."
-                  className={`w-full flex-1 min-h-[220px] p-3 rounded-xl border text-xs outline-hidden font-serif resize-none leading-relaxed transition-colors ${
+                  className={`w-full flex-1 min-h-[220px] p-3 border text-xs outline-hidden font-serif resize-none leading-relaxed transition-colors ${
                     isDark
                       ? 'bg-[#121214] border-white/10 text-white placeholder-zinc-500 focus:border-blue-500/50'
                       : 'bg-[#FAF8F5] border-black/10 text-stone-900 placeholder-stone-400 focus:border-blue-500/50'
@@ -538,11 +538,11 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
               {inputTab === 'image' && (
                 <div className="flex-1 min-h-0 flex flex-col">
                   {imageData ? (
-                    <div className="relative flex-1 min-h-0 flex flex-col items-center justify-center p-3 border rounded-xl border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
+                    <div className="relative flex-1 min-h-0 flex flex-col items-center justify-center p-3 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
                       <img
                         src={imageData.previewUrl}
                         alt="待识别图片"
-                        className="max-h-52 object-contain rounded-lg shadow-sm"
+                        className="max-h-52 object-contain shadow-sm"
                       />
                       <div className="mt-2 text-[11px] opacity-70 flex items-center justify-between w-full px-2">
                         <span className="truncate max-w-[220px]">{imageData.fileName}</span>
@@ -558,7 +558,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                     </div>
                   ) : (
                     <div
-                      className={`flex-1 min-h-[180px] border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-6 text-center transition-colors ${
+                      className={`flex-1 min-h-[180px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center transition-colors ${
                         isDark 
                           ? 'border-white/15 bg-white/[0.02]' 
                           : 'border-black/15 bg-stone-50/50'
@@ -575,7 +575,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                             e.stopPropagation();
                             fileInputRef.current?.click();
                           }}
-                          className="px-3 py-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 text-xs font-medium transition-colors shadow-xs"
+                          className="px-3 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 text-xs font-medium transition-colors shadow-xs"
                         >
                           选择本地图片
                         </button>
@@ -602,7 +602,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                     value={textContent}
                     onChange={e => setTextContent(e.target.value)}
                     placeholder="可选：输入额外补充说明或重点关注的定理..."
-                    className={`mt-2 p-2 rounded-lg border text-xs outline-hidden shrink-0 ${
+                    className={`mt-2 p-2 border text-xs outline-hidden shrink-0 ${
                       isDark ? 'bg-[#121214] border-white/10 text-white' : 'bg-[#FAF8F5] border-black/10 text-stone-800'
                     }`}
                   />
@@ -612,7 +612,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
               {inputTab === 'pdf' && (
                 <div className="flex-1 min-h-0 flex flex-col">
                   {pdfData ? (
-                    <div className="relative flex-1 min-h-0 flex flex-col items-center justify-center p-4 border rounded-xl border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
+                    <div className="relative flex-1 min-h-0 flex flex-col items-center justify-center p-4 border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5">
                       <FileSpreadsheet className="w-10 h-10 text-red-500 opacity-80 mb-2" />
                       <p className="text-xs font-bold truncate max-w-xs">{pdfData.fileName}</p>
                       <p className="text-[11px] opacity-60 mt-0.5">{formatFileSize(pdfData.fileSize)}</p>
@@ -627,7 +627,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                     </div>
                   ) : (
                     <div
-                      className={`flex-1 min-h-[180px] border-2 border-dashed rounded-xl flex flex-col items-center justify-center p-6 text-center transition-colors ${
+                      className={`flex-1 min-h-[180px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center transition-colors ${
                         isDark 
                           ? 'border-white/15 bg-white/[0.02]' 
                           : 'border-black/15 bg-stone-50/50'
@@ -642,7 +642,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                           e.stopPropagation();
                           pdfInputRef.current?.click();
                         }}
-                        className="mt-3 px-3 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 text-xs font-medium transition-colors shadow-xs"
+                        className="mt-3 px-3 py-1 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 text-xs font-medium transition-colors shadow-xs"
                       >
                         选择 PDF 文档
                       </button>
@@ -667,7 +667,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                     value={textContent}
                     onChange={e => setTextContent(e.target.value)}
                     placeholder="可选：指定解析章节或定理编号..."
-                    className={`mt-2 p-2 rounded-lg border text-xs outline-hidden shrink-0 ${
+                    className={`mt-2 p-2 border text-xs outline-hidden shrink-0 ${
                       isDark ? 'bg-[#121214] border-white/10 text-white' : 'bg-[#FAF8F5] border-black/10 text-stone-800'
                     }`}
                   />
@@ -677,7 +677,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
 
             {/* Error Message Alert */}
             {errorMessage && (
-              <div className="mt-2.5 p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-500 text-xs flex items-start space-x-2 shrink-0">
+              <div className="mt-2.5 p-2.5 bg-red-500/10 border border-red-500/20 text-red-500 text-xs flex items-start space-x-2 shrink-0">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span className="leading-tight">{errorMessage}</span>
               </div>
@@ -690,7 +690,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                 type="button"
                 onClick={handleStartExtraction}
                 disabled={isLoading || isRefining || !hasValidInput}
-                className="w-full sm:w-auto px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-semibold flex items-center justify-center space-x-2 shadow-sm transition-all"
+                className="w-full sm:w-auto px-5 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-semibold flex items-center justify-center space-x-2 shadow-sm transition-all"
               >
                 {isLoading ? (
                   <>
@@ -737,7 +737,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                   <p className="text-[11px] opacity-60 mt-1">耗时通常约 3~8 秒，请稍候</p>
                 </div>
               ) : extractedNodes.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center p-8 text-center opacity-40 border-2 border-dashed rounded-xl border-black/10 dark:border-white/10">
+                <div className="h-full flex flex-col items-center justify-center p-8 text-center opacity-40 border-2 border-dashed border-black/10 dark:border-white/10">
                   <Sparkles className="w-8 h-8 mb-2" />
                   <p className="text-xs font-medium">在左侧输入数学材料后点击“开始智能提炼”</p>
                   <p className="text-[11px] mt-1">提炼出的标题、命题陈述、证明思路与严格证明将在此展示</p>
@@ -782,7 +782,7 @@ export const AiIngestionModal: React.FC<AiIngestionModalProps> = ({
                   type="button"
                   onClick={handleExecuteBatchImport}
                   disabled={selectedTempIds.size === 0 || isRefining}
-                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold flex items-center space-x-1.5 shadow-sm transition-all"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold flex items-center space-x-1.5 shadow-sm transition-all"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>一键导入画布</span>

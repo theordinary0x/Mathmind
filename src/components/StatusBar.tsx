@@ -86,7 +86,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
       {isMenuOpen && (
         <div
           ref={menuRef}
-          className={`absolute bottom-7 left-3 w-72 rounded-xl shadow-2xl border backdrop-blur-md p-3 z-50 animate-in fade-in zoom-in-95 duration-150 ${
+          className={`absolute bottom-7 left-3 w-72 shadow-2xl border backdrop-blur-md p-3 z-50 animate-in fade-in zoom-in-95 duration-150 ${
             isDark
               ? 'bg-[#18181B]/95 border-white/10 text-zinc-200'
               : 'bg-white/95 border-black/10 text-stone-800'
@@ -100,7 +100,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
             </div>
             <button
               onClick={() => setIsMenuOpen(false)}
-              className="p-1 rounded-md opacity-60 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+              className="p-1 opacity-60 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
             >
               <X className="w-3 h-3" />
             </button>
@@ -117,7 +117,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
                     onChangeAutoSaveMode(opt.mode);
                     setIsMenuOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-all text-left group ${
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 text-xs transition-all text-left group ${
                     isActive
                       ? isDark
                         ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 font-medium'
@@ -131,6 +131,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
                     <div className="flex items-center space-x-1.5">
                       {opt.mode === 'realtime' && <Zap className="w-3 h-3 text-emerald-500 shrink-0" />}
                       {opt.mode !== 'realtime' && opt.mode !== 'manual' && <Clock className="w-3 h-3 text-blue-500 shrink-0" />}
+                      {opt.mode !== 'manual' && opt.mode !== 'realtime' && null}
                       {opt.mode === 'manual' && <Save className="w-3 h-3 text-stone-400 shrink-0" />}
                       <span className="truncate">{opt.label}</span>
                     </div>
@@ -154,7 +155,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
                 onManualSave();
               }}
               disabled={isSaving}
-              className={`flex items-center space-x-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors shadow-xs ${
+              className={`flex items-center space-x-1 px-2.5 py-1 text-xs font-medium transition-colors shadow-xs ${
                 isDark
                   ? 'bg-blue-600 hover:bg-blue-500 text-white'
                   : 'bg-stone-800 hover:bg-stone-900 text-white'
@@ -182,7 +183,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
         <button
           ref={triggerRef}
           onClick={() => setIsMenuOpen(prev => !prev)}
-          className={`flex items-center space-x-1 px-1.5 py-0.5 rounded transition-colors font-medium shrink-0 group cursor-pointer ${
+          className={`flex items-center space-x-1 px-1.5 py-0.5 transition-colors font-medium shrink-0 group cursor-pointer ${
             isSaving
               ? 'text-blue-400 bg-blue-500/10'
               : isDirty

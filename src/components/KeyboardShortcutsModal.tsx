@@ -168,7 +168,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-100"
     >
       <div
-        className={`rounded-xl border shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden ${
+        className={`border shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden ${
           isDark
             ? 'bg-[#18181B] border-white/10 text-[#EDECE8]'
             : 'bg-white border-black/10 text-[#2C2B29]'
@@ -186,7 +186,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md opacity-60 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+            className="p-1 opacity-60 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
             title="关闭 (Esc)"
           >
             <X className="w-4 h-4" />
@@ -199,7 +199,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
             {shortcutGroups.map((group, gIdx) => (
               <div
                 key={gIdx}
-                className={`p-3.5 rounded-lg border ${
+                className={`p-3.5 border ${
                   isDark ? 'border-white/10 bg-white/5' : 'border-black/5 bg-[#FAF8F5]'
                 }`}
               >
@@ -215,7 +215,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
                           <React.Fragment key={kIdx}>
                             {kIdx > 0 && <span className="opacity-40 text-[10px]">/</span>}
                             <kbd
-                              className={`px-1.5 py-0.5 text-[11px] font-mono rounded shadow-2xs font-semibold ${
+                              className={`px-1.5 py-0.5 text-[11px] font-mono shadow-2xs font-semibold ${
                                 isDark
                                   ? 'bg-zinc-800 text-zinc-200 border border-white/10'
                                   : 'bg-white text-stone-800 border border-black/10'
@@ -234,11 +234,11 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
           </div>
 
           <div
-            className={`p-3 rounded-lg border text-xs text-center ${
+            className={`p-3 border text-xs text-center ${
               isDark ? 'border-white/10 bg-white/5 text-zinc-400' : 'border-black/5 bg-black/5 text-stone-600'
             }`}
           >
-            提示：在画布任意位置随时按 <kbd className={`px-1.5 py-0.5 text-[11px] font-mono rounded font-semibold ${isDark ? 'bg-zinc-800 text-zinc-200 border border-white/10' : 'bg-white text-stone-800 border border-black/10'}`}>?</kbd> 键即可唤起此指南。
+            提示：在画布任意位置随时按 <kbd className={`px-1.5 py-0.5 text-[11px] font-mono font-semibold ${isDark ? 'bg-zinc-800 text-zinc-200 border border-white/10' : 'bg-white text-stone-800 border border-black/10'}`}>?</kbd> 键即可唤起此指南。
           </div>
         </div>
       </div>

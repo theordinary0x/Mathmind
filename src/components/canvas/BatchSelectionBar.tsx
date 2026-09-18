@@ -24,7 +24,7 @@ export const BatchSelectionBar: React.FC<BatchSelectionBarProps> = ({
 
   return (
     <div
-      className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center space-x-3 px-4 py-2 rounded-2xl border shadow-2xl backdrop-blur-md text-xs select-none animate-in fade-in slide-in-from-bottom-4 duration-200 ${
+      className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center space-x-3 px-4 py-2 border shadow-2xl backdrop-blur-md text-xs select-none animate-in fade-in slide-in-from-bottom-4 duration-200 ${
         isDark
           ? 'bg-[#18181B]/90 border-white/20 text-[#EDECE8] shadow-black/60'
           : 'bg-white/95 border-black/15 text-[#2C2B29] shadow-slate-300/50'
@@ -45,7 +45,7 @@ export const BatchSelectionBar: React.FC<BatchSelectionBarProps> = ({
         <button
           type="button"
           onClick={onSelectAll}
-          className={`px-2.5 py-1 rounded-lg transition-colors font-medium ${
+          className={`px-2.5 py-1 transition-colors font-medium ${
             isDark
               ? 'hover:bg-white/10 text-zinc-300 hover:text-white'
               : 'hover:bg-black/5 text-stone-600 hover:text-stone-900'
@@ -57,7 +57,7 @@ export const BatchSelectionBar: React.FC<BatchSelectionBarProps> = ({
         <button
           type="button"
           onClick={onClearSelection}
-          className={`px-2.5 py-1 rounded-lg transition-colors font-medium flex items-center space-x-1 ${
+          className={`px-2.5 py-1 transition-colors font-medium flex items-center space-x-1 ${
             isDark
               ? 'hover:bg-white/10 text-zinc-400 hover:text-white'
               : 'hover:bg-black/5 text-stone-500 hover:text-stone-800'
@@ -73,7 +73,7 @@ export const BatchSelectionBar: React.FC<BatchSelectionBarProps> = ({
         <button
           type="button"
           onClick={onBatchDelete}
-          className="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold flex items-center space-x-1.5 shadow-sm transition-all"
+          className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white font-semibold flex items-center space-x-1.5 shadow-sm transition-all"
           title={language === 'zh' ? '批量删除选中的命题 (Delete / Backspace)' : 'Batch delete selected propositions (Delete / Backspace)'}
         >
           <Trash2 className="w-3.5 h-3.5" />

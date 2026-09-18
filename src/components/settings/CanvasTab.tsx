@@ -114,7 +114,7 @@ export const CanvasTab: React.FC<CanvasTabProps> = ({
               <button
                 key={preset.id}
                 onClick={() => onUpdateCanvasSettings({ ...canvasSettings, backgroundPreset: preset.id })}
-                className={`p-2.5 rounded-xl border flex items-center space-x-2.5 text-left transition-all ${
+                className={`p-2.5 border flex items-center space-x-2.5 text-left transition-all ${
                   isActive
                     ? 'border-blue-500 ring-2 ring-blue-500/20 bg-blue-500/5'
                     : isDark
@@ -123,7 +123,7 @@ export const CanvasTab: React.FC<CanvasTabProps> = ({
                 }`}
               >
                 <div
-                  className="w-7 h-7 rounded-lg border flex items-center justify-center shrink-0 shadow-inner"
+                  className="w-7 h-7 border flex items-center justify-center shrink-0 shadow-inner"
                   style={{ background: preset.previewBg }}
                 >
                   <span className={isActive ? 'text-blue-500' : 'opacity-70'}>{preset.icon}</span>
@@ -139,7 +139,7 @@ export const CanvasTab: React.FC<CanvasTabProps> = ({
           {/* Custom Image */}
           <button
             onClick={() => fileInputRef.current?.click()}
-            className={`p-2.5 rounded-xl border flex items-center space-x-2.5 text-left transition-all ${
+            className={`p-2.5 border flex items-center space-x-2.5 text-left transition-all ${
               canvasSettings.backgroundPreset === 'custom'
                 ? 'border-blue-500 ring-2 ring-blue-500/20 bg-blue-500/5'
                 : isDark
@@ -147,7 +147,7 @@ export const CanvasTab: React.FC<CanvasTabProps> = ({
                 : 'border-black/10 hover:border-black/20 bg-white'
             }`}
           >
-            <div className="w-7 h-7 rounded-lg border border-dashed flex items-center justify-center shrink-0">
+            <div className="w-7 h-7 border border-dashed flex items-center justify-center shrink-0">
               <Upload className="w-3.5 h-3.5 text-blue-400" />
             </div>
             <div className="flex-1 min-w-0">
@@ -169,7 +169,7 @@ export const CanvasTab: React.FC<CanvasTabProps> = ({
 
       {/* Opacity & Blur Sliders */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className={`p-4 rounded-xl border space-y-2 ${
+        <div className={`p-4 border space-y-2 ${
           isDark ? 'border-white/10 bg-zinc-900/40' : 'border-black/10 bg-white'
         }`}>
           <div className="flex justify-between items-center text-xs font-medium">
@@ -187,7 +187,7 @@ export const CanvasTab: React.FC<CanvasTabProps> = ({
           />
         </div>
 
-        <div className={`p-4 rounded-xl border space-y-2 ${
+        <div className={`p-4 border space-y-2 ${
           isDark ? 'border-white/10 bg-zinc-900/40' : 'border-black/10 bg-white'
         }`}>
           <div className="flex justify-between items-center text-xs font-medium">
@@ -215,17 +215,17 @@ export const CanvasTab: React.FC<CanvasTabProps> = ({
         </h3>
         <div className="space-y-3">
           {/* Layout switcher */}
-          <div className={`p-4 rounded-xl border flex items-center justify-between ${
+          <div className={`p-4 border flex items-center justify-between ${
             isDark ? 'border-white/10 bg-zinc-900/40' : 'border-black/10 bg-white'
           }`}>
             <div>
               <div className="text-xs font-bold">默认拓扑布局算法</div>
               <div className="text-[11px] opacity-60">选择逻辑推导层次或物理力导向布局</div>
             </div>
-            <div className="flex items-center space-x-1.5 bg-black/5 dark:bg-white/10 p-1 rounded-lg">
+            <div className="flex items-center space-x-1.5 bg-black/5 dark:bg-white/10 p-1">
               <button
                 onClick={() => onChangeLayout('dagre')}
-                className={`px-2.5 py-1 text-xs rounded-md font-medium transition-all ${
+                className={`px-2.5 py-1 text-xs font-medium transition-all ${
                   layoutType === 'dagre'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'opacity-70 hover:opacity-100'
@@ -235,7 +235,7 @@ export const CanvasTab: React.FC<CanvasTabProps> = ({
               </button>
               <button
                 onClick={() => onChangeLayout('cose')}
-                className={`px-2.5 py-1 text-xs rounded-md font-medium transition-all ${
+                className={`px-2.5 py-1 text-xs font-medium transition-all ${
                   layoutType === 'cose'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'opacity-70 hover:opacity-100'
@@ -247,7 +247,7 @@ export const CanvasTab: React.FC<CanvasTabProps> = ({
           </div>
 
           {/* Context menu toggle */}
-          <div className={`p-4 rounded-xl border flex items-center justify-between ${
+          <div className={`p-4 border flex items-center justify-between ${
             isDark ? 'border-white/10 bg-zinc-900/40' : 'border-black/10 bg-white'
           }`}>
             <div>
@@ -261,7 +261,7 @@ export const CanvasTab: React.FC<CanvasTabProps> = ({
                 onChange={e => onUpdateCanvasSettings({ ...canvasSettings, preventBrowserContextMenu: e.target.checked })}
                 className="sr-only peer"
               />
-              <div className="w-10 h-5 bg-stone-300 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+              <div className="w-10 h-5 bg-stone-300 peer-focus:outline-none peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
             </label>
           </div>
         </div>

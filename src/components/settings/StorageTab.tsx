@@ -41,7 +41,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({
               <button
                 key={opt.mode}
                 onClick={() => onAutoSaveModeChange(opt.mode)}
-                className={`p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
+                className={`p-3 border text-left flex items-center justify-between transition-all ${
                   isSelected
                     ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20'
                     : isDark
@@ -53,7 +53,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({
                   <div className="text-xs font-bold flex items-center space-x-1.5">
                     <span>{opt.label}</span>
                     {opt.mode === 'realtime' && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 font-normal">
+                      <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/20 text-amber-500 font-normal">
                         推荐
                       </span>
                     )}
@@ -74,7 +74,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({
         <h3 className="text-sm font-bold uppercase tracking-wider mb-2 opacity-70">
           {t('settings.storageTitle')}
         </h3>
-        <div className={`p-4 rounded-xl border grid grid-cols-3 gap-3 text-center ${
+        <div className={`p-4 border grid grid-cols-3 gap-3 text-center ${
           isDark ? 'border-white/10 bg-zinc-900/40' : 'border-black/10 bg-white'
         }`}>
           <div>
@@ -97,7 +97,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({
         <div className="flex flex-wrap gap-2.5">
           <button
             onClick={onManualSave}
-            className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center justify-center space-x-2 transition-colors shadow-sm"
+            className="flex-1 min-w-[140px] px-3.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium flex items-center justify-center space-x-2 transition-colors shadow-sm"
           >
             <Save className="w-4 h-4" />
             <span>{t('header.manualSave')} (Ctrl+S)</span>
@@ -105,7 +105,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({
 
           <button
             onClick={onExportAllProjects}
-            className={`flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl border text-xs font-medium flex items-center justify-center space-x-2 transition-colors ${
+            className={`flex-1 min-w-[140px] px-3.5 py-2.5 border text-xs font-medium flex items-center justify-center space-x-2 transition-colors ${
               isDark ? 'border-white/15 hover:bg-white/5 text-zinc-200' : 'border-black/15 hover:bg-black/5 text-stone-800'
             }`}
           >
@@ -122,7 +122,7 @@ export const StorageTab: React.FC<StorageTabProps> = ({
                 onResetToDefaults();
               }
             }}
-            className="w-full px-3.5 py-2 rounded-xl text-xs flex items-center justify-center space-x-2 transition-colors text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
+            className="w-full px-3.5 py-2 text-xs flex items-center justify-center space-x-2 transition-colors text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>{t('settings.resetDefaultsBtn')}</span>

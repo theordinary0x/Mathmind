@@ -23,16 +23,16 @@ export const CanvasModeBanners: React.FC<CanvasModeBannersProps> = ({
     <>
       {/* Box / Lasso Mode Active Banner */}
       {toolMode !== 'none' && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1.5 rounded-full shadow-2xl flex items-center space-x-3 text-xs z-30 animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1.5 shadow-2xl flex items-center space-x-3 text-xs z-30 animate-in fade-in slide-in-from-top-2 duration-150">
           <span className="font-medium">
             {toolMode === 'box' ? t('canvas.boxModeActive') : t('canvas.lassoModeActive')}
           </span>
           <button
             onClick={onExitToolMode}
-            className="text-[11px] bg-white/20 hover:bg-white/30 px-2 py-0.5 rounded-full transition-colors font-medium flex items-center space-x-1"
+            className="text-[11px] bg-white/20 hover:bg-white/30 px-2 py-0.5 transition-colors font-medium flex items-center space-x-1"
           >
             <span>{t('canvas.exit')}</span>
-            <kbd className="px-1 text-[9px] font-mono bg-white/25 rounded">Esc</kbd>
+            <kbd className="px-1 text-[9px] font-mono bg-white/25">Esc</kbd>
           </button>
         </div>
       )}
@@ -53,7 +53,7 @@ export const CanvasModeBanners: React.FC<CanvasModeBannersProps> = ({
             className="text-[11px] bg-white/20 hover:bg-white/30 px-2.5 py-0.5 border border-white/40 transition-colors font-medium flex items-center space-x-1"
           >
             <span>{t('canvas.exitConnectMode')}</span>
-            <kbd className="px-1 py-0.2 text-[9px] font-mono bg-white/25 rounded">Esc / L</kbd>
+            <kbd className="px-1 py-0.2 text-[9px] font-mono bg-white/25">Esc / L</kbd>
           </button>
         </div>
       )}

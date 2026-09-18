@@ -138,7 +138,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       aria-labelledby="settings-modal-title"
     >
       <div
-        className={`relative w-full max-w-3xl h-[620px] max-h-[92vh] rounded-2xl border shadow-2xl flex flex-col overflow-hidden transition-colors ${
+        className={`relative w-full max-w-3xl h-[620px] max-h-[92vh] border shadow-2xl flex flex-col overflow-hidden transition-colors ${
           isDark
             ? 'bg-[#18181B] border-white/15 text-[#EDECE8]'
             : 'bg-[#FAF8F5] border-black/15 text-[#2C2B29]'
@@ -152,13 +152,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           }`}
         >
           <div className="flex items-center space-x-2 sm:space-x-2.5 min-w-0 pr-2">
-            <div className="p-1.5 sm:p-2 rounded-lg bg-blue-500/10 text-blue-500 shrink-0">
+            <div className="p-1.5 sm:p-2 bg-blue-500/10 text-blue-500 shrink-0">
               <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
               <h2 id="settings-modal-title" className="font-serif font-bold text-sm sm:text-lg flex items-center space-x-1.5 sm:space-x-2">
                 <span>{t('settings.title')}</span>
-                <span className="text-[10px] sm:text-xs font-mono px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-500 font-normal">
+                <span className="text-[10px] sm:text-xs font-mono px-1.5 py-0.5 bg-blue-500/15 text-blue-500 font-normal">
                   Ctrl + ,
                 </span>
               </h2>
@@ -167,7 +167,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className={`p-1.5 rounded-lg transition-colors shrink-0 ${
+            className={`p-1.5 transition-colors shrink-0 ${
               isDark ? 'hover:bg-white/10 text-zinc-400 hover:text-white' : 'hover:bg-black/5 text-stone-500 hover:text-black'
             }`}
             title="关闭 (Esc)"
@@ -186,7 +186,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           >
             <button
               onClick={() => setActiveTab('general')}
-              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap ${
+              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap ${
                 activeTab === 'general'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : isDark
@@ -200,7 +200,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <button
               onClick={() => setActiveTab('canvas')}
-              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap ${
+              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap ${
                 activeTab === 'canvas'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : isDark
@@ -214,7 +214,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <button
               onClick={() => setActiveTab('storage')}
-              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap ${
+              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap ${
                 activeTab === 'storage'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : isDark
@@ -228,7 +228,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <button
               onClick={() => setActiveTab('shortcuts')}
-              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap ${
+              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap ${
                 activeTab === 'shortcuts'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : isDark
@@ -242,7 +242,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <button
               onClick={() => setActiveTab('ai')}
-              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap ${
+              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap ${
                 activeTab === 'ai'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : isDark
@@ -260,7 +260,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   onClose();
                   onOpenSponsor();
                 }}
-                className="sm:mt-auto shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap text-amber-500 hover:bg-amber-500/10"
+                className="sm:mt-auto shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap text-amber-500 hover:bg-amber-500/10"
               >
                 <Coffee className="w-4 h-4 shrink-0" />
                 <span>{t('header.sponsor')}</span>

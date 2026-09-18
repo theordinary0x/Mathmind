@@ -120,7 +120,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
       <div
         ref={menuRef}
         style={{ left: `${posX}px`, top: `${posY}px` }}
-        className={`fixed z-50 w-56 rounded-xl border shadow-2xl py-1.5 text-xs select-none backdrop-blur-md transition-all animate-in fade-in zoom-in-95 duration-100 ${
+        className={`fixed z-50 w-56 border shadow-2xl py-1.5 text-xs select-none backdrop-blur-md transition-all animate-in fade-in zoom-in-95 duration-100 ${
           isDark
             ? 'bg-[#18181B]/95 border-white/10 text-zinc-200 divide-white/10'
             : 'bg-white/95 border-black/10 text-stone-800 divide-black/5'

@@ -62,7 +62,7 @@ export const ShortcutsTab: React.FC<ShortcutsTabProps> = ({ isDark }) => {
         {shortcutList.map(group => (
           <div
             key={group.group}
-            className={`p-4 rounded-xl border space-y-2.5 ${
+            className={`p-4 border space-y-2.5 ${
               isDark ? 'border-white/10 bg-zinc-900/40' : 'border-black/10 bg-white'
             }`}
           >
@@ -71,7 +71,7 @@ export const ShortcutsTab: React.FC<ShortcutsTabProps> = ({ isDark }) => {
               {group.items.map(item => (
                 <div key={item.desc} className="flex items-center justify-between text-xs py-1">
                   <span className="opacity-70">{item.desc}</span>
-                  <kbd className={`px-2 py-0.5 rounded font-mono text-[11px] select-none ${
+                  <kbd className={`px-2 py-0.5 font-mono text-[11px] select-none ${
                     isDark ? 'bg-white/10 text-zinc-200' : 'bg-black/5 text-stone-800'
                   }`}>
                     {item.key}
