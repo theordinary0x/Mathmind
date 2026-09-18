@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { CopilotMessage } from '../../types/copilot';
+import { CopilotMessage, GraphMutationDiff } from '../../types/copilot';
+import { PropositionNode } from '../../types';
 import { MarkdownMathRenderer } from '../MarkdownMathRenderer';
 import { DiffReviewCard } from './DiffReviewCard';
 import { Sparkles, User, Copy, Check, AlertCircle, Loader2, Square } from 'lucide-react';
@@ -7,6 +8,8 @@ import { Sparkles, User, Copy, Check, AlertCircle, Loader2, Square } from 'lucid
 interface CopilotMessageItemProps {
   message: CopilotMessage;
   onApplyDiff: (messageId: string, selectedActionIds?: Set<string>) => void;
+  onUpdateDiff?: (messageId: string, updatedDiff: GraphMutationDiff) => void;
+  allNodes?: PropositionNode[];
   onNavigateToNode?: (nodeId: string) => void;
   onStopGeneration?: () => void;
   isDark: boolean;
@@ -15,6 +18,8 @@ interface CopilotMessageItemProps {
 export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
   message,
   onApplyDiff,
+  onUpdateDiff,
+  allNodes,
   onNavigateToNode,
   onStopGeneration,
   isDark
@@ -115,6 +120,8 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
             proposal={message.diffProposal}
             onApply={(selectedIds) => onApplyDiff(message.id, selectedIds)}
             onNavigateToNode={onNavigateToNode}
+            onUpdateDiff={(updatedDiff) => onUpdateDiff?.(message.id, updatedDiff)}
+            allNodes={allNodes}
             isDark={isDark}
           />
         )}

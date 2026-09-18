@@ -532,7 +532,8 @@ export const App: React.FC = () => {
     setIsShortcutsModalOpen,
     setIsProjectManagerOpen,
     handleOpenCreateModal,
-    handleOpenAiModal: () => setIsCopilotOpen(prev => !prev),
+    handleOpenAiModal: () => setIsAiModalOpen(true),
+    handleToggleCopilot: () => setIsCopilotOpen(prev => !prev),
     isConnectingMode,
     setIsConnectingMode,
     setLayoutType,
@@ -695,7 +696,7 @@ export const App: React.FC = () => {
         onOpenCreateModal={() => handleOpenCreateModal()}
         isCopilotOpen={isCopilotOpen}
         onToggleCopilot={() => setIsCopilotOpen(prev => !prev)}
-        onOpenAiIngestion={() => setIsCopilotOpen(true)}
+        onOpenAiIngestion={() => setIsAiModalOpen(true)}
         onSaveAs={handleSaveAs}
         onManualSave={() => doSaveNow(true)}
         onImport={handleImportJson}
@@ -769,6 +770,7 @@ export const App: React.FC = () => {
           onApplyMutation={handleApplyCopilotMutation}
           onNavigateToNode={handleSelectSingleNode}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenAiIngestion={() => setIsAiModalOpen(true)}
           theme={effectiveTheme}
         />
       </main>

@@ -14,7 +14,8 @@ import {
   Send, 
   Square,
   Paperclip, 
-  UploadCloud
+  UploadCloud,
+  BookOpen
 } from 'lucide-react';
 
 interface CopilotSidebarProps {
@@ -25,6 +26,7 @@ interface CopilotSidebarProps {
   onApplyMutation: (diff: GraphMutationDiff, enabledActionIds?: Set<string>) => void;
   onNavigateToNode?: (nodeId: string) => void;
   onOpenSettings: () => void;
+  onOpenAiIngestion?: () => void;
   theme: AppTheme;
 }
 
@@ -36,6 +38,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
   onApplyMutation,
   onNavigateToNode,
   onOpenSettings,
+  onOpenAiIngestion,
   theme
 }) => {
   const isDark = theme === 'dark';
@@ -58,6 +61,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     handleSendMessage,
     handleStopGeneration,
     handleApplyDiff,
+    handleUpdateProposalDiff,
     handleClearHistory,
     handleProcessFile,
     handleFileUpload,
@@ -155,6 +159,15 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
         </div>
 
         <div className="flex items-center space-x-1">
+          {onOpenAiIngestion && (
+            <button
+              onClick={onOpenAiIngestion}
+              className="p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 opacity-70 hover:opacity-100 hover:text-blue-500 transition-colors"
+              title="打开教材批量录入/精修弹窗 (I)"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+            </button>
+          )}
           <button
             onClick={handleClearHistory}
             className="p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 opacity-60 hover:opacity-100 transition-colors"
@@ -197,6 +210,8 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
             key={msg.id}
             message={msg}
             onApplyDiff={handleApplyDiff}
+            onUpdateDiff={handleUpdateProposalDiff}
+            allNodes={allNodes}
             onNavigateToNode={onNavigateToNode}
             onStopGeneration={handleStopGeneration}
             isDark={isDark}

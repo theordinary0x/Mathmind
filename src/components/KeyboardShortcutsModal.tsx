@@ -70,7 +70,8 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { keys: ['Alt + S', 'Ctrl + Shift + S'], description: '另存为 JSON 文件' },
       { keys: ['P', 'Ctrl + P', 'M'], description: '打开项目管理' },
       { keys: ['/'], description: '聚焦搜索框' },
-      { keys: ['I', 'Shift + I', 'Ctrl + I'], description: '打开 AI 教材智能录入' },
+      { keys: ['I'], description: '打开 AI 教材智能录入 (批量/精修)' },
+      { keys: ['Shift + I', 'Ctrl + I'], description: '开关 Math Copilot 对话助手' },
       { keys: ['?'], description: '打开快捷键指南' }
     ]
   }
@@ -138,7 +139,8 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
         { keys: ['Alt + S', 'Ctrl + Shift + S'], description: t('shortcuts.saveAsJson') },
         { keys: ['P', 'Ctrl + P'], description: t('shortcuts.openProjects') },
         { keys: ['/'], description: t('shortcuts.focusSearch') },
-        { keys: ['I', 'Shift + I', 'Ctrl + I'], description: t('shortcuts.openAi') },
+        { keys: ['I'], description: t('shortcuts.openAi') },
+        { keys: ['Shift + I', 'Ctrl + I'], description: 'Math Copilot' },
         { keys: ['?'], description: t('shortcuts.openShortcuts') }
       ]
     }

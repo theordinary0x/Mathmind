@@ -35,6 +35,7 @@ interface UseAppKeyboardShortcutsProps {
   setIsFocusMode: React.Dispatch<React.SetStateAction<boolean>>;
   isCopilotOpen?: boolean;
   setIsCopilotOpen?: (open: boolean) => void;
+  handleToggleCopilot?: () => void;
   showToast: (msg: string) => void;
 }
 
@@ -76,14 +77,24 @@ export function useAppKeyboardShortcuts(props: UseAppKeyboardShortcutsProps) {
         return;
       }
 
-      // Open AI Ingestion (I, Shift+I or Ctrl+I)
+      // Open AI Ingestion Modal (I key)
+      if (e.key.toLowerCase() === 'i' && !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) {
+        e.preventDefault();
+        p.handleOpenAiModal?.();
+        return;
+      }
+
+      // Toggle AI Copilot Sidebar (Shift+I or Ctrl+I)
       if (
-        (e.key.toLowerCase() === 'i' && !e.ctrlKey && !e.altKey && !e.metaKey && !e.shiftKey) ||
         (e.shiftKey && e.key.toLowerCase() === 'i' && !e.ctrlKey && !e.altKey && !e.metaKey) ||
         ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'i' && !e.altKey)
       ) {
         e.preventDefault();
-        p.handleOpenAiModal?.();
+        if (p.handleToggleCopilot) {
+          p.handleToggleCopilot();
+        } else if (p.setIsCopilotOpen) {
+          p.setIsCopilotOpen(!p.isCopilotOpen);
+        }
         return;
       }
 

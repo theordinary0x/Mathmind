@@ -348,6 +348,27 @@ export const useCopilotChat = ({
     [messages, onApplyMutation]
   );
 
+  // 更新并微调变更提案
+  const handleUpdateProposalDiff = useCallback(
+    (messageId: string, updatedDiff: GraphMutationDiff) => {
+      setMessages(prev =>
+        prev.map(m => {
+          if (m.id === messageId && m.diffProposal) {
+            return {
+              ...m,
+              diffProposal: {
+                ...m.diffProposal,
+                diff: updatedDiff
+              }
+            };
+          }
+          return m;
+        })
+      );
+    },
+    []
+  );
+
   // 清空历史
   const handleClearHistory = useCallback(() => {
     if (confirm('确定要清空当前的 AI 对话记录吗？')) {
@@ -375,6 +396,7 @@ export const useCopilotChat = ({
     handleSendMessage,
     handleStopGeneration,
     handleApplyDiff,
+    handleUpdateProposalDiff,
     handleClearHistory,
     handleProcessFile,
     handleFileUpload,

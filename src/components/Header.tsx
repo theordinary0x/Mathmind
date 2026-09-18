@@ -299,13 +299,27 @@ export const Header: React.FC<HeaderProps> = ({
           <KbdBadge isDark={isDark} variant="solid" className="hidden xl:inline-flex">N</KbdBadge>
         </button>
 
-        {/* AI Copilot Workbench Button */}
-        {(onToggleCopilot || onOpenAiIngestion) && (
+        {/* AI Ingestion Modal Button */}
+        {onOpenAiIngestion && (
           <button
-            onClick={() => {
-              if (onToggleCopilot) onToggleCopilot();
-              else if (onOpenAiIngestion) onOpenAiIngestion();
-            }}
+            onClick={onOpenAiIngestion}
+            className={`flex items-center space-x-1 px-2 sm:px-2.5 py-1 text-xs font-medium rounded-md transition-all shadow-xs whitespace-nowrap ${
+              isDark
+                ? 'bg-blue-900/40 hover:bg-blue-800/60 text-blue-200 border border-blue-700/50'
+                : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
+            }`}
+            title="教材/试题智能录入与批量提炼 (I)"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+            <span className="hidden sm:inline">{language === 'zh' ? '教材录入' : 'AI Ingest'}</span>
+            <KbdBadge isDark={isDark} className="hidden xl:inline-flex">I</KbdBadge>
+          </button>
+        )}
+
+        {/* AI Copilot Sidebar Toggle Button */}
+        {onToggleCopilot && (
+          <button
+            onClick={onToggleCopilot}
             className={`flex items-center space-x-1 px-2 sm:px-2.5 py-1 text-xs font-medium rounded-md transition-all shadow-xs whitespace-nowrap ${
               isCopilotOpen
                 ? 'bg-blue-600 text-white ring-2 ring-blue-400/50 font-semibold'
@@ -313,11 +327,11 @@ export const Header: React.FC<HeaderProps> = ({
                 ? 'bg-indigo-600/90 hover:bg-indigo-500 text-white'
                 : 'bg-indigo-600 hover:bg-indigo-700 text-white'
             }`}
-            title="AI Copilot 智能助手 (I / Shift+I)"
+            title="Math Copilot 智能结对助手 (Shift+I)"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0" />
             <span className="hidden sm:inline">{language === 'zh' ? 'AI 助手' : 'AI Copilot'}</span>
-            <KbdBadge isDark={isDark} variant="solid" className="hidden xl:inline-flex">I</KbdBadge>
+            <KbdBadge isDark={isDark} variant="solid" className="hidden xl:inline-flex">Shift+I</KbdBadge>
           </button>
         )}
 
