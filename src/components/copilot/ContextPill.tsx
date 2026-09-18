@@ -35,7 +35,7 @@ export const ContextPill: React.FC<ContextPillProps> = ({
     <div className="flex items-center px-3 py-1.5 text-[11px] font-sans border-b border-inherit bg-black/5 dark:bg-white/5 transition-colors">
       {count === 0 ? (
         <span
-          className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full border ${
+          className={`inline-flex items-center space-x-1 px-2 py-0.5 border ${
             isDark ? 'bg-zinc-800/80 border-zinc-700 text-zinc-300' : 'bg-stone-200/70 border-stone-300 text-stone-700'
           }`}
         >
@@ -44,7 +44,7 @@ export const ContextPill: React.FC<ContextPillProps> = ({
         </span>
       ) : (
         <span
-          className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full border transition-all ${
+          className={`inline-flex items-center space-x-1 px-2 py-0.5 border transition-all ${
             warningLevel === 'normal'
               ? isDark
                 ? 'bg-emerald-950/50 border-emerald-700/60 text-emerald-300'

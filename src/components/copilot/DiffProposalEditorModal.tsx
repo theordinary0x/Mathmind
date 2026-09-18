@@ -129,7 +129,7 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
       <div
-        className={`w-full max-w-4xl max-h-[90vh] flex flex-col rounded-2xl border shadow-2xl overflow-hidden font-serif ${
+        className={`w-full max-w-4xl max-h-[90vh] flex flex-col border shadow-2xl overflow-hidden font-serif ${
           isDark
             ? 'bg-[#18181B] border-[#27272A] text-zinc-100 shadow-black/80'
             : 'bg-white border-stone-200 text-stone-900'
@@ -138,7 +138,7 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
         {/* Header */}
         <div className="px-5 py-3.5 border-b border-inherit flex items-center justify-between shrink-0 bg-black/5 dark:bg-white/5">
           <div className="flex items-center space-x-2.5">
-            <span className="p-1.5 rounded-lg bg-blue-600 text-white shadow-xs">
+            <span className="p-1.5 bg-blue-600 text-white shadow-xs">
               <Edit3 className="w-4 h-4" />
             </span>
             <div>
@@ -153,11 +153,11 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
 
           {/* Desktop/Mobile Mode Switcher */}
           <div className="flex items-center space-x-2">
-            <div className={`flex md:hidden rounded-lg p-0.5 border border-inherit ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
+            <div className={`flex md:hidden p-0.5 border border-inherit ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
               <button
                 type="button"
                 onClick={() => setActiveTab('edit')}
-                className={`px-2 py-1 text-xs rounded-md font-sans ${
+                className={`px-2 py-1 text-xs font-sans ${
                   activeTab === 'edit' ? 'bg-blue-600 text-white font-medium' : 'opacity-60'
                 }`}
               >
@@ -166,7 +166,7 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
               <button
                 type="button"
                 onClick={() => setActiveTab('preview')}
-                className={`px-2 py-1 text-xs rounded-md font-sans ${
+                className={`px-2 py-1 text-xs font-sans ${
                   activeTab === 'preview' ? 'bg-blue-600 text-white font-medium' : 'opacity-60'
                 }`}
               >
@@ -176,7 +176,7 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 opacity-60 hover:opacity-100 transition-colors"
+              className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 opacity-60 hover:opacity-100 transition-colors"
               title="取消 (Esc)"
             >
               <X className="w-4 h-4" />
@@ -203,7 +203,7 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   placeholder="如：欧拉示性数定理"
-                  className={`w-full px-3 py-1.5 text-xs rounded-lg border focus:outline-none transition-colors font-serif ${
+                  className={`w-full px-3 py-1.5 text-xs border focus:outline-none transition-colors font-serif ${
                     isDark
                       ? 'bg-white/5 border-white/10 focus:border-blue-500 focus:bg-white/10 text-white'
                       : 'bg-black/5 border-black/10 focus:border-blue-500 focus:bg-white text-stone-900'
@@ -218,7 +218,7 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
                 <select
                   value={type}
                   onChange={e => setType(e.target.value as PropositionType)}
-                  className={`w-full px-2.5 py-1.5 text-xs rounded-lg border focus:outline-none transition-colors font-serif cursor-pointer ${
+                  className={`w-full px-2.5 py-1.5 text-xs border focus:outline-none transition-colors font-serif cursor-pointer ${
                     isDark
                       ? 'bg-[#27272A] border-white/10 text-white focus:border-blue-500'
                       : 'bg-stone-50 border-black/10 text-stone-900 focus:border-blue-500'
@@ -244,7 +244,7 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
                   value={changeSummary}
                   onChange={e => setChangeSummary(e.target.value)}
                   placeholder="简述修改重点..."
-                  className={`w-full px-3 py-1.5 text-xs rounded-lg border focus:outline-none transition-colors font-serif ${
+                  className={`w-full px-3 py-1.5 text-xs border focus:outline-none transition-colors font-serif ${
                     isDark
                       ? 'bg-white/5 border-white/10 focus:border-blue-500 text-white'
                       : 'bg-black/5 border-black/10 focus:border-blue-500 text-stone-900'
@@ -266,7 +266,7 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
                 value={statement}
                 onChange={e => setStatement(e.target.value)}
                 placeholder="输入严格数学定义或定理陈述，例如：设 $G=(V, E)$ 为连通平面图，则 $V - E + F = 2$。"
-                className={`w-full p-3 text-xs rounded-lg border focus:outline-none transition-colors font-mono leading-relaxed resize-y ${
+                className={`w-full p-3 text-xs border focus:outline-none transition-colors font-mono leading-relaxed resize-y ${
                   isDark
                     ? 'bg-white/5 border-white/10 focus:border-blue-500 text-white'
                     : 'bg-black/5 border-black/10 focus:border-blue-500 text-stone-900'
@@ -284,7 +284,7 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
                 value={proofSketch}
                 onChange={e => setProofSketch(e.target.value)}
                 placeholder="直观启发式思路或关键归纳法设定..."
-                className={`w-full p-2.5 text-xs rounded-lg border focus:outline-none transition-colors font-mono leading-relaxed resize-y ${
+                className={`w-full p-2.5 text-xs border focus:outline-none transition-colors font-mono leading-relaxed resize-y ${
                   isDark
                     ? 'bg-white/5 border-white/10 focus:border-blue-500 text-white'
                     : 'bg-black/5 border-black/10 focus:border-blue-500 text-stone-900'
@@ -302,7 +302,7 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
                 value={fullProof}
                 onChange={e => setFullProof(e.target.value)}
                 placeholder="分步骤的严格论证，支持包含多个公式块..."
-                className={`w-full p-3 text-xs rounded-lg border focus:outline-none transition-colors font-mono leading-relaxed resize-y ${
+                className={`w-full p-3 text-xs border focus:outline-none transition-colors font-mono leading-relaxed resize-y ${
                   isDark
                     ? 'bg-white/5 border-white/10 focus:border-blue-500 text-white'
                     : 'bg-black/5 border-black/10 focus:border-blue-500 text-stone-900'
@@ -322,13 +322,13 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
                   value={searchPrereq}
                   onChange={e => setSearchPrereq(e.target.value)}
                   placeholder="搜索现有命题并勾选连线..."
-                  className={`w-full pl-8 pr-3 py-1 text-xs rounded-lg border focus:outline-none ${
+                  className={`w-full pl-8 pr-3 py-1 text-xs border focus:outline-none ${
                     isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-black/5 border-black/10 text-stone-900'
                   }`}
                 />
               </div>
 
-              <div className="max-h-36 overflow-y-auto space-y-1 p-1 border rounded-lg border-inherit">
+              <div className="max-h-36 overflow-y-auto space-y-1 p-1 border border-inherit">
                 {filteredPrereqs.length === 0 ? (
                   <div className="p-2 text-center text-xs opacity-50">未找到匹配的命题</div>
                 ) : (
@@ -337,7 +337,7 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
                     return (
                       <label
                         key={n.id}
-                        className={`flex items-center space-x-2 px-2 py-1 rounded text-xs cursor-pointer transition-colors ${
+                        className={`flex items-center space-x-2 px-2 py-1 text-xs cursor-pointer transition-colors ${
                           isChecked
                             ? isDark ? 'bg-blue-600/20 text-blue-300' : 'bg-blue-50 text-blue-700'
                             : 'hover:bg-black/5 dark:hover:bg-white/5 opacity-80 hover:opacity-100'
@@ -347,7 +347,7 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => toggleDependency(n.id)}
-                          className="rounded border-gray-400 text-blue-600 w-3.5 h-3.5 cursor-pointer"
+                          className="border-gray-400 text-blue-600 w-3.5 h-3.5 cursor-pointer"
                         />
                         <span className="font-serif truncate flex-1">{n.title}</span>
                         <span className="text-[10px] font-mono opacity-50 truncate max-w-[80px]">{n.id}</span>
@@ -372,14 +372,14 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
 
             {/* Preview Proposition Card Container */}
             <div
-              className={`p-4 rounded-xl border transition-all shadow-xs ${
+              className={`p-4 border transition-all shadow-xs ${
                 isDark ? 'bg-[#1F1F23] border-[#333338]' : 'bg-white border-stone-200'
               }`}
             >
               {/* Header Badge & Title */}
               <div className="flex items-center space-x-2 mb-3">
                 <span
-                  className="text-[10px] px-2 py-0.5 rounded font-mono uppercase font-semibold text-white"
+                  className="text-[10px] px-2 py-0.5 font-mono uppercase font-semibold text-white"
                   style={{
                     backgroundColor: NODE_TYPES[type]?.borderColor || '#2563EB'
                   }}
@@ -396,7 +396,7 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
                 <div className="text-[10px] font-mono uppercase tracking-wider text-blue-600 dark:text-blue-400 font-semibold">
                   【命题陈述】
                 </div>
-                <div className="p-2.5 rounded-lg bg-black/5 dark:bg-black/30 font-serif leading-relaxed text-xs overflow-x-auto break-words border border-black/5 dark:border-white/5 min-h-[40px]">
+                <div className="p-2.5 bg-black/5 dark:bg-black/30 font-serif leading-relaxed text-xs overflow-x-auto break-words border border-black/5 dark:border-white/5 min-h-[40px]">
                   {statement ? (
                     <MathRenderer content={statement} />
                   ) : (
@@ -411,7 +411,7 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
                   <div className="text-[10px] font-mono uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold">
                     【证明思路】
                   </div>
-                  <div className="p-2 rounded-lg bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/15 text-[11px] font-serif leading-relaxed opacity-90 overflow-x-auto break-words">
+                  <div className="p-2 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/15 text-[11px] font-serif leading-relaxed opacity-90 overflow-x-auto break-words">
                     <MathRenderer content={proofSketch} />
                   </div>
                 </div>
@@ -423,7 +423,7 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
                   <div className="text-[10px] font-mono uppercase tracking-wider text-indigo-600 dark:text-indigo-400 font-semibold">
                     【严格分步推导】
                   </div>
-                  <div className="p-2.5 rounded-lg bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20 text-xs font-serif leading-relaxed overflow-x-auto break-words">
+                  <div className="p-2.5 bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20 text-xs font-serif leading-relaxed overflow-x-auto break-words">
                     <MathRenderer content={fullProof} />
                   </div>
                 </div>
@@ -439,7 +439,7 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
                       return (
                         <span
                           key={depId}
-                          className="px-2 py-0.5 rounded-md text-[10px] font-serif bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-500/20"
+                          className="px-2 py-0.5 text-[10px] font-serif bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-500/20"
                         >
                           &larr; {matched?.title || depId}
                         </span>
@@ -461,14 +461,14 @@ export const DiffProposalEditorModal: React.FC<DiffProposalEditorModalProps> = (
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-1.5 rounded-xl border border-inherit hover:bg-black/5 dark:hover:bg-white/5 text-xs transition-colors"
+              className="px-4 py-1.5 border border-inherit hover:bg-black/5 dark:hover:bg-white/5 text-xs transition-colors"
             >
               取消
             </button>
             <button
               type="button"
               onClick={handleSave}
-              className="px-5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center space-x-1.5 shadow-sm transition-all"
+              className="px-5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center space-x-1.5 shadow-sm transition-all"
             >
               <Check className="w-3.5 h-3.5" />
               <span>保存微调并更新提案</span>

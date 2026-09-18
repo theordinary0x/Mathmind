@@ -82,7 +82,7 @@ export const CopilotSessionDrawer: React.FC<CopilotSessionDrawerProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 opacity-60 hover:opacity-100 transition-colors cursor-pointer"
+            className="p-1 hover:bg-black/10 dark:hover:bg-white/10 opacity-60 hover:opacity-100 transition-colors cursor-pointer"
             title="关闭会话列表"
           >
             <X className="w-4 h-4" />
@@ -97,7 +97,7 @@ export const CopilotSessionDrawer: React.FC<CopilotSessionDrawerProps> = ({
               onCreateSession();
               onClose();
             }}
-            className="w-full flex items-center justify-center space-x-2 py-2 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-all shadow-xs active:scale-98 cursor-pointer"
+            className="w-full flex items-center justify-center space-x-2 py-2 px-3 border border-blue-500 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-all shadow-xs active:scale-98 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>新建对话</span>
@@ -120,14 +120,14 @@ export const CopilotSessionDrawer: React.FC<CopilotSessionDrawerProps> = ({
                     onClose();
                   }
                 }}
-                className={`group flex items-center justify-between p-2.5 rounded-lg text-xs transition-all cursor-pointer border ${
+                className={`group flex items-center justify-between p-2.5 text-xs transition-all cursor-pointer border ${
                   isActive
                     ? isDark
                       ? 'bg-blue-600/15 border-blue-500/40 text-blue-400 font-medium'
                       : 'bg-blue-50 border-blue-200 text-blue-800 font-medium'
                     : isDark
-                    ? 'border-transparent hover:bg-zinc-800/60 text-zinc-300'
-                    : 'border-transparent hover:bg-stone-100 text-stone-700'
+                    ? 'border-transparent hover:border-inherit hover:bg-zinc-800/60 text-zinc-300'
+                    : 'border-transparent hover:border-inherit hover:bg-stone-100 text-stone-700'
                 }`}
               >
                 {isEditingThis ? (
@@ -141,7 +141,7 @@ export const CopilotSessionDrawer: React.FC<CopilotSessionDrawerProps> = ({
                         if (e.key === 'Escape') cancelRename(e as any);
                       }}
                       autoFocus
-                      className="flex-1 text-xs px-1.5 py-0.5 rounded border border-blue-500 bg-transparent focus:outline-none"
+                      className="flex-1 text-xs px-1.5 py-0.5 border border-blue-500 bg-transparent focus:outline-none"
                     />
                     <button
                       onClick={e => saveRename(s.id, e)}
@@ -176,7 +176,7 @@ export const CopilotSessionDrawer: React.FC<CopilotSessionDrawerProps> = ({
                       <button
                         type="button"
                         onClick={e => startRename(s, e)}
-                        className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition-colors"
+                        className="p-1 hover:bg-black/10 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition-colors"
                         title="重命名会话"
                       >
                         <Edit2 className="w-3 h-3" />
@@ -190,7 +190,7 @@ export const CopilotSessionDrawer: React.FC<CopilotSessionDrawerProps> = ({
                               onDeleteSession(s.id);
                             }
                           }}
-                          className="p-1 rounded hover:bg-rose-500/10 text-rose-500 hover:text-rose-400 transition-colors"
+                          className="p-1 hover:bg-rose-500/10 text-rose-500 hover:text-rose-400 transition-colors"
                           title="删除会话"
                         >
                           <Trash2 className="w-3 h-3" />

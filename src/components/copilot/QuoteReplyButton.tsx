@@ -96,7 +96,7 @@ export const QuoteReplyButton: React.FC<QuoteReplyButtonProps> = ({
     >
       <button
         onClick={handleClick}
-        className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-serif font-medium shadow-lg border transition-all cursor-pointer select-none active:scale-95 ${
+        className={`flex items-center space-x-1.5 px-2.5 py-1 text-xs font-serif font-medium shadow-lg border transition-all cursor-pointer select-none active:scale-95 ${
           isDark
             ? 'bg-[#27272A] border-[#3F3F46] text-white hover:bg-[#323238] shadow-black/60'
             : 'bg-[#2C2B29] border-[#1F1E1D] text-white hover:bg-[#3D3C38] shadow-stone-500/30'

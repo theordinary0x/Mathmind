@@ -108,12 +108,12 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     }
   }, [isOpen, messages.length, scrollToBottom]);
 
-  // 输入框高度自动伸缩 (1 到 6 行，约 34px - 140px)
+  // 输入框高度自动伸缩 (1 到 6 行，约 28px - 140px)
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       const scrollHeight = textareaRef.current.scrollHeight;
-      textareaRef.current.style.height = `${Math.min(140, Math.max(34, scrollHeight))}px`;
+      textareaRef.current.style.height = `${Math.min(140, Math.max(28, scrollHeight))}px`;
     }
   }, [inputPrompt]);
 
@@ -148,7 +148,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
   return (
     <aside
       onPaste={handlePaste}
-      className={`fixed right-0 top-13 sm:top-14 bottom-6 w-full sm:w-[440px] lg:w-[480px] z-35 flex flex-col border-l shadow-2xl transition-all select-text duration-200 ${
+      className={`fixed right-0 top-13 sm:top-14 bottom-6 w-full sm:w-[440px] lg:w-[480px] z-40 flex flex-col border-l shadow-2xl transition-all select-text duration-200 ${
         isDark
           ? 'bg-[#18181B] border-[#2E2E33] text-[#EDECE8]'
           : 'bg-[#FAF8F5] border-[#E5E0D8] text-[#2C2B29]'
@@ -198,10 +198,10 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
           <button
             type="button"
             onClick={() => setIsSessionDrawerOpen(true)}
-            className="flex items-center space-x-1 p-1 rounded-md hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer group"
+            className="flex items-center space-x-1 p-1 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer group"
             title="查看所有对话历史与切换会话"
           >
-            <div className="p-1 rounded bg-blue-600 text-white shadow-xs group-hover:bg-blue-500">
+            <div className="p-1 bg-blue-600 text-white shadow-xs group-hover:bg-blue-500">
               <MessageSquare className="w-3.5 h-3.5" />
             </div>
             <div className="text-left min-w-0">
@@ -224,7 +224,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
             <button
               type="button"
               onClick={() => setIsExportMenuOpen(prev => !prev)}
-              className="p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 opacity-70 hover:opacity-100 hover:text-blue-500 transition-colors cursor-pointer"
+              className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 opacity-70 hover:opacity-100 hover:text-blue-500 transition-colors cursor-pointer"
               title="导出或复制整场讨论记录"
             >
               <Share2 className="w-3.5 h-3.5" />
@@ -232,7 +232,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
 
             {isExportMenuOpen && (
               <div
-                className={`absolute right-0 top-full mt-1 w-44 rounded-xl border shadow-xl z-50 p-1 text-xs animate-in fade-in zoom-in-95 duration-150 ${
+                className={`absolute right-0 top-full mt-1 w-44 border shadow-xl z-50 p-1 text-xs animate-in fade-in zoom-in-95 duration-150 ${
                   isDark
                     ? 'bg-[#1C1C20] border-[#333338] text-zinc-100'
                     : 'bg-white border-stone-200 text-stone-900'
@@ -244,7 +244,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
                     exportChatToMarkdown(activeSession.title, messages);
                     setIsExportMenuOpen(false);
                   }}
-                  className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white text-left transition-colors cursor-pointer"
+                  className="w-full flex items-center space-x-2 px-2.5 py-1.5 hover:bg-blue-600 hover:text-white text-left transition-colors cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5 shrink-0" />
                   <span>导出为 .md 文件</span>
@@ -260,7 +260,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
                       setIsExportMenuOpen(false);
                     }
                   }}
-                  className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white text-left transition-colors cursor-pointer"
+                  className="w-full flex items-center space-x-2 px-2.5 py-1.5 hover:bg-blue-600 hover:text-white text-left transition-colors cursor-pointer"
                 >
                   {chatCopied ? (
                     <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
@@ -276,7 +276,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
           {onOpenAiIngestion && (
             <button
               onClick={onOpenAiIngestion}
-              className="p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 opacity-70 hover:opacity-100 hover:text-blue-500 transition-colors cursor-pointer"
+              className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 opacity-70 hover:opacity-100 hover:text-blue-500 transition-colors cursor-pointer"
               title="打开教材批量录入/精修弹窗 (I)"
             >
               <BookOpen className="w-3.5 h-3.5" />
@@ -285,7 +285,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
 
           <button
             onClick={handleClearHistory}
-            className="p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 opacity-60 hover:opacity-100 transition-colors cursor-pointer"
+            className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 opacity-60 hover:opacity-100 transition-colors cursor-pointer"
             title="清空当前会话消息"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -293,7 +293,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
 
           <button
             onClick={onOpenSettings}
-            className="p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 opacity-60 hover:opacity-100 transition-colors cursor-pointer"
+            className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 opacity-60 hover:opacity-100 transition-colors cursor-pointer"
             title="AI 模型与密钥设置"
           >
             <Settings className="w-3.5 h-3.5" />
@@ -301,7 +301,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/5 opacity-60 hover:opacity-100 transition-colors ml-1 cursor-pointer"
+            className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 opacity-60 hover:opacity-100 transition-colors ml-1 cursor-pointer"
             title="收起助手面板 (Esc)"
           >
             <X className="w-4 h-4" />
@@ -351,7 +351,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
             key={idx}
             onClick={() => handleSendMessage(q)}
             disabled={isGenerating}
-            className={`text-[10px] px-2.5 py-1 rounded-full border whitespace-nowrap transition-colors shrink-0 font-serif cursor-pointer ${
+            className={`text-[10px] px-2.5 py-1 border whitespace-nowrap transition-colors shrink-0 font-serif cursor-pointer ${
               isDark
                 ? 'bg-[#27272A] border-[#3F3F46] hover:border-blue-500 hover:text-blue-400 text-zinc-300'
                 : 'bg-white border-stone-200 hover:border-blue-600 hover:text-blue-600 text-stone-700'
@@ -375,7 +375,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
         )}
 
         <div
-          className={`flex items-end space-x-1.5 rounded-lg border p-1.5 transition-colors ${
+          className={`flex items-end space-x-1.5 border p-1.5 transition-colors ${
             isDark
               ? 'bg-[#202024] border-[#333338] focus-within:border-blue-500'
               : 'bg-white border-stone-300 focus-within:border-blue-600'
@@ -385,7 +385,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="p-1.5 rounded opacity-60 hover:opacity-100 hover:text-blue-500 transition-colors cursor-pointer shrink-0"
+            className="p-1.5 opacity-60 hover:opacity-100 hover:text-blue-500 transition-colors cursor-pointer shrink-0"
             title="上传图片、PDF、Word、PPT、Excel、CSV、LaTeX 或代码文件"
           >
             <Paperclip className="w-4 h-4" />
@@ -415,8 +415,8 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
                 ? `对选中的 ${selectedNodes.length} 个命题提问或指示重构... (Enter 发送)`
                 : '输入数学问题、定理探讨或要求构建命题图谱... (Enter 发送)'
             }
-            className="flex-1 bg-transparent resize-none text-xs focus:outline-none font-serif leading-relaxed px-1 overflow-y-auto"
-            style={{ minHeight: '34px', maxHeight: '140px' }}
+            className="flex-1 bg-transparent resize-none text-xs focus:outline-none font-serif leading-5 px-1 py-1 overflow-y-auto"
+            style={{ minHeight: '28px', maxHeight: '140px' }}
           />
 
           {/* 发送 / 停止生成 切换按钮 */}
@@ -424,7 +424,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
             <button
               type="button"
               onClick={handleStopGeneration}
-              className="p-1.5 rounded-md bg-rose-600 hover:bg-rose-500 text-white cursor-pointer transition-colors shadow-xs animate-pulse shrink-0"
+              className="p-1.5 bg-rose-600 hover:bg-rose-500 text-white cursor-pointer transition-colors shadow-xs animate-pulse shrink-0"
               title="停止生成 (Esc)"
             >
               <Square className="w-4 h-4 fill-current" />
@@ -434,7 +434,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
               type="button"
               onClick={() => handleSendMessage()}
               disabled={!inputPrompt.trim() && !attachment}
-              className={`p-1.5 rounded-md transition-all shrink-0 ${
+              className={`p-1.5 transition-all shrink-0 ${
                 inputPrompt.trim() || attachment
                   ? 'bg-blue-600 hover:bg-blue-500 text-white cursor-pointer active:scale-95'
                   : 'opacity-40 cursor-not-allowed text-zinc-400'

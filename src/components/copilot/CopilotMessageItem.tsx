@@ -87,14 +87,14 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
 
       {/* 消息主体容器 */}
       <div
-        className={`max-w-[92%] rounded-xl px-3.5 py-2.5 text-xs transition-all shadow-xs relative group ${
+        className={`max-w-[92%] px-3.5 py-2.5 text-xs transition-all shadow-xs relative group border ${
           isUser
             ? isDark
-              ? 'bg-blue-600 text-white rounded-tr-none'
-              : 'bg-[#2C2B29] text-[#FAF8F5] rounded-tr-none'
+              ? 'bg-blue-600/90 border-blue-500 text-white'
+              : 'bg-[#2C2B29] border-[#2C2B29] text-[#FAF8F5]'
             : isDark
-            ? 'bg-[#232328] border border-[#333338] text-zinc-100 rounded-tl-none'
-            : 'bg-white border border-stone-200 text-stone-800 rounded-tl-none'
+            ? 'bg-[#232328] border-[#333338] text-zinc-100'
+            : 'bg-white border-stone-200 text-stone-800'
         }`}
       >
         {/* 用户附带的选区上下文快照展示 */}
@@ -114,7 +114,7 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
             <button
               type="button"
               onClick={() => setPreviewAttachment(message.attachment!)}
-              className="inline-flex items-center space-x-2 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-[11px] cursor-pointer transition-all max-w-full text-left"
+              className="inline-flex items-center space-x-2 px-2.5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-[11px] cursor-pointer transition-all max-w-full text-left"
               title="点击查看附件大图/文本内容"
             >
               {(() => {
@@ -124,7 +124,7 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
                     <img
                       src={message.attachment!.previewUrl}
                       alt={message.attachment!.name}
-                      className="w-7 h-7 object-cover rounded border border-white/30 shrink-0"
+                      className="w-7 h-7 object-cover border border-white/30 shrink-0"
                     />
                   );
                 }
@@ -172,7 +172,7 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
               <button
                 type="button"
                 onClick={() => onRegenerate(message.id)}
-                className="flex items-center space-x-1 px-2 py-1 rounded bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-[11px] cursor-pointer shrink-0"
+                className="flex items-center space-x-1 px-2 py-1 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-[11px] cursor-pointer shrink-0"
                 title="重新尝试"
               >
                 <RotateCcw className="w-3 h-3" />
@@ -200,7 +200,7 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
                     }}
                     autoFocus
                     rows={Math.min(6, Math.max(2, editText.split('\n').length))}
-                    className="w-full bg-black/20 text-inherit rounded p-1.5 text-xs font-serif focus:outline-none focus:ring-1 focus:ring-white/40 resize-none"
+                    className="w-full bg-black/20 text-inherit border border-white/30 p-1.5 text-xs font-serif focus:outline-none focus:border-white resize-none"
                   />
                   <div className="flex items-center justify-end space-x-1.5 text-[11px]">
                     <button
@@ -209,14 +209,14 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
                         setIsEditing(false);
                         setEditText(message.content);
                       }}
-                      className="px-2 py-0.5 rounded hover:bg-white/20 opacity-80 hover:opacity-100 transition-colors cursor-pointer"
+                      className="px-2 py-0.5 border border-transparent hover:bg-white/20 opacity-80 hover:opacity-100 transition-colors cursor-pointer"
                     >
                       取消
                     </button>
                     <button
                       type="button"
                       onClick={handleSaveEdit}
-                      className="flex items-center space-x-1 px-2.5 py-0.5 rounded bg-white text-blue-900 hover:bg-white/90 font-medium transition-colors cursor-pointer"
+                      className="flex items-center space-x-1 px-2.5 py-0.5 border border-white/40 bg-white text-blue-900 hover:bg-white/90 font-medium transition-colors cursor-pointer"
                     >
                       <Send className="w-3 h-3" />
                       <span>保存并重新生成</span>
@@ -243,7 +243,7 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
               <button
                 type="button"
                 onClick={onStopGeneration}
-                className="flex items-center space-x-1 px-2 py-0.5 text-[10px] rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 hover:text-rose-400 border border-rose-500/30 transition-colors ml-2 shrink-0 cursor-pointer"
+                className="flex items-center space-x-1 px-2 py-0.5 text-[10px] bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 hover:text-rose-400 border border-rose-500/30 transition-colors ml-2 shrink-0 cursor-pointer"
                 title="立即中止本次生成 (Esc)"
               >
                 <Square className="w-2.5 h-2.5 fill-current" />
@@ -272,7 +272,7 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
               <button
                 type="button"
                 onClick={() => setIsEditing(true)}
-                className="p-1 rounded hover:bg-white/20 text-white/80 hover:text-white transition-colors cursor-pointer"
+                className="p-1 hover:bg-white/20 text-white/80 hover:text-white transition-colors cursor-pointer"
                 title="编辑提问并重新发送"
               >
                 <Edit2 className="w-3 h-3" />
@@ -281,7 +281,7 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
             <button
               type="button"
               onClick={handleCopy}
-              className="p-1 rounded hover:bg-white/20 text-white/80 hover:text-white transition-colors cursor-pointer"
+              className="p-1 hover:bg-white/20 text-white/80 hover:text-white transition-colors cursor-pointer"
               title="复制消息内容"
             >
               {copied ? <Check className="w-3 h-3 text-emerald-300" /> : <Copy className="w-3 h-3" />}
@@ -308,7 +308,7 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
                 <button
                   type="button"
                   onClick={() => onRegenerate(message.id)}
-                  className="flex items-center space-x-1 px-1.5 py-0.5 rounded hover:bg-black/10 dark:hover:bg-white/10 hover:opacity-100 transition-colors cursor-pointer"
+                  className="flex items-center space-x-1 px-1.5 py-0.5 border border-transparent hover:border-inherit hover:bg-black/5 dark:hover:bg-white/5 hover:opacity-100 transition-colors cursor-pointer"
                   title="重新生成此回答"
                 >
                   <RotateCcw className="w-2.5 h-2.5" />
@@ -318,7 +318,7 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
               <button
                 type="button"
                 onClick={handleCopy}
-                className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 hover:opacity-100 transition-colors cursor-pointer"
+                className="p-1 border border-transparent hover:border-inherit hover:bg-black/5 dark:hover:bg-white/5 hover:opacity-100 transition-colors cursor-pointer"
                 title="复制内容"
               >
                 {copied ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}

@@ -112,7 +112,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
 
   return (
     <div
-      className={`my-2.5 rounded-xl border text-xs overflow-hidden transition-all shadow-sm ${
+      className={`my-2.5 border text-xs overflow-hidden transition-all shadow-sm ${
         isDark
           ? 'bg-[#1F1F23] border-[#333338] text-zinc-200'
           : 'bg-stone-50 border-stone-200 text-stone-800'
@@ -135,7 +135,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
             📦 图谱变更建议 ({totalActionsCount} 项操作)
           </span>
           {proposal.applied && (
-            <span className="inline-flex items-center space-x-1 px-1.5 py-0.2 rounded text-[10px] font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            <span className="inline-flex items-center space-x-1 px-1.5 py-0.2 text-[10px] font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
               <CheckCircle2 className="w-3 h-3" />
               <span>已生效至画布</span>
             </span>
@@ -157,7 +157,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                   type="checkbox"
                   checked={selectedIds.size === allActionIds.length && allActionIds.length > 0}
                   onChange={toggleSelectAll}
-                  className="rounded border-gray-400 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer"
+                  className="border-gray-400 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer"
                 />
                 <span className="text-[11px] font-sans">
                   全选 / 反选 ({selectedIds.size}/{totalActionsCount})
@@ -182,7 +182,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                 return (
                   <label
                     key={actionId}
-                    className={`flex items-start space-x-2.5 p-2 rounded-lg border transition-colors cursor-pointer ${
+                    className={`flex items-start space-x-2.5 p-2 border transition-colors cursor-pointer ${
                       isChecked
                         ? isDark ? 'bg-rose-950/20 border-rose-800/40' : 'bg-rose-50 border-rose-200'
                         : 'border-transparent opacity-60'
@@ -193,7 +193,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                       checked={isChecked}
                       disabled={proposal.applied}
                       onChange={() => toggleAction(actionId)}
-                      className="mt-0.5 rounded border-gray-400 text-rose-600 focus:ring-rose-500 w-3.5 h-3.5 cursor-pointer"
+                      className="mt-0.5 border-gray-400 text-rose-600 focus:ring-rose-500 w-3.5 h-3.5 cursor-pointer"
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-1.5">
@@ -235,7 +235,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                 return (
                   <div
                     key={actionId}
-                    className={`p-2.5 rounded-xl border transition-all ${
+                    className={`p-2.5 border transition-all ${
                       isChecked
                         ? isDark
                           ? 'bg-amber-950/20 border-amber-700/50 shadow-xs'
@@ -251,11 +251,11 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                           checked={isChecked}
                           disabled={proposal.applied}
                           onChange={() => toggleAction(actionId)}
-                          className="mt-0.5 rounded border-gray-400 text-amber-600 focus:ring-amber-500 w-3.5 h-3.5 shrink-0 cursor-pointer"
+                          className="mt-0.5 border-gray-400 text-amber-600 focus:ring-amber-500 w-3.5 h-3.5 shrink-0 cursor-pointer"
                         />
                         {typeCfg && (
                           <span
-                            className="text-[9px] px-1.5 py-0.2 rounded font-mono uppercase font-semibold shrink-0"
+                            className="text-[9px] px-1.5 py-0.2 font-mono uppercase font-semibold shrink-0"
                             style={{
                               backgroundColor: isDark ? typeCfg.darkBgColor : typeCfg.bgColor,
                               color: isDark ? typeCfg.darkColor : typeCfg.color,
@@ -275,7 +275,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                           <button
                             type="button"
                             onClick={() => onNavigateToNode(item.id)}
-                            className="opacity-50 hover:opacity-100 p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                            className="opacity-50 hover:opacity-100 p-1 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                             title="在画布中定位"
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -285,7 +285,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                           <button
                             type="button"
                             onClick={() => setEditingProposalItem({ kind: 'update', node: item })}
-                            className="flex items-center space-x-1 px-2 py-0.5 rounded text-[11px] font-sans font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 border border-blue-500/30 transition-colors cursor-pointer"
+                            className="flex items-center space-x-1 px-2 py-0.5 text-[11px] font-sans font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 border border-blue-500/30 transition-colors cursor-pointer"
                             title="微调优化内容或公式"
                           >
                             <Edit3 className="w-3 h-3" />
@@ -309,7 +309,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                           <div className="text-[9px] font-mono uppercase tracking-wider text-blue-600 dark:text-blue-400 font-semibold mb-0.5">
                             【优化陈述】
                           </div>
-                          <div className="p-2 rounded-lg bg-black/5 dark:bg-black/30 font-serif leading-relaxed text-xs overflow-x-auto break-words border border-black/5 dark:border-white/5">
+                          <div className="p-2 bg-black/5 dark:bg-black/30 font-serif leading-relaxed text-xs overflow-x-auto break-words border border-black/5 dark:border-white/5">
                             <MathRenderer content={item.statement} />
                           </div>
                         </div>
@@ -321,7 +321,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                           <div className="text-[9px] font-mono uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold mb-0.5">
                             【优化思路】
                           </div>
-                          <div className="p-1.5 rounded-lg bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/15 text-[11px] font-serif leading-relaxed opacity-90 overflow-x-auto break-words">
+                          <div className="p-1.5 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/15 text-[11px] font-serif leading-relaxed opacity-90 overflow-x-auto break-words">
                             <MathRenderer content={item.proof_sketch} />
                           </div>
                         </div>
@@ -343,7 +343,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                             <span>【严格证明】{isProofExpanded ? '收起推导' : '点击展开分步证明'}</span>
                           </button>
                           {isProofExpanded && (
-                            <div className="mt-1 p-2 rounded-lg bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20 text-xs font-serif leading-relaxed overflow-x-auto break-words animate-in fade-in duration-150">
+                            <div className="mt-1 p-2 bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20 text-xs font-serif leading-relaxed overflow-x-auto break-words animate-in fade-in duration-150">
                               <MathRenderer content={item.full_proof} />
                             </div>
                           )}
@@ -370,7 +370,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                 return (
                   <label
                     key={actionId}
-                    className={`flex items-start space-x-2.5 p-2 rounded-lg border transition-colors cursor-pointer ${
+                    className={`flex items-start space-x-2.5 p-2 border transition-colors cursor-pointer ${
                       isChecked
                         ? isDark ? 'bg-blue-950/20 border-blue-800/40' : 'bg-blue-50 border-blue-200'
                         : 'border-transparent opacity-60'
@@ -381,7 +381,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                       checked={isChecked}
                       disabled={proposal.applied}
                       onChange={() => toggleAction(actionId)}
-                      className="mt-0.5 rounded border-gray-400 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer"
+                      className="mt-0.5 border-gray-400 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer"
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-1.5 font-mono text-[11px]">
@@ -418,7 +418,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                 return (
                   <div
                     key={actionId}
-                    className={`p-3 rounded-xl border transition-all ${
+                    className={`p-3 border transition-all ${
                       isChecked
                         ? isDark
                           ? 'bg-emerald-950/20 border-emerald-700/50 shadow-xs'
@@ -434,10 +434,10 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                           checked={isChecked}
                           disabled={proposal.applied}
                           onChange={() => toggleAction(actionId)}
-                          className="mt-0.5 rounded border-gray-400 text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5 shrink-0 cursor-pointer"
+                          className="mt-0.5 border-gray-400 text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5 shrink-0 cursor-pointer"
                         />
                         <span
-                          className="text-[9px] px-1.5 py-0.5 rounded font-mono uppercase font-semibold shrink-0"
+                          className="text-[9px] px-1.5 py-0.5 font-mono uppercase font-semibold shrink-0"
                           style={{
                             backgroundColor: isDark ? typeCfg.darkBgColor : typeCfg.bgColor,
                             color: isDark ? typeCfg.darkColor : typeCfg.color,
@@ -455,7 +455,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                         <button
                           type="button"
                           onClick={() => setEditingProposalItem({ kind: 'add', node: item })}
-                          className="flex items-center space-x-1 px-2 py-0.5 rounded text-[11px] font-sans font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 border border-blue-500/30 transition-colors shrink-0 cursor-pointer"
+                          className="flex items-center space-x-1 px-2 py-0.5 text-[11px] font-sans font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 border border-blue-500/30 transition-colors shrink-0 cursor-pointer"
                           title="微调命题公式、证明或依赖"
                         >
                           <Edit3 className="w-3 h-3" />
@@ -471,7 +471,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                           <div className="text-[9px] font-mono uppercase tracking-wider text-blue-600 dark:text-blue-400 font-semibold mb-0.5">
                             【命题陈述】
                           </div>
-                          <div className="p-2 rounded-lg bg-black/5 dark:bg-black/30 font-serif leading-relaxed text-xs overflow-x-auto break-words border border-black/5 dark:border-white/5">
+                          <div className="p-2 bg-black/5 dark:bg-black/30 font-serif leading-relaxed text-xs overflow-x-auto break-words border border-black/5 dark:border-white/5">
                             <MathRenderer content={item.statement} />
                           </div>
                         </div>
@@ -483,7 +483,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                           <div className="text-[9px] font-mono uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold mb-0.5">
                             【证明思路】
                           </div>
-                          <div className="p-1.5 rounded-lg bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/15 text-[11px] font-serif leading-relaxed opacity-90 overflow-x-auto break-words">
+                          <div className="p-1.5 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/15 text-[11px] font-serif leading-relaxed opacity-90 overflow-x-auto break-words">
                             <MathRenderer content={item.proof_sketch} />
                           </div>
                         </div>
@@ -505,7 +505,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                             <span>【严格证明】{isProofExpanded ? '收起推导' : '点击展开分步推导'}</span>
                           </button>
                           {isProofExpanded && (
-                            <div className="mt-1 p-2 rounded-lg bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20 text-xs font-serif leading-relaxed overflow-x-auto break-words animate-in fade-in duration-150">
+                            <div className="mt-1 p-2 bg-indigo-500/5 dark:bg-indigo-500/10 border border-indigo-500/20 text-xs font-serif leading-relaxed overflow-x-auto break-words animate-in fade-in duration-150">
                               <MathRenderer content={item.full_proof} />
                             </div>
                           )}
@@ -519,7 +519,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
                           {item.depends_on.map(depId => (
                             <span
                               key={depId}
-                              className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-500/20"
+                              className="px-1.5 py-0.2 text-[10px] font-mono bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-500/20"
                             >
                               &larr; {depId}
                             </span>
@@ -541,7 +541,7 @@ export const DiffReviewCard: React.FC<DiffReviewCardProps> = ({
             <button
               onClick={handleApplyClick}
               disabled={proposal.applied || selectedIds.size === 0}
-              className={`px-3.5 py-1.5 rounded-lg font-serif font-medium transition-all shadow-sm ${
+              className={`px-3.5 py-1.5 font-serif font-medium transition-all shadow-sm ${
                 proposal.applied
                   ? 'bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 cursor-default'
                   : selectedIds.size > 0

@@ -116,7 +116,7 @@ export const AttachmentPreviewModal: React.FC<AttachmentPreviewModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className={`w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col border overflow-hidden transition-all ${
+        className={`w-full max-w-4xl max-h-[90vh] shadow-2xl flex flex-col border overflow-hidden transition-all ${
           isDark
             ? 'bg-[#1C1C20] border-[#333338] text-zinc-100'
             : 'bg-white border-stone-200 text-stone-900'
@@ -126,7 +126,7 @@ export const AttachmentPreviewModal: React.FC<AttachmentPreviewModalProps> = ({
         {/* 顶部工具栏 */}
         <div className="px-5 py-3.5 border-b border-inherit flex items-center justify-between shrink-0 bg-black/5 dark:bg-white/5">
           <div className="flex items-center space-x-3 min-w-0 pr-4">
-            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500 shrink-0">
+            <div className="p-2 bg-blue-500/10 text-blue-500 shrink-0">
               {isImage ? (
                 <ImageIcon className="w-5 h-5" />
               ) : isWord ? (
@@ -156,11 +156,11 @@ export const AttachmentPreviewModal: React.FC<AttachmentPreviewModalProps> = ({
           <div className="flex items-center space-x-1.5 shrink-0">
             {/* 图片缩放控制 */}
             {isImage && (
-              <div className="flex items-center space-x-1 mr-2 px-2 py-1 rounded-lg bg-black/5 dark:bg-white/5 border border-inherit text-xs">
+              <div className="flex items-center space-x-1 mr-2 px-2 py-1 bg-black/5 dark:bg-white/5 border border-inherit text-xs">
                 <button
                   type="button"
                   onClick={() => setZoom(z => Math.max(0.25, z - 0.25))}
-                  className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition-colors"
+                  className="p-1 hover:bg-black/10 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition-colors"
                   title="缩小"
                 >
                   <ZoomOut className="w-3.5 h-3.5" />
@@ -171,7 +171,7 @@ export const AttachmentPreviewModal: React.FC<AttachmentPreviewModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setZoom(z => Math.min(3, z + 0.25))}
-                  className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition-colors"
+                  className="p-1 hover:bg-black/10 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition-colors"
                   title="放大"
                 >
                   <ZoomIn className="w-3.5 h-3.5" />
@@ -179,7 +179,7 @@ export const AttachmentPreviewModal: React.FC<AttachmentPreviewModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setZoom(1)}
-                  className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition-colors ml-1"
+                  className="p-1 hover:bg-black/10 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition-colors ml-1"
                   title="重置缩放"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -192,7 +192,7 @@ export const AttachmentPreviewModal: React.FC<AttachmentPreviewModalProps> = ({
               <button
                 type="button"
                 onClick={handleCopyText}
-                className="flex items-center space-x-1 px-2.5 py-1 rounded-lg border border-inherit text-xs hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
+                className="flex items-center space-x-1 px-2.5 py-1 border border-inherit text-xs hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer"
                 title="复制文档文本"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
@@ -205,7 +205,7 @@ export const AttachmentPreviewModal: React.FC<AttachmentPreviewModalProps> = ({
               <button
                 type="button"
                 onClick={handleOpenExternal}
-                className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-70 hover:opacity-100 transition-colors cursor-pointer"
+                className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 opacity-70 hover:opacity-100 transition-colors cursor-pointer"
                 title="在新标签页中查看"
               >
                 <ExternalLink className="w-4 h-4" />
@@ -215,7 +215,7 @@ export const AttachmentPreviewModal: React.FC<AttachmentPreviewModalProps> = ({
             <button
               type="button"
               onClick={handleDownload}
-              className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-70 hover:opacity-100 transition-colors cursor-pointer"
+              className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 opacity-70 hover:opacity-100 transition-colors cursor-pointer"
               title="下载文件"
             >
               <Download className="w-4 h-4" />
@@ -224,7 +224,7 @@ export const AttachmentPreviewModal: React.FC<AttachmentPreviewModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition-colors ml-2 cursor-pointer"
+              className="p-1.5 hover:bg-black/10 dark:hover:bg-white/10 opacity-70 hover:opacity-100 transition-colors ml-2 cursor-pointer"
               title="关闭 (Esc)"
             >
               <X className="w-4 h-4" />
@@ -240,7 +240,7 @@ export const AttachmentPreviewModal: React.FC<AttachmentPreviewModalProps> = ({
                 src={attachment.previewUrl || `data:${attachment.mimeType};base64,${attachment.data}`}
                 alt={attachment.name}
                 style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}
-                className="max-w-full max-h-[72vh] object-contain rounded-lg shadow-md transition-transform duration-150 select-none cursor-zoom-in"
+                className="max-w-full max-h-[72vh] object-contain shadow-md transition-transform duration-150 select-none cursor-zoom-in"
                 onClick={() => setZoom(z => (z === 1 ? 1.6 : 1))}
               />
             </div>
@@ -251,7 +251,7 @@ export const AttachmentPreviewModal: React.FC<AttachmentPreviewModalProps> = ({
                 <span>{attachment.textContent?.length || 0} 字符</span>
               </div>
               <pre
-                className={`flex-1 overflow-auto p-4 rounded-xl text-xs font-mono leading-relaxed border select-text ${
+                className={`flex-1 overflow-auto p-4 text-xs font-mono leading-relaxed border select-text ${
                   isDark
                     ? 'bg-[#141417] border-[#2B2B30] text-zinc-200'
                     : 'bg-stone-50 border-stone-200 text-stone-800'
@@ -262,7 +262,7 @@ export const AttachmentPreviewModal: React.FC<AttachmentPreviewModalProps> = ({
             </div>
           ) : isPdf ? (
             <div className="flex flex-col items-center justify-center p-8 text-center space-y-3">
-              <div className="p-4 rounded-2xl bg-rose-500/10 text-rose-500">
+              <div className="p-4 bg-rose-500/10 text-rose-500">
                 <FileText className="w-12 h-12" />
               </div>
               <div className="font-serif font-semibold text-base">{attachment.name}</div>
@@ -273,7 +273,7 @@ export const AttachmentPreviewModal: React.FC<AttachmentPreviewModalProps> = ({
                 <button
                   type="button"
                   onClick={handleOpenExternal}
-                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium flex items-center space-x-1.5 shadow-sm transition-colors cursor-pointer"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium flex items-center space-x-1.5 shadow-sm transition-colors cursor-pointer"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   <span>在浏览器预览窗口打开</span>
@@ -281,7 +281,7 @@ export const AttachmentPreviewModal: React.FC<AttachmentPreviewModalProps> = ({
                 <button
                   type="button"
                   onClick={handleDownload}
-                  className="px-4 py-2 rounded-lg border border-inherit hover:bg-black/5 dark:hover:bg-white/5 text-xs font-medium flex items-center space-x-1.5 transition-colors cursor-pointer"
+                  className="px-4 py-2 border border-inherit hover:bg-black/5 dark:hover:bg-white/5 text-xs font-medium flex items-center space-x-1.5 transition-colors cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>下载此 PDF</span>

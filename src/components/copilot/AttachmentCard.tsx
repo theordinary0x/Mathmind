@@ -40,7 +40,7 @@ export const AttachmentCard: React.FC<AttachmentCardProps> = ({
 
   return (
     <div
-      className={`group relative mb-2 inline-flex items-center space-x-2 px-2.5 py-1.5 rounded-lg border text-xs shadow-xs select-none transition-all ${
+      className={`group relative mb-2 inline-flex items-center space-x-2 px-2.5 py-1.5 border text-xs shadow-xs select-none transition-all ${
         isDark
           ? 'bg-[#25252A] border-[#38383F] text-zinc-200 hover:border-blue-500/50'
           : 'bg-stone-100 border-stone-300 text-stone-800 hover:border-blue-500/50'
@@ -54,7 +54,7 @@ export const AttachmentCard: React.FC<AttachmentCardProps> = ({
           <img
             src={attachment.previewUrl}
             alt={attachment.name}
-            className="w-7 h-7 object-cover rounded border border-black/10 dark:border-white/10 shrink-0"
+            className="w-7 h-7 object-cover border border-black/10 dark:border-white/10 shrink-0"
           />
         ) : isWord ? (
           <FileText className="w-4 h-4 text-indigo-500 shrink-0" />
@@ -72,7 +72,7 @@ export const AttachmentCard: React.FC<AttachmentCardProps> = ({
 
         {/* 悬停放大镜指示 */}
         {onPreview && (
-          <div className="absolute inset-0 bg-black/40 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
             <Eye className="w-3 h-3 text-white" />
           </div>
         )}
@@ -96,7 +96,7 @@ export const AttachmentCard: React.FC<AttachmentCardProps> = ({
             e.stopPropagation();
             onRemove();
           }}
-          className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 opacity-60 hover:opacity-100 transition-colors cursor-pointer"
+          className="p-1 hover:bg-black/10 dark:hover:bg-white/10 opacity-60 hover:opacity-100 transition-colors cursor-pointer"
           title="移除文件"
         >
           <X className="w-3.5 h-3.5" />
