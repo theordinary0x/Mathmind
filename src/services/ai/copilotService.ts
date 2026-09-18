@@ -203,12 +203,6 @@ async function callOpenAiCopilot(
 
   // 最新输入
   if (isImage && attachment?.data) {
-    if (settings.provider === 'deepseek' && (settings.model.includes('reasoner') || settings.model.includes('chat'))) {
-      throw new Error(
-        `DeepSeek「${settings.model}」为纯文本推理模型，暂不支持直接上传图片。建议在系统设置中切换为 Google Gemini（原生支持高精度图片与公式识别）或通义千问视觉模型（qwen-vl-max）。`
-      );
-    }
-
     const safeMime = attachment.mimeType && attachment.mimeType.startsWith('image/') ? attachment.mimeType : 'image/jpeg';
     messages.push({
       role: 'user',
@@ -227,7 +221,7 @@ async function callOpenAiCopilot(
     });
   } else if (isPdf) {
     if (!attachment?.textContent || attachment.textContent.trim().length < 15) {
-      finalPrompt += `\n\n【提示：用户附带了 PDF 文件 (${attachment?.name})。当前 ${settings.provider.toUpperCase()} 接口无法直接解析 PDF 二进制流且文档中未解析到可读文本。建议切换至 Google Gemini（原生支持直接分析整本 PDF 与公式推导），或将关键定理页面截图上传】`;
+      finalPrompt += `\n\n【提示：用户附带了 PDF 文件 (${attachment?.name})。若未能提取到连续纯文本，该 PDF 可能为纯图片扫描版。建议切换至 Google Gemini 获取原生整页 PDF 识别，或使用截图上传。】`;
     }
     messages.push({
       role: 'user',

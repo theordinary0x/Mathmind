@@ -17,10 +17,6 @@ export const callOpenAiCompatibleApi = async (
   let userContent: any = userPromptText;
 
   if (input.mode === 'image' && input.image) {
-    if (settings.provider === 'deepseek' && settings.model.includes('reasoner')) {
-      throw new Error('DeepSeek Reasoner 为纯文本深度推理模型。若需识别图片/截图，请在模型配置中切换为 DeepSeek 最新的多模态视觉模型「deepseek-flash」。');
-    }
-
     userContent = [
       {
         type: 'image_url',
@@ -34,12 +30,10 @@ export const callOpenAiCompatibleApi = async (
       }
     ];
   } else if (input.mode === 'pdf' && input.pdf) {
-    if (input.pdf.textContent && input.pdf.textContent.trim().length > 20) {
+    if (input.pdf.textContent && input.pdf.textContent.trim().length > 10) {
       userContent = `${userPromptText}\n\n【提取出的 PDF 文本内容】:\n${input.pdf.textContent}`;
     } else {
-      throw new Error(
-        `${settings.provider.toUpperCase()} 接口无法直接解析 PDF 二进制流。建议切换至 Google Gemini（原生支持直接解析整份 PDF 文件与公式），或将 PDF 关键定理页面截图后上传。`
-      );
+      userContent = `${userPromptText}\n\n【用户上传了 PDF 文件: ${input.pdf.fileName}】\n提示：该 PDF 未能提取到连续纯文本（可能为图片扫描版）。建议截取重点定理后作为图片上传，或切换至 Google Gemini（原生支持整页 PDF 解析）。`;
     }
   }
 

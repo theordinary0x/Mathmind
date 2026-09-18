@@ -27,7 +27,7 @@ export const PROVIDER_CONFIGS: Record<AiProvider, ProviderMeta> = {
     candidateModels: ['deepseek-flash', 'deepseek-chat', 'deepseek-reasoner'],
     docUrl: 'https://platform.deepseek.com/api_keys',
     supportsImage: true,
-    supportsPdf: false
+    supportsPdf: true
   },
   qwen: {
     name: '通义千问 (Qwen)',
@@ -36,7 +36,7 @@ export const PROVIDER_CONFIGS: Record<AiProvider, ProviderMeta> = {
     candidateModels: ['qwen3.8-flash', 'qwen3.8-max', 'qwen-plus', 'qwen-vl-max'],
     docUrl: 'https://dashscope.console.aliyun.com/apiKey',
     supportsImage: true,
-    supportsPdf: false
+    supportsPdf: true
   },
   glm: {
     name: '智谱清言 (GLM)',
@@ -45,7 +45,7 @@ export const PROVIDER_CONFIGS: Record<AiProvider, ProviderMeta> = {
     candidateModels: ['glm-5.3-flash', 'glm-5.3', 'glm-4-flash'],
     docUrl: 'https://open.bigmodel.cn/usercenter/apikeys',
     supportsImage: true,
-    supportsPdf: false
+    supportsPdf: true
   },
   custom: {
     name: '自定义 / 本地 Ollama',
