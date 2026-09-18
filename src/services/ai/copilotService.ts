@@ -60,8 +60,9 @@ async function callGeminiCopilot(
   systemPrompt: string,
   history: CopilotMessage[],
   userPrompt: string,
-  attachment: { mimeType: string; data: string } | undefined,
-  settings: AiSettings
+  attachment: { mimeType: string; data: string; textContent?: string; name?: string } | undefined,
+  settings: AiSettings,
+  signal?: AbortSignal
 ): Promise<string> {
   if (!settings.apiKey.trim()) {
     throw new Error('未配置 Gemini API Key，请在系统设置中填入有效密钥。');
@@ -83,9 +84,15 @@ async function callGeminiCopilot(
     });
   }
 
+  // 处理文本附件
+  let finalPrompt = userPrompt;
+  if (attachment?.textContent) {
+    finalPrompt += `\n\n【附带文件 (${attachment.name || '附件'}) 内容】:\n${attachment.textContent}`;
+  }
+
   // 当前用户最新一轮消息
   const currentParts: any[] = [];
-  if (attachment) {
+  if (attachment && !attachment.textContent && attachment.data) {
     currentParts.push({
       inlineData: {
         mimeType: attachment.mimeType,
@@ -93,7 +100,7 @@ async function callGeminiCopilot(
       }
     });
   }
-  currentParts.push({ text: userPrompt });
+  currentParts.push({ text: finalPrompt });
 
   contents.push({
     role: 'user',
@@ -113,7 +120,8 @@ async function callGeminiCopilot(
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(requestBody)
+    body: JSON.stringify(requestBody),
+    signal
   });
 
   if (!response.ok) {
@@ -137,8 +145,9 @@ async function callOpenAiCopilot(
   systemPrompt: string,
   history: CopilotMessage[],
   userPrompt: string,
-  attachment: { mimeType: string; data: string } | undefined,
-  settings: AiSettings
+  attachment: { mimeType: string; data: string; textContent?: string; name?: string } | undefined,
+  settings: AiSettings,
+  signal?: AbortSignal
 ): Promise<string> {
   if (!settings.apiKey.trim() && settings.provider !== 'custom') {
     throw new Error(`未配置 ${settings.provider.toUpperCase()} API Key，请在系统设置中填入有效密钥。`);
@@ -160,8 +169,14 @@ async function callOpenAiCopilot(
     });
   }
 
+  // 处理文本附件
+  let finalPrompt = userPrompt;
+  if (attachment?.textContent) {
+    finalPrompt += `\n\n【附带文件 (${attachment.name || '附件'}) 内容】:\n${attachment.textContent}`;
+  }
+
   // 最新输入
-  if (attachment && attachment.mimeType.startsWith('image/')) {
+  if (attachment && !attachment.textContent && attachment.mimeType.startsWith('image/')) {
     messages.push({
       role: 'user',
       content: [
@@ -173,14 +188,14 @@ async function callOpenAiCopilot(
         },
         {
           type: 'text',
-          text: userPrompt
+          text: finalPrompt
         }
       ]
     });
   } else {
     messages.push({
       role: 'user',
-      content: userPrompt
+      content: finalPrompt
     });
   }
 
@@ -198,7 +213,8 @@ async function callOpenAiCopilot(
       model: settings.model,
       messages,
       temperature: 0.3
-    })
+    }),
+    signal
   });
 
   if (!response.ok) {
@@ -223,18 +239,19 @@ export async function sendCopilotRequest(params: {
   userPrompt: string;
   allNodes: PropositionNode[];
   selectedNodes: PropositionNode[];
-  attachment?: { mimeType: string; data: string; name?: string };
+  attachment?: { mimeType: string; data: string; name?: string; textContent?: string };
   settings: AiSettings;
+  signal?: AbortSignal;
 }): Promise<CopilotApiResponse> {
-  const { history, userPrompt, allNodes, selectedNodes, attachment, settings } = params;
+  const { history, userPrompt, allNodes, selectedNodes, attachment, settings, signal } = params;
 
   const systemPrompt = buildCopilotSystemPrompt(allNodes, selectedNodes);
 
   let rawText = '';
   if (settings.provider === 'gemini') {
-    rawText = await callGeminiCopilot(systemPrompt, history, userPrompt, attachment, settings);
+    rawText = await callGeminiCopilot(systemPrompt, history, userPrompt, attachment, settings, signal);
   } else {
-    rawText = await callOpenAiCopilot(systemPrompt, history, userPrompt, attachment, settings);
+    rawText = await callOpenAiCopilot(systemPrompt, history, userPrompt, attachment, settings, signal);
   }
 
   return parseCopilotResponse(rawText);

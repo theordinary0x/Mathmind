@@ -1,20 +1,20 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { PropositionNode, AppTheme } from '../../types';
-import { CopilotMessage, GraphMutationDiff } from '../../types/copilot';
-import { loadAiSettings } from '../../services/ai/aiConfig';
-import { sendCopilotRequest } from '../../services/ai/copilotService';
+import { GraphMutationDiff } from '../../types/copilot';
 import { ContextPill } from './ContextPill';
 import { CopilotMessageItem } from './CopilotMessageItem';
+import { AttachmentCard } from './AttachmentCard';
+import { QuoteReplyButton } from './QuoteReplyButton';
+import { useCopilotChat } from '../../hooks/useCopilotChat';
 import { 
   Sparkles, 
   X, 
   Trash2, 
   Settings, 
   Send, 
+  Square,
   Paperclip, 
-  Image as ImageIcon,
-  RotateCcw,
-  BookOpen
+  UploadCloud
 } from 'lucide-react';
 
 interface CopilotSidebarProps {
@@ -28,8 +28,6 @@ interface CopilotSidebarProps {
   theme: AppTheme;
 }
 
-const STORAGE_KEY = 'mathmind_copilot_messages_v1';
-
 export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
   isOpen,
   onClose,
@@ -42,49 +40,33 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
 }) => {
   const isDark = theme === 'dark';
 
-  // 历史消息列表
-  const [messages, setMessages] = useState<CopilotMessage[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error('Failed to load copilot messages:', e);
-    }
-    return [
-      {
-        id: 'msg_welcome',
-        role: 'assistant',
-        content: `你好！我是你的 **Math Copilot (数理思维副驾驶)**。
-你可以随时与我讨论数理逻辑，或者圈选画布上的命题，让我协助你：
-- 🔍 **审校逻辑链条**：检查严密性、发现隐含假设或循环依赖；
-- 🔄 **重构命题网络**：合并等价结论、精简冗余引理、调整前置依赖；
-- 📖 **教材提取录入**：拖入定理段落或公式截图，快速转换为结构化命题图谱。`,
-        timestamp: Date.now()
-      }
-    ];
-  });
-
-  const [inputPrompt, setInputPrompt] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [attachment, setAttachment] = useState<{
-    name: string;
-    mimeType: string;
-    data: string;
-    previewUrl?: string;
-  } | null>(null);
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 保存消息到 localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-30)));
-    } catch (e) {
-      console.error('Failed to save copilot messages:', e);
-    }
-  }, [messages]);
+  const {
+    messages,
+    inputPrompt,
+    setInputPrompt,
+    isLoading,
+    attachment,
+    setAttachment,
+    isDraggingFile,
+    setIsDraggingFile,
+    handleSendMessage,
+    handleStopGeneration,
+    handleApplyDiff,
+    handleClearHistory,
+    handleProcessFile,
+    handleFileUpload,
+    handleQuote
+  } = useCopilotChat({
+    allNodes,
+    selectedNodes,
+    onApplyMutation,
+    textareaRef
+  });
 
   // 自动滚底
   const scrollToBottom = useCallback(() => {
@@ -96,167 +78,6 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
       scrollToBottom();
     }
   }, [isOpen, messages.length, scrollToBottom]);
-
-  // 处理附件图片选取
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-      alert('目前仅支持上传图片格式 (PNG, JPG, WebP) 或 PDF 文件。');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      const base64Data = result.split(',')[1];
-      setAttachment({
-        name: file.name,
-        mimeType: file.type,
-        data: base64Data,
-        previewUrl: file.type.startsWith('image/') ? result : undefined
-      });
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
-  };
-
-  // 发送消息
-  const handleSendMessage = async (textToSend?: string) => {
-    const prompt = (textToSend !== undefined ? textToSend : inputPrompt).trim();
-    if ((!prompt && !attachment) || isLoading) return;
-
-    const aiSettings = loadAiSettings();
-    if (!aiSettings.apiKey.trim() && aiSettings.provider !== 'custom') {
-      setMessages(prev => [
-        ...prev,
-        {
-          id: `msg_err_${Date.now()}`,
-          role: 'assistant',
-          content: '⚠️ **未配置 AI 提供商密钥**\n\n请点击右上角设置图标（或在系统全局设置中）配置并保存你的 API 密钥后再进行对话。',
-          timestamp: Date.now()
-        }
-      ]);
-      return;
-    }
-
-    const userMessageId = `msg_user_${Date.now()}`;
-    const assistantMessageId = `msg_asst_${Date.now() + 1}`;
-
-    const userMsg: CopilotMessage = {
-      id: userMessageId,
-      role: 'user',
-      content: prompt || (attachment ? `请解析并分析附件：${attachment.name}` : ''),
-      timestamp: Date.now(),
-      contextSnapshot: {
-        nodeIds: selectedNodes.map(n => n.id),
-        nodeTitles: selectedNodes.map(n => n.title),
-        attachmentName: attachment?.name
-      }
-    };
-
-    const pendingAssistantMsg: CopilotMessage = {
-      id: assistantMessageId,
-      role: 'assistant',
-      content: '',
-      timestamp: Date.now() + 1,
-      isStreaming: true
-    };
-
-    setMessages(prev => [...prev, userMsg, pendingAssistantMsg]);
-    setInputPrompt('');
-    const currentAttachment = attachment;
-    setAttachment(null);
-    setIsLoading(true);
-
-    try {
-      const response = await sendCopilotRequest({
-        history: messages,
-        userPrompt: userMsg.content,
-        allNodes,
-        selectedNodes,
-        attachment: currentAttachment ? {
-          mimeType: currentAttachment.mimeType,
-          data: currentAttachment.data,
-          name: currentAttachment.name
-        } : undefined,
-        settings: aiSettings
-      });
-
-      setMessages(prev =>
-        prev.map(m => {
-          if (m.id === assistantMessageId) {
-            return {
-              ...m,
-              content: response.text,
-              diffProposal: response.diff ? {
-                diff: response.diff,
-                applied: false
-              } : undefined,
-              isStreaming: false
-            };
-          }
-          return m;
-        })
-      );
-    } catch (err: any) {
-      setMessages(prev =>
-        prev.map(m => {
-          if (m.id === assistantMessageId) {
-            return {
-              ...m,
-              content: '',
-              error: err.message || '网络请求失败，请检查 API 配置或网络连通性。',
-              isStreaming: false
-            };
-          }
-          return m;
-        })
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // 应用变更集
-  const handleApplyDiff = (messageId: string, selectedActionIds?: Set<string>) => {
-    const targetMsg = messages.find(m => m.id === messageId);
-    if (!targetMsg || !targetMsg.diffProposal || targetMsg.diffProposal.applied) return;
-
-    onApplyMutation(targetMsg.diffProposal.diff, selectedActionIds);
-
-    // 标记为已应用
-    setMessages(prev =>
-      prev.map(m => {
-        if (m.id === messageId && m.diffProposal) {
-          return {
-            ...m,
-            diffProposal: {
-              ...m.diffProposal,
-              applied: true,
-              appliedAt: Date.now()
-            }
-          };
-        }
-        return m;
-      })
-    );
-  };
-
-  // 清空历史
-  const handleClearHistory = () => {
-    if (confirm('确定要清空当前的 AI 对话记录吗？')) {
-      setMessages([
-        {
-          id: 'msg_welcome',
-          role: 'assistant',
-          content: '历史对话已清空。有什么可以协助你的吗？',
-          timestamp: Date.now()
-        }
-      ]);
-    }
-  };
 
   // 快捷 Prompt 标签
   const quickPrompts = selectedNodes.length > 0 ? [
@@ -280,7 +101,44 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
           ? 'bg-[#18181B] border-[#2E2E33] text-[#EDECE8]'
           : 'bg-[#FAF8F5] border-[#E5E0D8] text-[#2C2B29]'
       }`}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsDraggingFile(true);
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        const rect = e.currentTarget.getBoundingClientRect();
+        if (
+          e.clientX <= rect.left ||
+          e.clientX >= rect.right ||
+          e.clientY <= rect.top ||
+          e.clientY >= rect.bottom
+        ) {
+          setIsDraggingFile(false);
+        }
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        setIsDraggingFile(false);
+        const file = e.dataTransfer.files?.[0];
+        if (file) {
+          handleProcessFile(file);
+        }
+      }}
     >
+      {/* 拖拽全域释放蒙层 */}
+      {isDraggingFile && (
+        <div className="absolute inset-0 bg-blue-500/15 backdrop-blur-xs border-2 border-dashed border-blue-500 z-50 flex flex-col items-center justify-center pointer-events-none select-none">
+          <UploadCloud className="w-12 h-12 text-blue-500 mb-2 animate-bounce" />
+          <div className="text-sm font-semibold font-serif text-blue-600 dark:text-blue-400">
+            释放文件即可添加到对话
+          </div>
+          <div className="text-xs opacity-70 mt-1">
+            支持图片、PDF、Markdown、LaTeX 及文本文件
+          </div>
+        </div>
+      )}
+
       {/* 头部标题栏 */}
       <div className="h-12 px-4 border-b border-inherit flex items-center justify-between shrink-0 select-none bg-black/5 dark:bg-white/5">
         <div className="flex items-center space-x-2">
@@ -327,7 +185,10 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
       />
 
       {/* 消息滚动列表区 */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2 select-text">
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-2 select-text relative"
+      >
         {messages.map(msg => (
           <CopilotMessageItem
             key={msg.id}
@@ -339,6 +200,13 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
         ))}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* 划词浮动引用回复按钮 */}
+      <QuoteReplyButton
+        containerRef={messagesContainerRef}
+        onQuote={handleQuote}
+        isDark={isDark}
+      />
 
       {/* 快捷推荐指令药丸 */}
       <div className="px-3 py-1.5 border-t border-inherit flex items-center space-x-1.5 overflow-x-auto no-scrollbar select-none">
@@ -360,21 +228,13 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
 
       {/* 底部输入交互栏 */}
       <div className="p-3 border-t border-inherit bg-black/5 dark:bg-white/5 shrink-0 select-none">
-        {/* 图片预览预览条 */}
-        {attachment?.previewUrl && (
-          <div className="mb-2 relative inline-block">
-            <img
-              src={attachment.previewUrl}
-              alt="attachment"
-              className="h-16 w-auto rounded border border-inherit object-cover shadow-sm"
-            />
-            <button
-              onClick={() => setAttachment(null)}
-              className="absolute -top-1.5 -right-1.5 p-0.5 rounded-full bg-rose-600 text-white hover:bg-rose-500 shadow-sm"
-            >
-              <X className="w-3 h-3" />
-            </button>
-          </div>
+        {/* 附件信息卡片 */}
+        {attachment && (
+          <AttachmentCard
+            attachment={attachment}
+            onRemove={() => setAttachment(null)}
+            isDark={isDark}
+          />
         )}
 
         <div
@@ -384,20 +244,20 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
               : 'bg-white border-stone-300 focus-within:border-blue-600'
           }`}
         >
-          {/* 上传图片按钮 */}
+          {/* 上传附件按钮 */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
             className="p-1.5 rounded opacity-60 hover:opacity-100 hover:text-blue-500 transition-colors"
-            title="上传教材/公式截图或附件"
+            title="上传图片截图、PDF或文本文档"
           >
-            <ImageIcon className="w-4 h-4" />
+            <Paperclip className="w-4 h-4" />
           </button>
           <input
             type="file"
             ref={fileInputRef}
             onChange={handleFileUpload}
-            accept="image/*,application/pdf"
+            accept="image/*,application/pdf,.txt,.md,.tex,.json,.py,.cpp"
             className="hidden"
           />
 
@@ -421,20 +281,31 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
             className="flex-1 bg-transparent resize-none text-xs focus:outline-none font-serif leading-relaxed px-1"
           />
 
-          {/* 发送按钮 */}
-          <button
-            type="button"
-            onClick={() => handleSendMessage()}
-            disabled={(!inputPrompt.trim() && !attachment) || isLoading}
-            className={`p-1.5 rounded-md transition-all ${
-              (inputPrompt.trim() || attachment) && !isLoading
-                ? 'bg-blue-600 hover:bg-blue-500 text-white cursor-pointer active:scale-95'
-                : 'opacity-40 cursor-not-allowed text-zinc-400'
-            }`}
-            title="发送指令 (Enter)"
-          >
-            <Send className="w-4 h-4" />
-          </button>
+          {/* 发送 / 停止生成 切换按钮 */}
+          {isLoading ? (
+            <button
+              type="button"
+              onClick={handleStopGeneration}
+              className="p-1.5 rounded-md bg-rose-600 hover:bg-rose-500 text-white cursor-pointer transition-colors shadow-xs animate-pulse"
+              title="停止生成 (Esc)"
+            >
+              <Square className="w-4 h-4 fill-current" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => handleSendMessage()}
+              disabled={!inputPrompt.trim() && !attachment}
+              className={`p-1.5 rounded-md transition-all ${
+                inputPrompt.trim() || attachment
+                  ? 'bg-blue-600 hover:bg-blue-500 text-white cursor-pointer active:scale-95'
+                  : 'opacity-40 cursor-not-allowed text-zinc-400'
+              }`}
+              title="发送指令 (Enter)"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
     </aside>

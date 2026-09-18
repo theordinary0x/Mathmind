@@ -90,7 +90,7 @@ export const MarkdownMathRenderer: React.FC<MarkdownMathRendererProps> = ({
     const codeBlocks: Array<{ id: string; code: string; language: string }> = [];
     const codeBlockRegex = /(?:^|\n)```([a-zA-Z0-9_\-\.\+]*)\r?\n([\s\S]*?)\r?\n```(?:\n|$)/g;
     text = text.replace(codeBlockRegex, (_, lang, code) => {
-      const id = `___CODE_BLOCK_${codeBlocks.length}___`;
+      const id = `<div data-code-block="${codeBlocks.length}"></div>`;
       codeBlocks.push({ id, code: code.replace(/\r\n/g, '\n'), language: (lang || '').trim() });
       return `\n\n${id}\n\n`;
     });
@@ -100,7 +100,7 @@ export const MarkdownMathRenderer: React.FC<MarkdownMathRendererProps> = ({
     const theoremRegex =
       /\\begin\{(theorem|proposition|lemma|definition|corollary|axiom|proof|example|remark|conjecture)\}(?:\[(.*?)\])?([\s\S]*?)\\end\{\1\}/g;
     text = text.replace(theoremRegex, (_, env, optTitle, value) => {
-      const id = `___THEORE_BLOCK_${theoremBlocks.length}___`;
+      const id = `<div data-theorem-block="${theoremBlocks.length}"></div>`;
       theoremBlocks.push({ id, env, optTitle, value: value.trim() });
       return `\n\n${id}\n\n`;
     });
@@ -110,7 +110,7 @@ export const MarkdownMathRenderer: React.FC<MarkdownMathRendererProps> = ({
     const blockMathRegex =
       /(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\begin\{(?:align\*?|alignat\*?|gather\*?|equation\*?|multline\*?|split|cases|matrix|pmatrix|bmatrix|vmatrix|Vmatrix)\}[\s\S]*?\\end\{(?:align\*?|alignat\*?|gather\*?|equation\*?|multline\*?|split|cases|matrix|pmatrix|bmatrix|vmatrix|Vmatrix)\})/g;
     text = text.replace(blockMathRegex, (match) => {
-      const id = `___BLOCK_MATH_${blockMaths.length}___`;
+      const id = `<div data-katex-block="${blockMaths.length}"></div>`;
       let inner = match.trim();
       if (inner.startsWith('$$') && inner.endsWith('$$')) {
         inner = inner.slice(2, -2).trim();
@@ -126,7 +126,7 @@ export const MarkdownMathRenderer: React.FC<MarkdownMathRendererProps> = ({
     // 匹配未转义的单美元符号或 \(...\)
     const inlineMathRegex = /(\$(?:[^\$\n\\]|\\.)+?\$|\\\([\s\S]*?\\\))/g;
     text = text.replace(inlineMathRegex, (match) => {
-      const id = `___INLINE_MATH_${inlineMaths.length}___`;
+      const id = `<span data-katex-inline="${inlineMaths.length}"></span>`;
       let inner = match.trim();
       if (inner.startsWith('$') && inner.endsWith('$')) {
         inner = inner.slice(1, -1).trim();
@@ -149,8 +149,8 @@ export const MarkdownMathRenderer: React.FC<MarkdownMathRendererProps> = ({
       parsedHtml = text;
     }
 
-    // 6. 将行内数学公式替换回 KaTeX HTML
-    parsedHtml = parsedHtml.replace(/___INLINE_MATH_(\d+)___/g, (_, idxStr) => {
+    // 6. 将行内数学公式替换回 KaTeX HTML (使用标准 HTML 标签避免被 marked 误解析为斜体)
+    parsedHtml = parsedHtml.replace(/<span data-katex-inline="(\d+)"><\/span>/g, (_, idxStr) => {
       const idx = parseInt(idxStr, 10);
       const math = inlineMaths[idx];
       if (math === undefined) return '';
@@ -165,7 +165,7 @@ export const MarkdownMathRenderer: React.FC<MarkdownMathRendererProps> = ({
     });
 
     // 7. 将独立块级数学公式替换回居中渲染的 KaTeX HTML
-    parsedHtml = parsedHtml.replace(/(?:<p>)?___BLOCK_MATH_(\d+)___(?:<\/p>)?/g, (_, idxStr) => {
+    parsedHtml = parsedHtml.replace(/(?:<p>)?<div data-katex-block="(\d+)"><\/div>(?:<\/p>)?/g, (_, idxStr) => {
       const idx = parseInt(idxStr, 10);
       const math = blockMaths[idx];
       if (math === undefined) return '';
@@ -181,8 +181,7 @@ export const MarkdownMathRenderer: React.FC<MarkdownMathRendererProps> = ({
     });
 
     // 8. 结合代码块 (CodeBlock) 与定理块 (Theorem) 切割为复合 React 渲染片段
-    // 构造切割正则表达式匹配 ___CODE_BLOCK_X___ 或 ___THEORE_BLOCK_X___
-    const splitRegex = /(?:<p>)?(___CODE_BLOCK_\d+___|___THEORE_BLOCK_\d+___)(?:<\/p>)?/g;
+    const splitRegex = /(?:<p>)?(<div data-code-block="\d+"><\/div>|<div data-theorem-block="\d+"><\/div>)(?:<\/p>)?/g;
     const resultSegments: RenderSegment[] = [];
 
     let lastIndex = 0;
@@ -197,8 +196,8 @@ export const MarkdownMathRenderer: React.FC<MarkdownMathRendererProps> = ({
       }
 
       const token = match[1];
-      if (token.startsWith('___CODE_BLOCK_')) {
-        const codeIdx = parseInt(token.replace(/\D/g, ''), 10);
+      if (token.includes('data-code-block=')) {
+        const codeIdx = parseInt(token.match(/data-code-block="(\d+)"/)?.[1] || '0', 10);
         const item = codeBlocks[codeIdx];
         if (item) {
           resultSegments.push({
@@ -207,8 +206,8 @@ export const MarkdownMathRenderer: React.FC<MarkdownMathRendererProps> = ({
             language: item.language
           });
         }
-      } else if (token.startsWith('___THEORE_BLOCK_')) {
-        const thmIdx = parseInt(token.replace(/\D/g, ''), 10);
+      } else if (token.includes('data-theorem-block=')) {
+        const thmIdx = parseInt(token.match(/data-theorem-block="(\d+)"/)?.[1] || '0', 10);
         const item = theoremBlocks[thmIdx];
         if (item) {
           resultSegments.push({
