@@ -33,6 +33,8 @@ interface UseAppKeyboardShortcutsProps {
   handlePasteNode: () => void;
   handleDeleteNode: (nodeId: string) => void;
   setIsFocusMode: React.Dispatch<React.SetStateAction<boolean>>;
+  isCopilotOpen?: boolean;
+  setIsCopilotOpen?: (open: boolean) => void;
   showToast: (msg: string) => void;
 }
 
@@ -286,6 +288,8 @@ export function useAppKeyboardShortcuts(props: UseAppKeyboardShortcutsProps) {
           p.handleClearSelection?.();
         } else if (p.selectedNodeId) {
           p.setSelectedNodeId(null);
+        } else if (p.isCopilotOpen) {
+          p.setIsCopilotOpen?.(false);
         }
       }
     };

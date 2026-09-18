@@ -141,6 +141,28 @@ export const useCopilotChat = ({
     [textareaRef]
   );
 
+  // 剪贴板粘贴文件/图片处理 (Ctrl+V 截图或文件)
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent | ClipboardEvent) => {
+      const clipboardData = (e as React.ClipboardEvent).clipboardData || (e as ClipboardEvent).clipboardData;
+      if (!clipboardData || !clipboardData.items) return;
+
+      const items = clipboardData.items;
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.kind === 'file') {
+          const file = item.getAsFile();
+          if (file) {
+            e.preventDefault();
+            handleProcessFile(file);
+            return;
+          }
+        }
+      }
+    },
+    [handleProcessFile]
+  );
+
   // 随时停止生成
   const handleStopGeneration = useCallback(() => {
     if (abortControllerRef.current) {
@@ -356,6 +378,7 @@ export const useCopilotChat = ({
     handleClearHistory,
     handleProcessFile,
     handleFileUpload,
+    handlePaste,
     handleQuote
   };
 };

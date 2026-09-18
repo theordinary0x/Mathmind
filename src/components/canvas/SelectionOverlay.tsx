@@ -7,6 +7,7 @@ interface SelectionOverlayProps {
   toolMode: SelectionToolMode;
   onSelectBox: (box: BoundingBox, isAppend: boolean) => void;
   onSelectLasso: (polygon: Point[], isAppend: boolean) => void;
+  onExitMode?: () => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -14,6 +15,7 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
   toolMode,
   onSelectBox,
   onSelectLasso,
+  onExitMode,
   containerRef
 }) => {
   const [isModifierShift, setIsModifierShift] = useState(false);
@@ -41,6 +43,7 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
         setBoxStart(null);
         setBoxCurrent(null);
         setLassoPoints([]);
+        onExitMode?.();
       }
     };
 

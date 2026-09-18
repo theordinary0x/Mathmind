@@ -1030,6 +1030,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
         toolMode={toolMode}
         onSelectBox={handleSelectBox}
         onSelectLasso={handleSelectLasso}
+        onExitMode={() => setToolMode('none')}
         containerRef={containerRef}
       />
 

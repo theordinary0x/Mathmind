@@ -61,6 +61,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     handleClearHistory,
     handleProcessFile,
     handleFileUpload,
+    handlePaste,
     handleQuote
   } = useCopilotChat({
     allNodes,
@@ -97,6 +98,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
 
   return (
     <aside
+      onPaste={handlePaste}
       className={`fixed right-0 top-13 sm:top-14 bottom-7 w-full sm:w-[440px] lg:w-[480px] z-30 flex flex-col border-l shadow-2xl transition-all select-text duration-200 ${
         isDark
           ? 'bg-[#18181B] border-[#2E2E33] text-[#EDECE8]'
@@ -268,6 +270,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
             ref={textareaRef}
             value={inputPrompt}
             onChange={e => setInputPrompt(e.target.value)}
+            onPaste={handlePaste}
             onKeyDown={e => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
