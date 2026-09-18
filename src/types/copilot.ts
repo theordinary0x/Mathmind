@@ -56,6 +56,15 @@ export interface DiffProposalState {
   selectedActionIds?: string[];
 }
 
+export interface CopilotMessageAttachment {
+  name: string;
+  size: number;
+  mimeType: string;
+  previewUrl?: string;
+  textContent?: string;
+  data?: string;
+}
+
 /**
  * Copilot 消息对象
  */
@@ -64,6 +73,7 @@ export interface CopilotMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: number;
+  attachment?: CopilotMessageAttachment;
   contextSnapshot?: {
     nodeIds: string[];
     nodeTitles: string[];

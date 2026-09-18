@@ -3,7 +3,9 @@ import { CopilotMessage, GraphMutationDiff } from '../../types/copilot';
 import { PropositionNode } from '../../types';
 import { MarkdownMathRenderer } from '../MarkdownMathRenderer';
 import { DiffReviewCard } from './DiffReviewCard';
-import { Sparkles, User, Copy, Check, AlertCircle, Loader2, Square } from 'lucide-react';
+import { AttachmentPreviewModal, AttachmentPreviewData } from './AttachmentPreviewModal';
+import { formatFileSize } from '../../utils/fileHelper';
+import { Sparkles, User, Copy, Check, AlertCircle, Loader2, Square, Eye, FileText, FileCode } from 'lucide-react';
 
 interface CopilotMessageItemProps {
   message: CopilotMessage;
@@ -25,6 +27,7 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
   isDark
 }) => {
   const [copied, setCopied] = useState(false);
+  const [previewAttachment, setPreviewAttachment] = useState<AttachmentPreviewData | null>(null);
   const isUser = message.role === 'user';
 
   const handleCopy = () => {
@@ -70,6 +73,41 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
               {message.contextSnapshot.nodeTitles.slice(0, 3).join(', ')}
               {message.contextSnapshot.nodeTitles.length > 3 ? ' 等' : ''}
             </span>
+          </div>
+        )}
+
+        {/* 用户附带的文件展示 (点击可放大全屏预览) */}
+        {isUser && message.attachment && (
+          <div className="mb-2 pb-1.5 border-b border-white/20">
+            <button
+              type="button"
+              onClick={() => setPreviewAttachment(message.attachment!)}
+              className="inline-flex items-center space-x-2 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-[11px] cursor-pointer transition-all max-w-full text-left"
+              title="点击查看附件大图/文本内容"
+            >
+              {message.attachment.previewUrl ? (
+                <img
+                  src={message.attachment.previewUrl}
+                  alt={message.attachment.name}
+                  className="w-7 h-7 object-cover rounded border border-white/30 shrink-0"
+                />
+              ) : message.attachment.mimeType === 'application/pdf' || message.attachment.name.toLowerCase().endsWith('.pdf') ? (
+                <FileText className="w-4 h-4 text-rose-300 shrink-0" />
+              ) : message.attachment.textContent ? (
+                <FileCode className="w-4 h-4 text-emerald-300 shrink-0" />
+              ) : (
+                <FileText className="w-4 h-4 text-blue-300 shrink-0" />
+              )}
+              <div className="flex flex-col min-w-0 pr-1">
+                <span className="font-mono truncate max-w-[170px] font-medium leading-tight">
+                  {message.attachment.name}
+                </span>
+                <span className="text-[9px] opacity-70">
+                  {formatFileSize(message.attachment.size)} • 点击查看
+                </span>
+              </div>
+              <Eye className="w-3 h-3 opacity-70 hover:opacity-100 shrink-0 ml-1" />
+            </button>
           </div>
         )}
 
@@ -139,6 +177,14 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
           </button>
         )}
       </div>
+
+      {/* 附件查看大弹窗 */}
+      <AttachmentPreviewModal
+        isOpen={!!previewAttachment}
+        onClose={() => setPreviewAttachment(null)}
+        attachment={previewAttachment}
+        isDark={isDark}
+      />
     </div>
   );
 };

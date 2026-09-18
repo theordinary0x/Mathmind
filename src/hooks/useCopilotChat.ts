@@ -4,6 +4,7 @@ import { CopilotMessage, GraphMutationDiff } from '../types/copilot';
 import { loadAiSettings } from '../services/ai/aiConfig';
 import { sendCopilotRequest } from '../services/ai/copilotService';
 import { CopilotAttachment } from '../components/copilot/AttachmentCard';
+import { processImageFile, processPdfFile } from '../utils/fileHelper';
 
 const STORAGE_KEY = 'mathmind_copilot_messages_v1';
 
@@ -59,60 +60,79 @@ export const useCopilotChat = ({
   const abortControllerRef = useRef<AbortController | null>(null);
   const isGenerating = isLoading || messages.some(m => m.isStreaming);
 
-  // 保存消息到 localStorage (保留最近 30 条)
+  // 保存消息到 localStorage (保留最近 30 条，并对过大附件做持久化瘦身)
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-30)));
+      const leanMessages = messages.slice(-30).map(m => {
+        if (m.attachment && m.attachment.data && m.attachment.data.length > 300000) {
+          return {
+            ...m,
+            attachment: {
+              ...m.attachment,
+              data: '' // 仅剔除超长 base64，保留 previewUrl 或 textContent
+            }
+          };
+        }
+        return m;
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(leanMessages));
     } catch (e) {
       console.error('Failed to save copilot messages:', e);
     }
   }, [messages]);
 
   // 统一文件解析处理（支持图片、PDF、文本、代码、LaTeX）
-  const handleProcessFile = useCallback((file: File) => {
-    const isImage = file.type.startsWith('image/');
-    const isPdf = file.type === 'application/pdf';
+  const handleProcessFile = useCallback(async (file: File) => {
+    const fileNameLower = file.name.toLowerCase();
+    const isImage = file.type.startsWith('image/') || /\.(png|jpe?g|webp|gif|bmp|svg)$/i.test(fileNameLower);
+    const isPdf = file.type === 'application/pdf' || fileNameLower.endsWith('.pdf');
     const isText =
       file.type.startsWith('text/') ||
-      file.name.endsWith('.txt') ||
-      file.name.endsWith('.md') ||
-      file.name.endsWith('.tex') ||
-      file.name.endsWith('.json') ||
-      file.name.endsWith('.py') ||
-      file.name.endsWith('.cpp');
+      file.type === 'application/json' ||
+      /\.(txt|md|tex|json|py|cpp|c|h|ts|js|jsx|tsx|html|css|csv)$/i.test(fileNameLower);
 
     if (!isImage && !isPdf && !isText) {
       alert('目前支持上传图片 (PNG, JPG, WebP)、PDF 文档，以及文本/代码文件 (.txt, .md, .tex, .json, .py)。');
       return;
     }
 
-    if (isText) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const textContent = (reader.result as string) || '';
+    try {
+      if (isPdf) {
+        const { data, textContent } = await processPdfFile(file);
         setAttachment({
           name: file.name,
           size: file.size,
-          mimeType: 'text/plain',
-          data: '',
-          textContent
+          mimeType: 'application/pdf',
+          data,
+          textContent,
+          previewUrl: undefined
         });
-      };
-      reader.readAsText(file);
-    } else {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        const base64Data = result.split(',')[1];
+      } else if (isImage) {
+        const { data, previewUrl, mimeType } = await processImageFile(file);
         setAttachment({
           name: file.name,
           size: file.size,
-          mimeType: file.type,
-          data: base64Data,
-          previewUrl: isImage ? result : undefined
+          mimeType: mimeType || 'image/jpeg',
+          data,
+          previewUrl
         });
-      };
-      reader.readAsDataURL(file);
+      } else {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const textContent = (reader.result as string) || '';
+          setAttachment({
+            name: file.name,
+            size: file.size,
+            mimeType: file.type || 'text/plain',
+            data: '',
+            textContent
+          });
+        };
+        reader.readAsText(file);
+      }
+    } catch (err: any) {
+      console.error('Failed to process attachment file:', err);
+      alert(`解析文件失败: ${err.message || err}`);
     }
   }, []);
 
@@ -219,15 +239,26 @@ export const useCopilotChat = ({
       const userMessageId = `msg_user_${Date.now()}`;
       const assistantMessageId = `msg_asst_${Date.now() + 1}`;
 
+      const currentAttachment = attachment;
       const userMsg: CopilotMessage = {
         id: userMessageId,
         role: 'user',
-        content: prompt || (attachment ? `请解析并分析附加文件：${attachment.name}` : ''),
+        content: prompt || (currentAttachment ? `请解析并分析附加文件：${currentAttachment.name}` : ''),
         timestamp: Date.now(),
+        attachment: currentAttachment
+          ? {
+              name: currentAttachment.name,
+              size: currentAttachment.size,
+              mimeType: currentAttachment.mimeType,
+              previewUrl: currentAttachment.previewUrl,
+              textContent: currentAttachment.textContent,
+              data: currentAttachment.data
+            }
+          : undefined,
         contextSnapshot: {
           nodeIds: selectedNodes.map(n => n.id),
           nodeTitles: selectedNodes.map(n => n.title),
-          attachmentName: attachment?.name
+          attachmentName: currentAttachment?.name
         }
       };
 
@@ -241,7 +272,6 @@ export const useCopilotChat = ({
 
       setMessages(prev => [...prev, userMsg, pendingAssistantMsg]);
       setInputPrompt('');
-      const currentAttachment = attachment;
       setAttachment(null);
       setIsLoading(true);
 

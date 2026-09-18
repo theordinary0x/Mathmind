@@ -73,39 +73,62 @@ async function callGeminiCopilot(
   const url = `${baseUrl}/v1beta/models/${model}:generateContent?key=${encodeURIComponent(settings.apiKey.trim())}`;
 
   // 转换对话历史为 Gemini contents 格式
+  // 必须满足：首条必须为 user，且不同角色的消息轮流交替
   const contents: Array<{ role: string; parts: any[] }> = [];
 
-  // 取最近 6 轮对话以控制上下文开销
-  const recentHistory = history.slice(-6);
-  for (const msg of recentHistory) {
-    contents.push({
-      role: msg.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: msg.content }]
-    });
+  const recentHistory = history.slice(-8);
+  const firstUserIdx = recentHistory.findIndex(m => m.role === 'user');
+  const validHistory = firstUserIdx !== -1 ? recentHistory.slice(firstUserIdx) : [];
+
+  for (const msg of validHistory) {
+    const role = msg.role === 'assistant' ? 'model' : 'user';
+    if (contents.length > 0 && contents[contents.length - 1].role === role) {
+      contents[contents.length - 1].parts.push({ text: msg.content });
+    } else {
+      contents.push({
+        role,
+        parts: [{ text: msg.content }]
+      });
+    }
   }
 
-  // 处理文本附件
+  // 处理文本附件或提取的文档文本
   let finalPrompt = userPrompt;
   if (attachment?.textContent) {
-    finalPrompt += `\n\n【附带文件 (${attachment.name || '附件'}) 内容】:\n${attachment.textContent}`;
+    finalPrompt += `\n\n【附带文件 (${attachment.name || '附件'}) 文本内容】:\n${attachment.textContent}`;
   }
 
-  // 当前用户最新一轮消息
+  // 当前用户最新一轮消息部件
   const currentParts: any[] = [];
-  if (attachment && !attachment.textContent && attachment.data) {
-    currentParts.push({
-      inlineData: {
-        mimeType: attachment.mimeType,
-        data: attachment.data
+  if (attachment && attachment.data) {
+    let safeMimeType = attachment.mimeType;
+    if (!safeMimeType || safeMimeType === 'application/octet-stream') {
+      if (attachment.name?.toLowerCase().endsWith('.pdf')) {
+        safeMimeType = 'application/pdf';
+      } else if (/\.(png|jpe?g|webp|gif|bmp)$/i.test(attachment.name || '')) {
+        safeMimeType = 'image/jpeg';
       }
-    });
+    }
+    if (safeMimeType) {
+      currentParts.push({
+        inlineData: {
+          mimeType: safeMimeType,
+          data: attachment.data
+        }
+      });
+    }
   }
   currentParts.push({ text: finalPrompt });
 
-  contents.push({
-    role: 'user',
-    parts: currentParts
-  });
+  // 确保最新一轮放入 contents，如果最后一条是 user 则合并
+  if (contents.length > 0 && contents[contents.length - 1].role === 'user') {
+    contents[contents.length - 1].parts.push(...currentParts);
+  } else {
+    contents.push({
+      role: 'user',
+      parts: currentParts
+    });
+  }
 
   const requestBody = {
     systemInstruction: {
@@ -172,18 +195,28 @@ async function callOpenAiCopilot(
   // 处理文本附件
   let finalPrompt = userPrompt;
   if (attachment?.textContent) {
-    finalPrompt += `\n\n【附带文件 (${attachment.name || '附件'}) 内容】:\n${attachment.textContent}`;
+    finalPrompt += `\n\n【附带文件 (${attachment.name || '附件'}) 文本内容】:\n${attachment.textContent}`;
   }
 
+  const isImage = attachment && (attachment.mimeType.startsWith('image/') || /\.(png|jpe?g|webp|gif|bmp)$/i.test(attachment.name || ''));
+  const isPdf = attachment && (attachment.mimeType === 'application/pdf' || attachment.name?.toLowerCase().endsWith('.pdf'));
+
   // 最新输入
-  if (attachment && !attachment.textContent && attachment.mimeType.startsWith('image/')) {
+  if (isImage && attachment?.data) {
+    if (settings.provider === 'deepseek' && (settings.model.includes('reasoner') || settings.model.includes('chat'))) {
+      throw new Error(
+        `DeepSeek「${settings.model}」为纯文本推理模型，暂不支持直接上传图片。建议在系统设置中切换为 Google Gemini（原生支持高精度图片与公式识别）或通义千问视觉模型（qwen-vl-max）。`
+      );
+    }
+
+    const safeMime = attachment.mimeType && attachment.mimeType.startsWith('image/') ? attachment.mimeType : 'image/jpeg';
     messages.push({
       role: 'user',
       content: [
         {
           type: 'image_url',
           image_url: {
-            url: `data:${attachment.mimeType};base64,${attachment.data}`
+            url: `data:${safeMime};base64,${attachment.data}`
           }
         },
         {
@@ -191,6 +224,14 @@ async function callOpenAiCopilot(
           text: finalPrompt
         }
       ]
+    });
+  } else if (isPdf) {
+    if (!attachment?.textContent || attachment.textContent.trim().length < 15) {
+      finalPrompt += `\n\n【提示：用户附带了 PDF 文件 (${attachment?.name})。当前 ${settings.provider.toUpperCase()} 接口无法直接解析 PDF 二进制流且文档中未解析到可读文本。建议切换至 Google Gemini（原生支持直接分析整本 PDF 与公式推导），或将关键定理页面截图上传】`;
+    }
+    messages.push({
+      role: 'user',
+      content: finalPrompt
     });
   } else {
     messages.push({

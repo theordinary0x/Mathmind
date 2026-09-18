@@ -1,9 +1,10 @@
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { PropositionNode, AppTheme } from '../../types';
 import { GraphMutationDiff } from '../../types/copilot';
 import { ContextPill } from './ContextPill';
 import { CopilotMessageItem } from './CopilotMessageItem';
 import { AttachmentCard } from './AttachmentCard';
+import { AttachmentPreviewModal, AttachmentPreviewData } from './AttachmentPreviewModal';
 import { QuoteReplyButton } from './QuoteReplyButton';
 import { useCopilotChat } from '../../hooks/useCopilotChat';
 import { 
@@ -42,6 +43,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
   theme
 }) => {
   const isDark = theme === 'dark';
+  const [previewingAttachment, setPreviewingAttachment] = useState<AttachmentPreviewData | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -247,11 +249,12 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
 
       {/* 底部输入交互栏 */}
       <div className="p-3 border-t border-inherit bg-black/5 dark:bg-white/5 shrink-0 select-none">
-        {/* 附件信息卡片 */}
+        {/* 附件信息卡片 (支持点击查看大图或文本，并支持一键移除) */}
         {attachment && (
           <AttachmentCard
             attachment={attachment}
             onRemove={() => setAttachment(null)}
+            onPreview={(att) => setPreviewingAttachment(att)}
             isDark={isDark}
           />
         )}
@@ -267,7 +270,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="p-1.5 rounded opacity-60 hover:opacity-100 hover:text-blue-500 transition-colors"
+            className="p-1.5 rounded opacity-60 hover:opacity-100 hover:text-blue-500 transition-colors cursor-pointer"
             title="上传图片截图、PDF或文本文档"
           >
             <Paperclip className="w-4 h-4" />
@@ -328,6 +331,14 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
           )}
         </div>
       </div>
+
+      {/* 附件查看大弹窗 */}
+      <AttachmentPreviewModal
+        isOpen={!!previewingAttachment}
+        onClose={() => setPreviewingAttachment(null)}
+        attachment={previewingAttachment}
+        isDark={isDark}
+      />
     </aside>
   );
 };
