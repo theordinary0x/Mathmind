@@ -1031,6 +1031,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
         onSelectBox={handleSelectBox}
         onSelectLasso={handleSelectLasso}
         onExitMode={() => setToolMode('none')}
+        clearTrigger={selectedNodeIds.size === 0}
         containerRef={containerRef}
       />
 

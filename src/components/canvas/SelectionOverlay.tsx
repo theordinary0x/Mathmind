@@ -8,6 +8,7 @@ interface SelectionOverlayProps {
   onSelectBox: (box: BoundingBox, isAppend: boolean) => void;
   onSelectLasso: (polygon: Point[], isAppend: boolean) => void;
   onExitMode?: () => void;
+  clearTrigger?: any;
   containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
@@ -16,6 +17,7 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
   onSelectBox,
   onSelectLasso,
   onExitMode,
+  clearTrigger,
   containerRef
 }) => {
   const [isModifierShift, setIsModifierShift] = useState(false);
@@ -30,7 +32,35 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
   // Lasso state
   const [lassoPoints, setLassoPoints] = useState<Point[]>([]);
 
-  // Listen to keyboard modifiers (Shift and Alt)
+  const onExitModeRef = useRef(onExitMode);
+  onExitModeRef.current = onExitMode;
+
+  // 彻底清理拖拽与轨迹状态
+  const resetSelectionState = useCallback(() => {
+    setIsDragging(false);
+    setActiveType(null);
+    setBoxStart(null);
+    setBoxCurrent(null);
+    setLassoPoints([]);
+    setIsModifierAlt(false);
+    setIsModifierShift(false);
+  }, []);
+
+  // 响应外部清除选区信号 (例如点击取消按钮或 Esc)
+  useEffect(() => {
+    resetSelectionState();
+  }, [clearTrigger, resetSelectionState]);
+
+  // 当外部 toolMode 主动切换为 none 时，也立即清理任何残留轨迹
+  useEffect(() => {
+    if (toolMode === 'none' && !isDragging) {
+      setBoxStart(null);
+      setBoxCurrent(null);
+      setLassoPoints([]);
+    }
+  }, [toolMode, isDragging]);
+
+  // 监听全局按键修饰符及 Esc
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
@@ -38,12 +68,8 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
       if (e.key === 'Shift') setIsModifierShift(true);
       if (e.key === 'Alt') setIsModifierAlt(true);
       if (e.key === 'Escape') {
-        setIsDragging(false);
-        setActiveType(null);
-        setBoxStart(null);
-        setBoxCurrent(null);
-        setLassoPoints([]);
-        onExitMode?.();
+        resetSelectionState();
+        onExitModeRef.current?.();
       }
     };
 
@@ -52,18 +78,26 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
       if (e.key === 'Alt') setIsModifierAlt(false);
     };
 
+    // 窗口失焦时（如 Alt+Tab、Win 键）立即重置修饰符和残留拖拽
+    const handleWindowBlur = () => {
+      resetSelectionState();
+    };
+
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleWindowBlur);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleWindowBlur);
     };
-  }, []);
+  }, [resetSelectionState]);
 
-  const shouldCapture = toolMode === 'box' || toolMode === 'lasso' || isModifierShift || isModifierAlt;
+  // 拖拽全周期锁定：只要正在拖拽 (isDragging)，绝不能丢失捕获 (pointer-events-none)
+  const shouldCapture = isDragging || toolMode === 'box' || toolMode === 'lasso' || isModifierShift || isModifierAlt;
   const currentActionType = toolMode === 'lasso' || isModifierAlt ? 'lasso' : (toolMode === 'box' || isModifierShift ? 'box' : null);
 
-  const getContainerRelativePos = useCallback((e: React.PointerEvent): Point => {
+  const getContainerRelativePos = useCallback((e: React.PointerEvent | PointerEvent): Point => {
     const container = containerRef.current;
     if (!container) return { x: e.clientX, y: e.clientY };
     const rect = container.getBoundingClientRect();
@@ -74,11 +108,16 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
   }, [containerRef]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (e.button !== 0) return; // Only primary left click
+    if (e.button !== 0) return; // 仅限左键
     if (!shouldCapture || !currentActionType) return;
 
     e.preventDefault();
     e.stopPropagation();
+
+    // 硬件级锁定指针捕获，确保 mouseup/pointerup 绝不丢失
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch (_) {}
 
     const startPos = getContainerRelativePos(e);
     setIsDragging(true);
@@ -106,7 +145,6 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
       setBoxCurrent(pos);
     } else if (activeType === 'lasso') {
       setLassoPoints(prev => {
-        // Prevent recording redundant tightly packed points (< 4px apart)
         const last = prev[prev.length - 1];
         if (last && Math.hypot(pos.x - last.x, pos.y - last.y) < 4) {
           return prev;
@@ -121,31 +159,52 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
     e.preventDefault();
     e.stopPropagation();
 
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch (_) {}
+
     const isAppend = e.ctrlKey || e.metaKey;
 
-    if (activeType === 'box' && boxStart && boxCurrent) {
-      const w = Math.abs(boxCurrent.x - boxStart.x);
-      const h = Math.abs(boxCurrent.y - boxStart.y);
-      if (w > 5 || h > 5) {
-        onSelectBox({
-          x1: boxStart.x,
-          y1: boxStart.y,
-          x2: boxCurrent.x,
-          y2: boxCurrent.y
-        }, isAppend);
+    try {
+      if (activeType === 'box' && boxStart && boxCurrent) {
+        const w = Math.abs(boxCurrent.x - boxStart.x);
+        const h = Math.abs(boxCurrent.y - boxStart.y);
+        if (w > 5 || h > 5) {
+          onSelectBox({
+            x1: boxStart.x,
+            y1: boxStart.y,
+            x2: boxCurrent.x,
+            y2: boxCurrent.y
+          }, isAppend);
+        }
+      } else if (activeType === 'lasso' && lassoPoints.length >= 3) {
+        onSelectLasso(lassoPoints, isAppend);
       }
-    } else if (activeType === 'lasso' && lassoPoints.length >= 3) {
-      onSelectLasso(lassoPoints, isAppend);
+    } catch (err) {
+      console.error('Error during selection handling:', err);
+    } finally {
+      // 100% 强制清除状态与轨迹，杜绝任何残留在屏幕上
+      resetSelectionState();
     }
-
-    setIsDragging(false);
-    setActiveType(null);
-    setBoxStart(null);
-    setBoxCurrent(null);
-    setLassoPoints([]);
   };
 
-  // Render Box Dimensions
+  // 全局兜底：防止任何极端情况（如在浏览器外松开按键）导致拖拽未终结
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleGlobalPointerUp = () => {
+      resetSelectionState();
+    };
+
+    window.addEventListener('pointerup', handleGlobalPointerUp);
+    window.addEventListener('pointercancel', handleGlobalPointerUp);
+    return () => {
+      window.removeEventListener('pointerup', handleGlobalPointerUp);
+      window.removeEventListener('pointercancel', handleGlobalPointerUp);
+    };
+  }, [isDragging, resetSelectionState]);
+
+  // 渲染框选几何尺寸
   const boxStyle = boxStart && boxCurrent ? {
     left: Math.min(boxStart.x, boxCurrent.x),
     top: Math.min(boxStart.y, boxCurrent.y),
@@ -167,7 +226,7 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
         shouldCapture ? 'cursor-crosshair' : 'pointer-events-none'
       }`}
     >
-      {/* Box Selection Visualizer */}
+      {/* 矩形框选视效 */}
       {isDragging && activeType === 'box' && boxStyle && (
         <div
           style={{
@@ -181,7 +240,7 @@ export const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
         />
       )}
 
-      {/* Lasso Selection SVG Visualizer */}
+      {/* 自由套索圈选视效 */}
       {isDragging && activeType === 'lasso' && lassoPoints.length > 1 && (
         <svg className="absolute inset-0 w-full h-full pointer-events-none">
           <path

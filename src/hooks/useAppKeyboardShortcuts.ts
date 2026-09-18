@@ -283,6 +283,9 @@ export function useAppKeyboardShortcuts(props: UseAppKeyboardShortcutsProps) {
           p.showToast('已退出连线模式');
         } else if (p.toolMode && p.toolMode !== 'none') {
           p.setToolMode?.('none');
+          if (p.selectedNodeIds && p.selectedNodeIds.size > 0) {
+            p.handleClearSelection?.();
+          }
           p.showToast('已退出圈选模式');
         } else if (p.selectedNodeIds && p.selectedNodeIds.size > 0) {
           p.handleClearSelection?.();
