@@ -24,7 +24,15 @@ export const useCopilotChat = ({
   const [messages, setMessages] = useState<CopilotMessage[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed: CopilotMessage[] = JSON.parse(saved);
+        // 关键防御：防止因意外中断/刷新导致消息永久停留在 isStreaming: true 状态
+        return parsed.map(m =>
+          m.isStreaming
+            ? { ...m, isStreaming: false, content: m.content || '*(生成已中断)*' }
+            : m
+        );
+      }
     } catch (e) {
       console.error('Failed to load copilot messages:', e);
     }
@@ -49,6 +57,7 @@ export const useCopilotChat = ({
   const [isDraggingFile, setIsDraggingFile] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  const isGenerating = isLoading || messages.some(m => m.isStreaming);
 
   // 保存消息到 localStorage (保留最近 30 条)
   useEffect(() => {
@@ -156,14 +165,14 @@ export const useCopilotChat = ({
   // 键盘快捷键监听 (Esc 停止生成)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isLoading) {
+      if (e.key === 'Escape' && isGenerating) {
         e.preventDefault();
         handleStopGeneration();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isLoading, handleStopGeneration]);
+  }, [isGenerating, handleStopGeneration]);
 
   // 发送消息
   const handleSendMessage = useCallback(
@@ -255,6 +264,18 @@ export const useCopilotChat = ({
         );
       } catch (err: any) {
         if (err.name === 'AbortError') {
+          setMessages(prev =>
+            prev.map(m => {
+              if (m.id === assistantMessageId) {
+                return {
+                  ...m,
+                  content: m.content ? `${m.content}\n\n*(已手动停止生成)*` : '*(已停止生成)*',
+                  isStreaming: false
+                };
+              }
+              return m;
+            })
+          );
           return;
         }
         setMessages(prev =>
@@ -324,6 +345,7 @@ export const useCopilotChat = ({
     inputPrompt,
     setInputPrompt,
     isLoading,
+    isGenerating,
     attachment,
     setAttachment,
     isDraggingFile,

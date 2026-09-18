@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { CopilotMessage } from '../../types/copilot';
 import { MarkdownMathRenderer } from '../MarkdownMathRenderer';
 import { DiffReviewCard } from './DiffReviewCard';
-import { Sparkles, User, Copy, Check, AlertCircle, Loader2 } from 'lucide-react';
+import { Sparkles, User, Copy, Check, AlertCircle, Loader2, Square } from 'lucide-react';
 
 interface CopilotMessageItemProps {
   message: CopilotMessage;
   onApplyDiff: (messageId: string, selectedActionIds?: Set<string>) => void;
   onNavigateToNode?: (nodeId: string) => void;
+  onStopGeneration?: () => void;
   isDark: boolean;
 }
 
@@ -15,6 +16,7 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
   message,
   onApplyDiff,
   onNavigateToNode,
+  onStopGeneration,
   isDark
 }) => {
   const [copied, setCopied] = useState(false);
@@ -86,11 +88,24 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
           </div>
         )}
 
-        {/* 流式生成中动画 */}
+        {/* 流式生成中动画与取消按钮 */}
         {message.isStreaming && (
-          <div className="flex items-center space-x-2 mt-2 pt-2 border-t border-inherit text-blue-400">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            <span className="text-[11px] animate-pulse">正在严密推导数学逻辑并生成图谱方案...</span>
+          <div className="flex items-center justify-between mt-2 pt-2 border-t border-inherit text-blue-400">
+            <div className="flex items-center space-x-2">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span className="text-[11px] animate-pulse">正在严密推导数学逻辑并生成图谱方案...</span>
+            </div>
+            {onStopGeneration && (
+              <button
+                type="button"
+                onClick={onStopGeneration}
+                className="flex items-center space-x-1 px-2 py-0.5 text-[10px] rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 hover:text-rose-400 border border-rose-500/30 transition-colors ml-2 shrink-0 cursor-pointer"
+                title="立即中止本次生成 (Esc)"
+              >
+                <Square className="w-2.5 h-2.5 fill-current" />
+                <span>停止</span>
+              </button>
+            )}
           </div>
         )}
 

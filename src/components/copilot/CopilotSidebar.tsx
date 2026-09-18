@@ -50,6 +50,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     inputPrompt,
     setInputPrompt,
     isLoading,
+    isGenerating,
     attachment,
     setAttachment,
     isDraggingFile,
@@ -195,6 +196,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
             message={msg}
             onApplyDiff={handleApplyDiff}
             onNavigateToNode={onNavigateToNode}
+            onStopGeneration={handleStopGeneration}
             isDark={isDark}
           />
         ))}
@@ -214,7 +216,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
           <button
             key={idx}
             onClick={() => handleSendMessage(q)}
-            disabled={isLoading}
+            disabled={isGenerating}
             className={`text-[10px] px-2.5 py-1 rounded-full border whitespace-nowrap transition-colors shrink-0 font-serif ${
               isDark
                 ? 'bg-[#27272A] border-[#3F3F46] hover:border-blue-500 hover:text-blue-400 text-zinc-300'
@@ -282,7 +284,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
           />
 
           {/* 发送 / 停止生成 切换按钮 */}
-          {isLoading ? (
+          {isGenerating ? (
             <button
               type="button"
               onClick={handleStopGeneration}
