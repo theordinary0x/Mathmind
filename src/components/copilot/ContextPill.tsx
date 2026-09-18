@@ -1,19 +1,15 @@
 import React from 'react';
 import { PropositionNode } from '../../types';
 import { SelectionWarningLevel } from '../../types/copilot';
-import { Sparkles, AlertTriangle, AlertCircle, CheckCircle2, Globe, Paperclip, X } from 'lucide-react';
+import { AlertTriangle, AlertCircle, CheckCircle2, Globe } from 'lucide-react';
 
 interface ContextPillProps {
   selectedNodes: PropositionNode[];
-  attachmentName?: string;
-  onClearAttachment?: () => void;
   isDark: boolean;
 }
 
 export const ContextPill: React.FC<ContextPillProps> = ({
   selectedNodes,
-  attachmentName,
-  onClearAttachment,
   isDark
 }) => {
   const count = selectedNodes.length;
@@ -36,12 +32,13 @@ export const ContextPill: React.FC<ContextPillProps> = ({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5 px-3 py-1.5 text-[11px] font-sans border-b border-inherit bg-black/5 dark:bg-white/5 transition-colors">
-      {/* 选区胶囊 */}
+    <div className="flex items-center px-3 py-1.5 text-[11px] font-sans border-b border-inherit bg-black/5 dark:bg-white/5 transition-colors">
       {count === 0 ? (
-        <span className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full border ${
-          isDark ? 'bg-zinc-800/80 border-zinc-700 text-zinc-300' : 'bg-stone-200/70 border-stone-300 text-stone-700'
-        }`}>
+        <span
+          className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full border ${
+            isDark ? 'bg-zinc-800/80 border-zinc-700 text-zinc-300' : 'bg-stone-200/70 border-stone-300 text-stone-700'
+          }`}
+        >
           <Globe className="w-3 h-3 text-blue-500" />
           <span>{warningMessage}</span>
         </span>
@@ -66,25 +63,6 @@ export const ContextPill: React.FC<ContextPillProps> = ({
           {warningLevel === 'warn' && <AlertTriangle className="w-3 h-3 text-amber-500" />}
           {warningLevel === 'danger' && <AlertCircle className="w-3 h-3 text-rose-500" />}
           <span className="font-medium">{warningMessage}</span>
-        </span>
-      )}
-
-      {/* 附件胶囊 */}
-      {attachmentName && (
-        <span className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-full border ${
-          isDark ? 'bg-blue-950/50 border-blue-800 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-700'
-        }`}>
-          <Paperclip className="w-2.5 h-2.5" />
-          <span className="max-w-[120px] truncate">{attachmentName}</span>
-          {onClearAttachment && (
-            <button
-              onClick={onClearAttachment}
-              className="hover:opacity-100 opacity-60 ml-0.5"
-              title="移除附件"
-            >
-              <X className="w-2.5 h-2.5" />
-            </button>
-          )}
         </span>
       )}
     </div>

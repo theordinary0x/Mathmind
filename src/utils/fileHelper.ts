@@ -12,6 +12,14 @@ export interface ProcessedPdfData {
   textContent?: string;
 }
 
+export {
+  isOfficeFile,
+  isCodeOrTextFile,
+  getFileLanguage,
+  processOfficeFile,
+  type ProcessedOfficeData
+} from './officeHelper';
+
 export const readFileAsBase64 = (file: File): Promise<{ data: string; fullDataUrl: string }> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

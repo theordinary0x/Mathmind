@@ -82,6 +82,18 @@ export interface CopilotMessage {
   diffProposal?: DiffProposalState;
   isStreaming?: boolean;
   error?: string;
+  durationMs?: number;
+}
+
+/**
+ * Copilot 对话会话
+ */
+export interface CopilotSession {
+  id: string;
+  title: string;
+  createdAt: number;
+  updatedAt: number;
+  messages: CopilotMessage[];
 }
 
 /**

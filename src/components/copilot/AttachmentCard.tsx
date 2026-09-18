@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Image as ImageIcon, FileCode, X, Eye } from 'lucide-react';
+import { FileText, Image as ImageIcon, FileCode, X, Eye, FileSpreadsheet, Presentation } from 'lucide-react';
 
 export interface CopilotAttachment {
   name: string;
@@ -21,7 +21,7 @@ interface AttachmentCardProps {
 export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
 export const AttachmentCard: React.FC<AttachmentCardProps> = ({
@@ -31,8 +31,12 @@ export const AttachmentCard: React.FC<AttachmentCardProps> = ({
   isDark,
   compact = false
 }) => {
+  const lowerName = attachment.name.toLowerCase();
   const isImage = attachment.mimeType.startsWith('image/') || !!attachment.previewUrl;
-  const isPdf = attachment.mimeType === 'application/pdf' || attachment.name.toLowerCase().endsWith('.pdf');
+  const isPdf = attachment.mimeType === 'application/pdf' || lowerName.endsWith('.pdf');
+  const isWord = lowerName.endsWith('.docx');
+  const isPpt = lowerName.endsWith('.pptx');
+  const isSheet = lowerName.endsWith('.xlsx') || lowerName.endsWith('.csv') || lowerName.endsWith('.tsv');
 
   return (
     <div
@@ -52,10 +56,16 @@ export const AttachmentCard: React.FC<AttachmentCardProps> = ({
             alt={attachment.name}
             className="w-7 h-7 object-cover rounded border border-black/10 dark:border-white/10 shrink-0"
           />
+        ) : isWord ? (
+          <FileText className="w-4 h-4 text-indigo-500 shrink-0" />
+        ) : isPpt ? (
+          <Presentation className="w-4 h-4 text-amber-500 shrink-0" />
+        ) : isSheet ? (
+          <FileSpreadsheet className="w-4 h-4 text-emerald-500 shrink-0" />
         ) : isPdf ? (
           <FileText className="w-4 h-4 text-rose-500 shrink-0" />
         ) : attachment.textContent ? (
-          <FileCode className="w-4 h-4 text-emerald-500 shrink-0" />
+          <FileCode className="w-4 h-4 text-purple-500 shrink-0" />
         ) : (
           <FileText className="w-4 h-4 text-blue-500 shrink-0" />
         )}

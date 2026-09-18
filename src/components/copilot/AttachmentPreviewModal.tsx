@@ -1,5 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { X, ZoomIn, ZoomOut, RotateCcw, Copy, Check, ExternalLink, Download, FileText, Image as ImageIcon, FileCode } from 'lucide-react';
+import { 
+  X, 
+  ZoomIn, 
+  ZoomOut, 
+  RotateCcw, 
+  Copy, 
+  Check, 
+  ExternalLink, 
+  Download, 
+  FileText, 
+  Image as ImageIcon, 
+  FileCode,
+  FileSpreadsheet,
+  Presentation
+} from 'lucide-react';
 import { formatFileSize } from '../../utils/fileHelper';
 
 export interface AttachmentPreviewData {
@@ -91,8 +105,12 @@ export const AttachmentPreviewModal: React.FC<AttachmentPreviewModalProps> = ({
 
   if (!isOpen || !attachment) return null;
 
+  const lowerName = attachment.name.toLowerCase();
   const isImage = attachment.mimeType.startsWith('image/') || !!attachment.previewUrl;
-  const isPdf = attachment.mimeType === 'application/pdf' || attachment.name.toLowerCase().endsWith('.pdf');
+  const isPdf = attachment.mimeType === 'application/pdf' || lowerName.endsWith('.pdf');
+  const isWord = lowerName.endsWith('.docx');
+  const isPpt = lowerName.endsWith('.pptx');
+  const isSheet = lowerName.endsWith('.xlsx') || lowerName.endsWith('.csv') || lowerName.endsWith('.tsv');
   const hasText = !!attachment.textContent;
 
   return (
@@ -111,10 +129,16 @@ export const AttachmentPreviewModal: React.FC<AttachmentPreviewModalProps> = ({
             <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500 shrink-0">
               {isImage ? (
                 <ImageIcon className="w-5 h-5" />
+              ) : isWord ? (
+                <FileText className="w-5 h-5 text-indigo-500" />
+              ) : isPpt ? (
+                <Presentation className="w-5 h-5 text-amber-500" />
+              ) : isSheet ? (
+                <FileSpreadsheet className="w-5 h-5 text-emerald-500" />
               ) : isPdf ? (
                 <FileText className="w-5 h-5 text-rose-500" />
               ) : (
-                <FileCode className="w-5 h-5 text-emerald-500" />
+                <FileCode className="w-5 h-5 text-purple-500" />
               )}
             </div>
             <div className="min-w-0">

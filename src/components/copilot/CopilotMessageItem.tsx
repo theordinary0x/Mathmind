@@ -5,12 +5,32 @@ import { MarkdownMathRenderer } from '../MarkdownMathRenderer';
 import { DiffReviewCard } from './DiffReviewCard';
 import { AttachmentPreviewModal, AttachmentPreviewData } from './AttachmentPreviewModal';
 import { formatFileSize } from '../../utils/fileHelper';
-import { Sparkles, User, Copy, Check, AlertCircle, Loader2, Square, Eye, FileText, FileCode } from 'lucide-react';
+import { 
+  Sparkles, 
+  User, 
+  Copy, 
+  Check, 
+  AlertCircle, 
+  Loader2, 
+  Square, 
+  Eye, 
+  FileText, 
+  FileCode, 
+  RotateCcw, 
+  Edit2, 
+  FileSpreadsheet, 
+  Presentation, 
+  Clock,
+  Send,
+  X
+} from 'lucide-react';
 
 interface CopilotMessageItemProps {
   message: CopilotMessage;
   onApplyDiff: (messageId: string, selectedActionIds?: Set<string>) => void;
   onUpdateDiff?: (messageId: string, updatedDiff: GraphMutationDiff) => void;
+  onRegenerate?: (messageId: string) => void;
+  onEditAndResend?: (userMessageId: string, newContent: string) => void;
   allNodes?: PropositionNode[];
   onNavigateToNode?: (nodeId: string) => void;
   onStopGeneration?: () => void;
@@ -21,12 +41,16 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
   message,
   onApplyDiff,
   onUpdateDiff,
+  onRegenerate,
+  onEditAndResend,
   allNodes,
   onNavigateToNode,
   onStopGeneration,
   isDark
 }) => {
   const [copied, setCopied] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState(message.content);
   const [previewAttachment, setPreviewAttachment] = useState<AttachmentPreviewData | null>(null);
   const isUser = message.role === 'user';
 
@@ -34,6 +58,14 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
     navigator.clipboard.writeText(message.content);
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
+  };
+
+  const handleSaveEdit = () => {
+    const clean = editText.trim();
+    if (clean && onEditAndResend) {
+      onEditAndResend(message.id, clean);
+      setIsEditing(false);
+    }
   };
 
   return (
@@ -85,19 +117,34 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
               className="inline-flex items-center space-x-2 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-[11px] cursor-pointer transition-all max-w-full text-left"
               title="点击查看附件大图/文本内容"
             >
-              {message.attachment.previewUrl ? (
-                <img
-                  src={message.attachment.previewUrl}
-                  alt={message.attachment.name}
-                  className="w-7 h-7 object-cover rounded border border-white/30 shrink-0"
-                />
-              ) : message.attachment.mimeType === 'application/pdf' || message.attachment.name.toLowerCase().endsWith('.pdf') ? (
-                <FileText className="w-4 h-4 text-rose-300 shrink-0" />
-              ) : message.attachment.textContent ? (
-                <FileCode className="w-4 h-4 text-emerald-300 shrink-0" />
-              ) : (
-                <FileText className="w-4 h-4 text-blue-300 shrink-0" />
-              )}
+              {(() => {
+                const attName = message.attachment!.name.toLowerCase();
+                if (message.attachment!.previewUrl) {
+                  return (
+                    <img
+                      src={message.attachment!.previewUrl}
+                      alt={message.attachment!.name}
+                      className="w-7 h-7 object-cover rounded border border-white/30 shrink-0"
+                    />
+                  );
+                }
+                if (attName.endsWith('.docx')) {
+                  return <FileText className="w-4 h-4 text-indigo-300 shrink-0" />;
+                }
+                if (attName.endsWith('.pptx')) {
+                  return <Presentation className="w-4 h-4 text-amber-300 shrink-0" />;
+                }
+                if (attName.endsWith('.xlsx') || attName.endsWith('.csv') || attName.endsWith('.tsv')) {
+                  return <FileSpreadsheet className="w-4 h-4 text-emerald-300 shrink-0" />;
+                }
+                if (message.attachment!.mimeType === 'application/pdf' || attName.endsWith('.pdf')) {
+                  return <FileText className="w-4 h-4 text-rose-300 shrink-0" />;
+                }
+                if (message.attachment!.textContent) {
+                  return <FileCode className="w-4 h-4 text-purple-300 shrink-0" />;
+                }
+                return <FileText className="w-4 h-4 text-blue-300 shrink-0" />;
+              })()}
               <div className="flex flex-col min-w-0 pr-1">
                 <span className="font-mono truncate max-w-[170px] font-medium leading-tight">
                   {message.attachment.name}
@@ -113,18 +160,72 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
 
         {/* 错误提示 */}
         {message.error ? (
-          <div className="flex items-start space-x-1.5 text-rose-400 py-1">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <div className="font-semibold">请求遇到问题</div>
-              <div className="opacity-90">{message.error}</div>
+          <div className="flex items-start justify-between space-x-1.5 text-rose-400 py-1">
+            <div className="flex items-start space-x-1.5">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <div className="font-semibold">请求遇到问题</div>
+                <div className="opacity-90">{message.error}</div>
+              </div>
             </div>
+            {onRegenerate && (
+              <button
+                type="button"
+                onClick={() => onRegenerate(message.id)}
+                className="flex items-center space-x-1 px-2 py-1 rounded bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 text-[11px] cursor-pointer shrink-0"
+                title="重新尝试"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>重试</span>
+              </button>
+            )}
           </div>
         ) : (
           /* 正文文本渲染 (支持 Markdown 与 LaTeX) */
           <div className="leading-relaxed break-words font-serif">
             {isUser ? (
-              <div className="whitespace-pre-wrap">{message.content}</div>
+              isEditing ? (
+                <div className="space-y-2 py-1">
+                  <textarea
+                    value={editText}
+                    onChange={e => setEditText(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSaveEdit();
+                      } else if (e.key === 'Escape') {
+                        setIsEditing(false);
+                        setEditText(message.content);
+                      }
+                    }}
+                    autoFocus
+                    rows={Math.min(6, Math.max(2, editText.split('\n').length))}
+                    className="w-full bg-black/20 text-inherit rounded p-1.5 text-xs font-serif focus:outline-none focus:ring-1 focus:ring-white/40 resize-none"
+                  />
+                  <div className="flex items-center justify-end space-x-1.5 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditText(message.content);
+                      }}
+                      className="px-2 py-0.5 rounded hover:bg-white/20 opacity-80 hover:opacity-100 transition-colors cursor-pointer"
+                    >
+                      取消
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveEdit}
+                      className="flex items-center space-x-1 px-2.5 py-0.5 rounded bg-white text-blue-900 hover:bg-white/90 font-medium transition-colors cursor-pointer"
+                    >
+                      <Send className="w-3 h-3" />
+                      <span>保存并重新生成</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="whitespace-pre-wrap">{message.content}</div>
+              )
             ) : (
               <MarkdownMathRenderer content={message.content} isDark={isDark} />
             )}
@@ -164,17 +265,66 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
           />
         )}
 
-        {/* 复制按钮浮层 */}
-        {!message.isStreaming && !message.error && (
-          <button
-            onClick={handleCopy}
-            className={`absolute top-1.5 right-1.5 p-1 rounded opacity-0 group-hover:opacity-60 hover:!opacity-100 transition-opacity ${
-              isUser ? 'text-white' : isDark ? 'text-zinc-400' : 'text-stone-500'
-            }`}
-            title="复制消息内容"
-          >
-            {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-          </button>
+        {/* 用户消息悬停工具条 (编辑/复制) */}
+        {isUser && !isEditing && (
+          <div className="absolute top-1.5 right-1.5 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {onEditAndResend && (
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="p-1 rounded hover:bg-white/20 text-white/80 hover:text-white transition-colors cursor-pointer"
+                title="编辑提问并重新发送"
+              >
+                <Edit2 className="w-3 h-3" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="p-1 rounded hover:bg-white/20 text-white/80 hover:text-white transition-colors cursor-pointer"
+              title="复制消息内容"
+            >
+              {copied ? <Check className="w-3 h-3 text-emerald-300" /> : <Copy className="w-3 h-3" />}
+            </button>
+          </div>
+        )}
+
+        {/* Assistant 回复底部状态与操作栏 (耗时显示、重新生成、复制) */}
+        {!isUser && !message.isStreaming && !message.error && (
+          <div className="mt-2 pt-1.5 border-t border-inherit/40 flex items-center justify-between text-[10px] opacity-60 font-sans">
+            <div className="flex items-center space-x-1 font-mono">
+              {message.durationMs !== undefined && (
+                <span
+                  className="flex items-center space-x-0.5 opacity-80"
+                  title={`AI 推理与生成耗时 ${(message.durationMs / 1000).toFixed(2)} 秒`}
+                >
+                  <Clock className="w-2.5 h-2.5" />
+                  <span>{(message.durationMs / 1000).toFixed(1)}s</span>
+                </span>
+              )}
+            </div>
+            <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              {onRegenerate && message.id !== 'msg_welcome' && (
+                <button
+                  type="button"
+                  onClick={() => onRegenerate(message.id)}
+                  className="flex items-center space-x-1 px-1.5 py-0.5 rounded hover:bg-black/10 dark:hover:bg-white/10 hover:opacity-100 transition-colors cursor-pointer"
+                  title="重新生成此回答"
+                >
+                  <RotateCcw className="w-2.5 h-2.5" />
+                  <span>重新生成</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 hover:opacity-100 transition-colors cursor-pointer"
+                title="复制内容"
+              >
+                {copied ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+              </button>
+            </div>
+          </div>
         )}
       </div>
 
