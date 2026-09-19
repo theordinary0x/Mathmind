@@ -15,6 +15,7 @@ export function buildCopilotSystemPrompt(
     ? selectedNodes.map(n => `### 命题 [${n.id}] 《${n.title}》 (${n.type})
 - 陈述内容: ${n.statement}
 - 证明概要: ${n.proof_sketch || '无'}
+- 完整证明: ${n.full_proof ? n.full_proof : '暂无'}
 - 依赖前提: [${(n.depends_on || []).join(', ')}]
 `).join('\n')
     : '无（用户当前处于全图视野）';
@@ -39,9 +40,15 @@ ${selectedNodesDetail}
 2. **图谱结构化录入**：若用户要求将附件内容录入图谱或扩充知识网络，务必将附件中的核心定理与引理转化为 \`add_nodes\`，并建立合理的前置依赖连线。
 3. **结合文字指示**：若用户同时输入了文字提问，必须将用户的文字与附件中对应段落紧密结合，给出针对性、严谨的推导与解答。
 
+【完整证明 (Full Proof) 填充与生成规范】
+当用户要求“证明此命题”、“补充完整证明”、“完善证明步骤”或点击“AI 补充完整证明”时：
+1. **分步严谨推导**：在正文中向用户给出逻辑清晰、分步递进的严密数学推导过程（如：分析思路、构造辅助项/辅助函数、不等式放缩或代数恒等变形、边界与收敛性验证）。
+2. **完整证明落盘**：必须在末尾输出 \`<<<GRAPH_DIFF\` 数据块，并在 \`update_nodes\`（或 \`add_nodes\`）的 \`full_proof\` 字段中注入结构化的完整证明文本（支持 Markdown 与 LaTeX 公式）。
+3. **依赖闭包完整**：若证明过程中用到了图谱中已有的前置公理/定理，确保将其 ID 纳入 \`depends_on\`；若需要引入关键引理，可一并提议 \`add_nodes\`。
+
 【交互与图谱治理规则】
 1. **纯学术讨论 / 答疑解惑**：若用户仅提问数理概念、反例或直观理解，用清晰结构化 Markdown 回答即可，**严禁输出任何图变更块**。
-2. **重构、增删、连线调整或教材提取**：当用户的指令涉及“修改”、“优化”、“删除”、“重构”、“录入”、“连线”等画布操作时：
+2. **重构、增删、连线调整、证明填充或教材提取**：当用户的指令涉及“修改”、“优化”、“删除”、“重构”、“录入”、“连线”、“证明”等画布操作时：
    - 首先在正文中向用户详尽阐明你的数学见解、修改理由与逻辑考量；
    - 随后在回答的末尾，输出一个被严格包裹在 \`<<<GRAPH_DIFF\` 和 \`>>>\` 之间的标准 JSON 数据块。
    - 格式规范如下：
@@ -54,7 +61,8 @@ ${selectedNodesDetail}
       "type": "axiom|definition|proposition|theorem|corollary",
       "title": "命题标题",
       "statement": "命题严格数学陈述 (支持LaTeX)",
-      "proof_sketch": "证明思路与分步推导",
+      "proof_sketch": "证明思路概括",
+      "full_proof": "完整严谨的分步证明正文(支持Markdown与LaTeX公式)(可选)",
       "depends_on": ["依赖的前提命题ID"]
     }
   ],
@@ -65,6 +73,7 @@ ${selectedNodesDetail}
       "type": "axiom|definition|proposition|theorem|corollary(可选)",
       "statement": "修改后的陈述(可选)",
       "proof_sketch": "修改后的证明概要(可选)",
+      "full_proof": "修改或补充的完整严格分步证明(支持Markdown与LaTeX公式)(可选)",
       "depends_on": ["修改后的完整依赖ID列表(可选)"],
       "change_summary": "简短说明此项修改的数学原因"
     }

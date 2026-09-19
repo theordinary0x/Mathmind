@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Search } from 'lucide-react';
+import { X, Plus, Search, ChevronDown, ChevronRight, BookMarked } from 'lucide-react';
 import { PropositionNode, PropositionType, NODE_TYPES, AppTheme } from '../types';
 import { MathRenderer } from './MathRenderer';
 import { useTranslation } from '../i18n/LanguageContext';
@@ -29,6 +29,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
   const [proofSketch, setProofSketch] = useState('');
   const [note, setNote] = useState('');
   const [fullProof, setFullProof] = useState('');
+  const [isFullProofExpanded, setIsFullProofExpanded] = useState(false);
   const [dependsOn, setDependsOn] = useState<string[]>([]);
   const [searchPrereq, setSearchPrereq] = useState('');
 
@@ -45,6 +46,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
         setProofSketch(initialNodeData.proof_sketch || '');
         setNote(initialNodeData.note || '');
         setFullProof(initialNodeData.full_proof || '');
+        setIsFullProofExpanded(Boolean(initialNodeData.full_proof));
         setDependsOn(initialNodeData.depends_on || []);
       } else {
         setTitle('');
@@ -53,6 +55,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
         setProofSketch('');
         setNote('');
         setFullProof('');
+        setIsFullProofExpanded(false);
         setDependsOn([]);
       }
       setSearchPrereq('');
@@ -277,6 +280,58 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
               >
                 <div className="text-[10px] font-mono opacity-50 mb-0.5">LaTeX 实时渲染预览:</div>
                 <MathRenderer content={proofSketch} />
+              </div>
+            )}
+          </div>
+
+          {/* Full Proof (Optional Collapsible) */}
+          <div className={`border ${isDark ? 'border-white/10' : 'border-black/10'}`}>
+            <button
+              type="button"
+              onClick={() => setIsFullProofExpanded(!isFullProofExpanded)}
+              className={`w-full px-3 py-2 flex items-center justify-between text-xs font-serif font-bold transition-colors ${
+                isDark ? 'bg-zinc-800/60 hover:bg-zinc-800' : 'bg-stone-50 hover:bg-stone-100'
+              }`}
+            >
+              <div className="flex items-center space-x-1.5">
+                <BookMarked className="w-3.5 h-3.5 opacity-60" />
+                <span>完整证明正文 (可选)</span>
+                {fullProof.trim() && (
+                  <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/20 text-blue-400 font-mono">
+                    已填写
+                  </span>
+                )}
+              </div>
+              {isFullProofExpanded ? (
+                <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+              ) : (
+                <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+              )}
+            </button>
+
+            {isFullProofExpanded && (
+              <div className={`p-3 border-t ${isDark ? 'bg-zinc-900/40 border-white/10' : 'bg-white border-black/10'}`}>
+                <textarea
+                  value={fullProof}
+                  onChange={e => setFullProof(e.target.value)}
+                  rows={5}
+                  placeholder="详细分步证明推导（支持 Markdown 与 LaTeX 公式，如 $...$ 或 $$...$$）..."
+                  className={`w-full text-xs font-mono p-2 border transition-colors focus:outline-none leading-relaxed ${
+                    isDark
+                      ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'
+                      : 'bg-[#FAF8F5] border-black/10 text-stone-900 focus:border-stone-800'
+                  }`}
+                />
+                {fullProof && (fullProof.includes('$') || fullProof.includes('\\')) && (
+                  <div
+                    className={`mt-2 p-2.5 text-xs font-serif border ${
+                      isDark ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-stone-100 border-black/10 text-stone-800'
+                    }`}
+                  >
+                    <div className="text-[10px] font-mono opacity-50 mb-1">完整证明实时渲染预览:</div>
+                    <MathRenderer content={fullProof} />
+                  </div>
+                )}
               </div>
             )}
           </div>

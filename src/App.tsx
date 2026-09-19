@@ -30,7 +30,7 @@ import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { SettingsModal } from './components/SettingsModal';
 import { SponsorModal } from './components/SponsorModal';
 import { AiIngestionModal } from './components/AiIngestionModal';
-import { CopilotSidebar } from './components/copilot/CopilotSidebar';
+import { CopilotSidebar, CopilotExternalTrigger } from './components/copilot/CopilotSidebar';
 import { applyGraphMutation } from './utils/graphMutationEngine';
 import { GraphMutationDiff } from './types/copilot';
 import { StatusBar } from './components/StatusBar';
@@ -99,6 +99,13 @@ export const App: React.FC = () => {
   const [isSponsorOpen, setIsSponsorOpen] = useState<boolean>(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
   const [isCopilotOpen, setIsCopilotOpen] = useState<boolean>(false);
+  const [copilotExternalTrigger, setCopilotExternalTrigger] = useState<CopilotExternalTrigger | null>(null);
+
+  const handleTriggerCopilot = useCallback((message: string, autoSend: boolean = true) => {
+    setIsCopilotOpen(true);
+    setCopilotExternalTrigger({ text: message, autoSend, timestamp: Date.now() });
+  }, []);
+
   const [initialCreateNodeData, setInitialCreateNodeData] = useState<Partial<PropositionNode> | null>(null);
   const [canvasSettings, setCanvasSettings] = useState<CanvasSettings>(() => getSavedCanvasSettings());
 
@@ -758,6 +765,7 @@ export const App: React.FC = () => {
           onUpdateNode={handleUpdateNode}
           onDeleteNode={handleDeleteNode}
           onNavigateToNode={id => handleSelectSingleNode(id)}
+          onTriggerCopilot={handleTriggerCopilot}
           theme={effectiveTheme}
         />
 
@@ -772,6 +780,8 @@ export const App: React.FC = () => {
           onOpenSettings={() => setIsSettingsOpen(true)}
           onOpenAiIngestion={() => setIsAiModalOpen(true)}
           theme={effectiveTheme}
+          externalTrigger={copilotExternalTrigger}
+          onClearExternalTrigger={() => setCopilotExternalTrigger(null)}
         />
       </main>
 

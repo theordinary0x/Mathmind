@@ -7,7 +7,8 @@ import {
   ChevronDown, 
   ChevronRight, 
   ArrowDownRight,
-  BookMarked
+  BookMarked,
+  Sparkles
 } from 'lucide-react';
 import { PropositionNode, NODE_TYPES, PropositionType, AppTheme } from '../types';
 import { MathRenderer } from './MathRenderer';
@@ -24,10 +25,9 @@ interface NodeDetailDrawerProps {
   onUpdateNode: (updatedNode: PropositionNode) => void;
   onDeleteNode: (nodeId: string) => void;
   onNavigateToNode: (nodeId: string) => void;
+  onTriggerCopilot?: (message: string) => void;
   theme: AppTheme;
 }
-
-
 
 export const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
   node,
@@ -37,6 +37,7 @@ export const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
   onUpdateNode,
   onDeleteNode,
   onNavigateToNode,
+  onTriggerCopilot,
   theme,
 }) => {
   if (!node) return null;
@@ -473,6 +474,24 @@ export const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
             <div className={`p-4 border-t ${isDark ? 'bg-[#18181B] border-[#2E2E33]' : 'bg-white border-[#D4CDC0]'}`}>
               {isEditing ? (
                 <>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] opacity-60 font-serif">详细证明推导步骤：</span>
+                    {onTriggerCopilot && (
+                      <button
+                        type="button"
+                        onClick={() => onTriggerCopilot(`请为命题【${formData.title || node.title}】补充完整严谨的分步数学推导证明，并更新其完整证明。`)}
+                        className={`inline-flex items-center space-x-1 px-2 py-0.5 text-[11px] font-serif border transition-all ${
+                          isDark
+                            ? 'border-[#E07A5F]/40 bg-[#E07A5F]/10 hover:bg-[#E07A5F]/20 text-[#F28482]'
+                            : 'border-[#E07A5F]/40 bg-[#FFF5F2] hover:bg-[#FFEAE5] text-[#C45D40]'
+                        }`}
+                        title="唤起 Copilot 为该命题生成完整证明提案"
+                      >
+                        <Sparkles className="w-3 h-3" />
+                        <span>AI 生成证明初稿</span>
+                      </button>
+                    )}
+                  </div>
                   <textarea
                     onFocus={e => {
                       setActiveField('full_proof');
@@ -499,12 +518,46 @@ export const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
                   />
                 </>
               ) : formData.full_proof ? (
-                <MathRenderer
-                  content={formData.full_proof}
-                  className={`text-xs leading-relaxed ${isDark ? '!text-[#EDEDEB]' : ''}`}
-                />
+                <div>
+                  {onTriggerCopilot && (
+                    <div className="flex items-center justify-end mb-2.5">
+                      <button
+                        onClick={() => onTriggerCopilot(`请审查并完善命题【${node.title}】的完整证明，提升论证严密性并补充必要的推导细节。`)}
+                        className={`inline-flex items-center space-x-1 px-2.5 py-1 text-[11px] font-serif border transition-all ${
+                          isDark
+                            ? 'border-[#3F3F46] bg-[#27272A] hover:bg-[#3F3F46] text-[#A1A1AA] hover:text-white'
+                            : 'border-[#D4CDC0] bg-[#FAF8F5] hover:bg-[#EAE5DC] text-[#6E695E] hover:text-[#2C2B29]'
+                        }`}
+                        title="呼叫 Copilot 审查并优化当前证明"
+                      >
+                        <Sparkles className="w-3 h-3 text-[#E07A5F]" />
+                        <span>AI 完善证明</span>
+                      </button>
+                    </div>
+                  )}
+                  <MathRenderer
+                    content={formData.full_proof}
+                    className={`text-xs leading-relaxed ${isDark ? '!text-[#EDEDEB]' : ''}`}
+                  />
+                </div>
               ) : (
-                <p className="text-xs opacity-50 italic font-serif">暂未填写完整证明正文</p>
+                <div className="py-2 flex flex-col items-start gap-2.5">
+                  <p className="text-xs opacity-50 italic font-serif">暂未填写完整证明正文</p>
+                  {onTriggerCopilot && (
+                    <button
+                      onClick={() => onTriggerCopilot(`请为命题【${node.title}】补充完整严谨的分步数学推导证明，并更新其完整证明。`)}
+                      className={`inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-serif border transition-all ${
+                        isDark
+                          ? 'border-[#E07A5F]/40 bg-[#E07A5F]/10 hover:bg-[#E07A5F]/20 text-[#F28482]'
+                          : 'border-[#E07A5F]/40 bg-[#FFF5F2] hover:bg-[#FFEAE5] text-[#C45D40]'
+                      }`}
+                      title="唤起 Copilot 为该命题生成完整数学证明"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>AI 补充完整证明</span>
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           )}

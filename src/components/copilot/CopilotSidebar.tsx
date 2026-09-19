@@ -27,6 +27,12 @@ import {
   ChevronDown
 } from 'lucide-react';
 
+export interface CopilotExternalTrigger {
+  text: string;
+  autoSend?: boolean;
+  timestamp: number;
+}
+
 interface CopilotSidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -37,6 +43,8 @@ interface CopilotSidebarProps {
   onOpenSettings: () => void;
   onOpenAiIngestion?: () => void;
   theme: AppTheme;
+  externalTrigger?: CopilotExternalTrigger | null;
+  onClearExternalTrigger?: () => void;
 }
 
 export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
@@ -48,7 +56,9 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
   onNavigateToNode,
   onOpenSettings,
   onOpenAiIngestion,
-  theme
+  theme,
+  externalTrigger,
+  onClearExternalTrigger
 }) => {
   const isDark = theme === 'dark';
   const [previewingAttachment, setPreviewingAttachment] = useState<AttachmentPreviewData | null>(null);
@@ -96,6 +106,22 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     onApplyMutation,
     textareaRef
   });
+
+  const lastHandledTriggerRef = useRef<number>(0);
+
+  // 响应来自外部组件（如命题详情抽屉）的 Copilot 触发
+  useEffect(() => {
+    if (externalTrigger && externalTrigger.text && externalTrigger.timestamp !== lastHandledTriggerRef.current) {
+      lastHandledTriggerRef.current = externalTrigger.timestamp;
+      if (externalTrigger.autoSend) {
+        handleSendMessage(externalTrigger.text);
+      } else {
+        setInputPrompt(externalTrigger.text);
+        textareaRef.current?.focus();
+      }
+      onClearExternalTrigger?.();
+    }
+  }, [externalTrigger, handleSendMessage, setInputPrompt, onClearExternalTrigger]);
 
   // 自动滚底
   const scrollToBottom = useCallback(() => {
