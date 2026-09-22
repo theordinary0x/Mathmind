@@ -1,4 +1,4 @@
-export type PropositionType = 'axiom' | 'definition' | 'proposition' | 'theorem' | 'corollary' | string;
+export type PropositionType = 'axiom' | 'definition' | 'proposition' | 'theorem' | 'corollary' | 'remark' | string;
 
 export type PropositionStatus = 'doubt' | 'review' | 'core' | 'verified';
 
@@ -171,6 +171,16 @@ export const NODE_TYPES: Record<string, TypeConfig> = {
     darkColor: '#FAB387',
     darkBgColor: '#362415',
     darkBorderColor: '#C8833B',
+    shape: 'rectangle'
+  },
+  remark: {
+    label: '注记',
+    color: '#0E7490',
+    bgColor: '#ECFEFF',
+    borderColor: '#0891B2',
+    darkColor: '#CFFAFE',
+    darkBgColor: '#16272B',
+    darkBorderColor: '#22D3EE',
     shape: 'rectangle'
   }
 };

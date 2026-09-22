@@ -58,7 +58,7 @@ ${selectedNodesDetail}
   "add_nodes": [
     {
       "id": "建议使用 node_时间戳或清晰英文字符",
-      "type": "axiom|definition|proposition|theorem|corollary",
+      "type": "axiom|definition|proposition|theorem|corollary|remark",
       "title": "命题标题",
       "statement": "命题严格数学陈述 (支持LaTeX)",
       "proof_sketch": "证明思路概括",
@@ -70,7 +70,7 @@ ${selectedNodesDetail}
     {
       "id": "必须是已存在的命题ID",
       "title": "修改后的标题(可选)",
-      "type": "axiom|definition|proposition|theorem|corollary(可选)",
+      "type": "axiom|definition|proposition|theorem|corollary|remark(可选)",
       "statement": "修改后的陈述(可选)",
       "proof_sketch": "修改后的证明概要(可选)",
       "full_proof": "修改或补充的完整严格分步证明(支持Markdown与LaTeX公式)(可选)",

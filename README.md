@@ -7,7 +7,7 @@
 面向数学与理论计算机科学学习者，将概念网络建模为**有向无环拓扑图 (DAG)**。<br />
 从公理与定义出发，步步追踪严谨推演，理清概念因果脉络。
 
-[![npm version](https://img.shields.io/badge/npm-v1.1.0-blue.svg?style=flat-square)](https://www.npmjs.com/package/mathmind)
+[![npm version](https://img.shields.io/badge/npm-v1.2.0-blue.svg?style=flat-square)](https://www.npmjs.com/package/mathmind)
 [![license](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
 [![node](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg?style=flat-square)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
@@ -40,6 +40,8 @@ npx mathmind
 npm install -g mathmind
 mathmind
 ```
+
+> 💡 **国内网络或未安装 Node.js？** 请参阅 **[📖 常见系统 Node.js 安装与国内镜像换源指南](docs/INSTALL.md)**（包含 Windows / macOS / Linux 国内镜像下载直达与 npmmirror 加速设置）。
 
 ---
 
@@ -79,7 +81,7 @@ flowchart LR
 
 ## ✨ 主要功能
 
-- 📐 **图谱画布**：支持公理、定义、命题、定理、推论 5 种分类。支持分层排版（看推导先后流向）和力导向排版（看知识聚类），支持矩形框选与自由套索圈选批量操作。
+- 📐 **图谱画布**：支持公理、定义、命题、定理、推论、注记 6 种分类。支持分层排版（看推导先后流向）和力导向排版（看知识聚类），支持矩形框选与自由套索圈选批量操作。
 - 💡 **算例与反例系统**：每个命题除了陈述、证明思路和详细证明外，还可以挂载多个具体的算例或特例反例，支持 LaTeX 公式。
 - 🤖 **AI 辅助录入与推演**：支持粘贴文本、截图（`Ctrl+V`）或上传 PDF，调用大模型（Gemini、DeepSeek、Qwen、GLM 等）自动提取定理并尝试连线；也可唤起 Copilot 侧边栏辅助补充分步严密证明。
 - 🏷️ **学习状态标记**：节点可标记为“存疑 ❓”、“重点 ★”、“需复习 🔄”、“已证毕 ✔”，方便备考复习与逻辑复盘。

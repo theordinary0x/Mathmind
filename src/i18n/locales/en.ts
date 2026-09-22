@@ -241,6 +241,7 @@ export const en: TranslationDict = {
     definition: 'Definition',
     proposition: 'Proposition',
     theorem: 'Theorem',
-    corollary: 'Corollary'
+    corollary: 'Corollary',
+    remark: 'Remark'
   }
 };

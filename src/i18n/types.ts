@@ -242,5 +242,6 @@ export interface TranslationDict {
     proposition: string;
     theorem: string;
     corollary: string;
+    remark: string;
   };
 }

@@ -9,7 +9,7 @@ import { buildSystemPrompt, buildUserPromptText, buildRefineUserPromptText } fro
 import { callGeminiApi } from './geminiClient';
 import { callOpenAiCompatibleApi } from './openaiClient';
 
-const VALID_TYPES: PropositionType[] = ['axiom', 'definition', 'proposition', 'theorem', 'corollary'];
+const VALID_TYPES: PropositionType[] = ['axiom', 'definition', 'proposition', 'theorem', 'corollary', 'remark'];
 
 export const cleanAndParseAiJson = (rawText: string): ExtractedProposition[] => {
   let cleaned = rawText.trim();
@@ -55,6 +55,8 @@ export const cleanAndParseAiJson = (rawText: string): ExtractedProposition[] => 
       type = 'axiom';
     } else if (lowerType.includes('cor') || lowerType.includes('推论')) {
       type = 'corollary';
+    } else if (lowerType.includes('remark') || lowerType.includes('注记') || lowerType.includes('评注')) {
+      type = 'remark';
     }
 
     const tempId = item.tempId ? String(item.tempId) : `extracted_${Date.now()}_${idx + 1}`;

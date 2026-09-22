@@ -217,7 +217,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             <div className="px-3 py-1 text-[10px] uppercase tracking-wider opacity-50 font-mono">
               {t('contextMenu.changeType')}:
             </div>
-            {(['axiom', 'definition', 'proposition', 'theorem', 'corollary'] as PropositionType[]).map(tKey => {
+            {(['axiom', 'definition', 'proposition', 'theorem', 'corollary', 'remark'] as PropositionType[]).map(tKey => {
               const conf = NODE_TYPES[tKey] || NODE_TYPES.theorem;
               const isCurrent = menuState.node!.type === tKey;
               const typeLabel = t(`nodeTypes.${tKey}` as any) || conf.label;

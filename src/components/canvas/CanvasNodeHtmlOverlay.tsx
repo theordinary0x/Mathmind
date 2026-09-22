@@ -30,6 +30,7 @@ function getNodeTextColor(type: PropositionType, isDark: boolean): string {
     case 'proposition': return isDark ? '#E9D5FF' : '#4A154B';
     case 'theorem': return isDark ? '#FCE0E3' : '#5A1A24';
     case 'corollary': return isDark ? '#FDEBD9' : '#5A3A1A';
+    case 'remark': return isDark ? '#CFFAFE' : '#0E7490';
     default: return isDark ? '#EDECE8' : '#2C2B29';
   }
 }

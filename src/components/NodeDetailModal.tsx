@@ -261,6 +261,7 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
                 <option value="proposition">{t('nodeTypes.proposition')}</option>
                 <option value="theorem">{t('nodeTypes.theorem')}</option>
                 <option value="corollary">{t('nodeTypes.corollary')}</option>
+                <option value="remark">{t('nodeTypes.remark')}</option>
               </select>
             ) : (
               <span

@@ -241,6 +241,7 @@ export const zh: TranslationDict = {
     definition: '定义 (Definition)',
     proposition: '命题 (Proposition)',
     theorem: '定理 (Theorem)',
-    corollary: '推论 (Corollary)'
+    corollary: '推论 (Corollary)',
+    remark: '注记 (Remark)'
   }
 };

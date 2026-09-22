@@ -113,6 +113,7 @@ export const ExtractedNodeCard: React.FC<ExtractedNodeCardProps> = ({
                   <option value="proposition">命题</option>
                   <option value="theorem">定理</option>
                   <option value="corollary">推论</option>
+                  <option value="remark">注记</option>
                 </select>
               </div>
             </div>

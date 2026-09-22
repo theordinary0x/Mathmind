@@ -70,6 +70,14 @@ export const darkStyles: StylesheetStyle[] = [
     }
   },
   {
+    selector: 'node[type = "remark"]',
+    style: {
+      'border-color': '#22D3EE',
+      'background-color': '#112226',
+      'color': '#CFFAFE'
+    }
+  },
+  {
     selector: 'edge',
     style: {
       'width': 2.0,
@@ -245,6 +253,14 @@ export const lightStyles: StylesheetStyle[] = [
       'border-color': '#D97706',
       'background-color': '#FFFBEB',
       'color': '#92400E'
+    }
+  },
+  {
+    selector: 'node[type = "remark"]',
+    style: {
+      'border-color': '#0891B2',
+      'background-color': '#ECFEFF',
+      'color': '#0E7490'
     }
   },
   {

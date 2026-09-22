@@ -297,7 +297,7 @@ export function parseImportedJson(jsonString: string): GraphDataset {
 
   // Pass 1: Ensure unique IDs and valid structural fields
   const firstPassNodes = rawNodes.map((raw: any, idx: number) => {
-    const validTypes = ['axiom', 'definition', 'proposition', 'theorem', 'corollary'];
+    const validTypes = ['axiom', 'definition', 'proposition', 'theorem', 'corollary', 'remark'];
     const type = validTypes.includes(raw.type) ? raw.type : 'theorem';
 
     let id = String(raw.id || '').trim();
