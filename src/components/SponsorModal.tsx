@@ -69,18 +69,18 @@ export const SponsorModal: React.FC<SponsorModalProps> = ({
           <div className="p-3 bg-white shadow-md border border-black/5 mb-4">
             <img
               src="/sponsor-qrcode.jpg"
-              alt="微信赞助二维码"
+              alt="支付宝赞助二维码"
               className="w-56 h-56 object-contain"
             />
           </div>
 
-          <div className="flex items-center space-x-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-2">
+          <div className="flex items-center space-x-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400 mb-2">
             <Heart className="w-3.5 h-3.5 fill-current" />
-            <span>微信扫码赞赏</span>
+            <span>支付宝扫码赞赏</span>
           </div>
 
           <p className="text-xs opacity-75 font-serif leading-relaxed max-w-xs">
-            MathMind 是一款开源免费的数学命题推演网络工具。如果你觉得它对你的学习有所帮助，欢迎赞助支持后续的功能维护，非常感谢你的认可。
+            全部打赏收入将用于购买作者的奶茶。
           </p>
         </div>
 

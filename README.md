@@ -114,11 +114,11 @@ npm run build
 
 ## 赞助与支持
 
-MathMind 是一款开源免费的数学命题推演网络工具。如果你觉得该工具有助于你的数学学习与逻辑梳理，欢迎赞助支持后续开发与维护：
+全部打赏收入将用于购买作者的奶茶：
 
 <div align="center">
-  <img src="./public/sponsor-qrcode.jpg" width="200" alt="微信赞赏码" />
-  <p>微信扫码赞赏</p>
+  <img src="./public/sponsor-qrcode.jpg" width="200" alt="支付宝赞赏码" />
+  <p>支付宝扫码赞赏</p>
 </div>
 
 ---
