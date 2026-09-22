@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { PropositionNode, Project, AppTheme, ThemeMode, PropositionType, AutoSaveMode, CanvasSettings } from './types';
+import React, { useState, useEffect, useMemo, useCallback, useRef, Suspense, lazy } from 'react';
+import { PropositionNode, Project, AppTheme, ThemeMode, PropositionType, AutoSaveMode, CanvasSettings, PropositionStatus, PROPOSITION_STATUSES } from './types';
 import { useAutoSave } from './hooks/useAutoSave';
 import { useAppKeyboardShortcuts } from './hooks/useAppKeyboardShortcuts';
 import { 
@@ -23,17 +23,18 @@ import { Header } from './components/Header';
 import { useTranslation } from './i18n/LanguageContext';
 import { GraphCanvas } from './components/GraphCanvas';
 import { SelectionToolMode } from './components/canvas/SelectionOverlay';
-import { NodeDetailDrawer } from './components/NodeDetailDrawer';
+import { NodeDetailModal } from './components/NodeDetailModal';
 import { CreateNodeModal } from './components/CreateNodeModal';
-import { ProjectManagerModal } from './components/ProjectManagerModal';
-import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
-import { SettingsModal } from './components/SettingsModal';
-import { SponsorModal } from './components/SponsorModal';
-import { AiIngestionModal } from './components/AiIngestionModal';
 import { CopilotSidebar, CopilotExternalTrigger } from './components/copilot/CopilotSidebar';
 import { applyGraphMutation } from './utils/graphMutationEngine';
 import { GraphMutationDiff } from './types/copilot';
 import { StatusBar } from './components/StatusBar';
+
+// Lazy loaded secondary modals for bundle optimization (Code Splitting)
+const ProjectManagerModal = lazy(() => import('./components/ProjectManagerModal').then(m => ({ default: m.ProjectManagerModal })));
+const KeyboardShortcutsModal = lazy(() => import('./components/KeyboardShortcutsModal').then(m => ({ default: m.KeyboardShortcutsModal })));
+const SettingsModal = lazy(() => import('./components/SettingsModal').then(m => ({ default: m.SettingsModal })));
+const SponsorModal = lazy(() => import('./components/SponsorModal').then(m => ({ default: m.SponsorModal })));
 
 export const App: React.FC = () => {
   const { t, language } = useTranslation();
@@ -85,6 +86,7 @@ export const App: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>(() => loadProjects());
   const [activeProjectId, setActiveId] = useState<string>(() => getActiveProjectId(projects));
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
   const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(new Set());
   const [toolMode, setToolMode] = useState<SelectionToolMode>('none');
   const [layoutType, setLayoutType] = useState<'dagre' | 'cose'>('dagre');
@@ -97,7 +99,6 @@ export const App: React.FC = () => {
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isSponsorOpen, setIsSponsorOpen] = useState<boolean>(false);
-  const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
   const [isCopilotOpen, setIsCopilotOpen] = useState<boolean>(false);
   const [copilotExternalTrigger, setCopilotExternalTrigger] = useState<CopilotExternalTrigger | null>(null);
 
@@ -170,7 +171,7 @@ export const App: React.FC = () => {
   }, [dataset.nodes, selectedNodeId]);
 
   const commitNodesUpdate = useCallback((newNodes: PropositionNode[], actionDescription?: string) => {
-    const MAX_HISTORY = 60;
+    const MAX_HISTORY = 30;
     let updatedHistory = history.slice(0, historyIndex + 1);
     updatedHistory.push(newNodes);
     if (updatedHistory.length > MAX_HISTORY) {
@@ -280,62 +281,6 @@ export const App: React.FC = () => {
     setIsCreateModalOpen(true);
   }, []);
 
-  // Open Single Proposition from AI Ingestion Modal in CreateNodeModal
-  const handleOpenAiSingleInCreateModal = useCallback((nodeData: Partial<PropositionNode>) => {
-    setInitialCreateNodeData(nodeData);
-    setCreateNodeTargetPos(null);
-    setIsCreateModalOpen(true);
-  }, []);
-
-  // Batch Import from AI Ingestion Modal
-  const handleBatchImportFromAi = useCallback((
-    newNodes: Array<Omit<PropositionNode, 'id'> & { tempId: string }>,
-    connections: Array<{ fromTempOrId: string; toTempOrId: string }>
-  ) => {
-    if (newNodes.length === 0) return;
-
-    // 1. Map tempId -> unique real ID
-    const tempToRealId = new Map<string, string>();
-    const timestamp = Date.now();
-    newNodes.forEach((node, idx) => {
-      tempToRealId.set(node.tempId, `prop-${timestamp}-${idx + 1}`);
-    });
-
-    // 2. Build map of targetId -> array of sourceIds from connections
-    const targetToSources = new Map<string, string[]>();
-    connections.forEach(({ fromTempOrId, toTempOrId }) => {
-      const realFrom = tempToRealId.get(fromTempOrId) || fromTempOrId;
-      const realTo = tempToRealId.get(toTempOrId) || toTempOrId;
-      if (!targetToSources.has(realTo)) {
-        targetToSources.set(realTo, []);
-      }
-      if (!targetToSources.get(realTo)!.includes(realFrom)) {
-        targetToSources.get(realTo)!.push(realFrom);
-      }
-    });
-
-    // 3. Construct PropositionNode array
-    const createdNodes: PropositionNode[] = newNodes.map(node => {
-      const realId = tempToRealId.get(node.tempId)!;
-      const connectedSources = targetToSources.get(realId) || [];
-      const mergedDependsOn = Array.from(new Set([...(node.depends_on || []), ...connectedSources]));
-
-      return {
-        id: realId,
-        type: node.type,
-        title: node.title,
-        statement: node.statement,
-        proof_sketch: node.proof_sketch,
-        depends_on: mergedDependsOn
-      };
-    });
-
-    // 4. Commit updates to dataset
-    const updatedNodes = [...dataset.nodes, ...createdNodes];
-    commitNodesUpdate(updatedNodes, `已通过 AI 智能录入 ${createdNodes.length} 个命题与推导脉络`);
-    showToast(`成功录入 ${createdNodes.length} 个数学命题`);
-  }, [dataset.nodes, commitNodesUpdate, showToast]);
-
   // Selected Nodes list for Copilot context
   const selectedNodesList = useMemo(() => {
     if (selectedNodeIds.size > 0) {
@@ -392,14 +337,17 @@ export const App: React.FC = () => {
     if (selectedNodeId === nodeId) {
       setSelectedNodeId(null);
     }
+    if (editingNodeId === nodeId) {
+      setEditingNodeId(null);
+    }
     setSelectedNodeIds(prev => {
       const next = new Set(prev);
       next.delete(nodeId);
       return next;
     });
-  }, [dataset.nodes, commitNodesUpdate, selectedNodeId]);
+  }, [dataset.nodes, commitNodesUpdate, selectedNodeId, editingNodeId]);
 
-  // Single selection handler
+  // Single selection handler (Select only, no modal)
   const handleSelectSingleNode = useCallback((nodeId: string | null) => {
     setSelectedNodeId(nodeId);
     if (nodeId) {
@@ -407,6 +355,17 @@ export const App: React.FC = () => {
     } else {
       setSelectedNodeIds(new Set());
     }
+  }, []);
+
+  // Open & Close Node Edit Modal (Decoupled from simple canvas selection)
+  const handleOpenEditNode = useCallback((nodeId: string) => {
+    setEditingNodeId(nodeId);
+    setSelectedNodeId(nodeId);
+    setSelectedNodeIds(new Set([nodeId]));
+  }, []);
+
+  const handleCloseEditNode = useCallback(() => {
+    setEditingNodeId(null);
   }, []);
 
   // Multi selection handler (Box / Lasso / Ctrl+Click)
@@ -467,6 +426,14 @@ export const App: React.FC = () => {
   const handleChangeNodeType = useCallback((nodeId: string, newType: PropositionType) => {
     const updated = dataset.nodes.map(n => (n.id === nodeId ? { ...n, type: newType } : n));
     commitNodesUpdate(updated, `已更改类型为：${newType}`);
+  }, [dataset.nodes, commitNodesUpdate]);
+
+  // Change node status directly (e.g. from context menu)
+  const handleUpdateNodeStatus = useCallback((nodeId: string, status?: PropositionStatus) => {
+    const target = dataset.nodes.find(n => n.id === nodeId);
+    const updated = dataset.nodes.map(n => (n.id === nodeId ? { ...n, status } : n));
+    const statusLabel = status ? PROPOSITION_STATUSES[status]?.label || status : '已清除标记';
+    commitNodesUpdate(updated, `【${target?.title || nodeId}】${status ? `已标记为：${statusLabel}` : statusLabel}`);
   }, [dataset.nodes, commitNodesUpdate]);
 
   // Node position drag change handler
@@ -532,14 +499,14 @@ export const App: React.FC = () => {
     isProjectManagerOpen,
     isShortcutsModalOpen,
     isSettingsOpen,
-    isAiModalOpen,
+    isNodeDetailModalOpen: editingNodeId !== null,
     isCopilotOpen,
     setIsCopilotOpen,
     setIsSettingsOpen,
     setIsShortcutsModalOpen,
     setIsProjectManagerOpen,
     handleOpenCreateModal,
-    handleOpenAiModal: () => setIsAiModalOpen(true),
+    handleOpenEditNode,
     handleToggleCopilot: () => setIsCopilotOpen(prev => !prev),
     isConnectingMode,
     setIsConnectingMode,
@@ -576,6 +543,10 @@ export const App: React.FC = () => {
   const selectedNode = useMemo(() => {
     return dataset.nodes.find(n => n.id === selectedNodeId) || null;
   }, [selectedNodeId, dataset.nodes]);
+
+  const editingNode = useMemo(() => {
+    return dataset.nodes.find(n => n.id === editingNodeId) || null;
+  }, [editingNodeId, dataset.nodes]);
 
   const handleSelectProject = (projId: string) => {
     setActiveId(projId);
@@ -628,7 +599,7 @@ export const App: React.FC = () => {
   const handleCreateNode = (newNode: PropositionNode) => {
     const updatedNodes = [...dataset.nodes, newNode];
     commitNodesUpdate(updatedNodes, `已创建命题：${newNode.title}`);
-    setSelectedNodeId(newNode.id);
+    setSelectedNodeId(null);
   };
 
   const handleCreateProject = (name: string, template: 'blank' | 'peano' | 'euclid') => {
@@ -703,7 +674,6 @@ export const App: React.FC = () => {
         onOpenCreateModal={() => handleOpenCreateModal()}
         isCopilotOpen={isCopilotOpen}
         onToggleCopilot={() => setIsCopilotOpen(prev => !prev)}
-        onOpenAiIngestion={() => setIsAiModalOpen(true)}
         onSaveAs={handleSaveAs}
         onManualSave={() => doSaveNow(true)}
         onImport={handleImportJson}
@@ -747,26 +717,14 @@ export const App: React.FC = () => {
           onChangeNodeType={handleChangeNodeType}
           onDeleteNode={handleDeleteNode}
           onCreateNodeAtPos={handleOpenCreateModal}
-          onOpenEditNode={id => handleSelectSingleNode(id)}
+          onOpenEditNode={handleOpenEditNode}
           onToggleLayout={() => setLayoutType(prev => (prev === 'dagre' ? 'cose' : 'dagre'))}
           onNodesPositionChange={handleNodesPositionChange}
+          onUpdateNodeStatus={handleUpdateNodeStatus}
           projectName={currentProject.name}
           projectId={currentProject.id}
           canvasSettings={canvasSettings}
           onUpdateCanvasSettings={handleUpdateCanvasSettings}
-        />
-
-        {/* Sliding Detail Drawer */}
-        <NodeDetailDrawer
-          node={selectedNode}
-          allNodes={dataset.nodes}
-          downstreamMap={downstreamMap}
-          onClose={() => handleSelectSingleNode(null)}
-          onUpdateNode={handleUpdateNode}
-          onDeleteNode={handleDeleteNode}
-          onNavigateToNode={id => handleSelectSingleNode(id)}
-          onTriggerCopilot={handleTriggerCopilot}
-          theme={effectiveTheme}
         />
 
         {/* AI Copilot Sidebar */}
@@ -776,9 +734,8 @@ export const App: React.FC = () => {
           allNodes={dataset.nodes}
           selectedNodes={selectedNodesList}
           onApplyMutation={handleApplyCopilotMutation}
-          onNavigateToNode={handleSelectSingleNode}
+          onNavigateToNode={handleOpenEditNode}
           onOpenSettings={() => setIsSettingsOpen(true)}
-          onOpenAiIngestion={() => setIsAiModalOpen(true)}
           theme={effectiveTheme}
           externalTrigger={copilotExternalTrigger}
           onClearExternalTrigger={() => setCopilotExternalTrigger(null)}
@@ -812,70 +769,86 @@ export const App: React.FC = () => {
         }}
         allNodes={dataset.nodes}
         onCreateNode={handleCreateNode}
+        onTriggerCopilot={handleTriggerCopilot}
         theme={effectiveTheme}
         initialPosition={createNodeTargetPos}
         initialNodeData={initialCreateNodeData}
       />
 
-      {/* Project Manager Modal */}
-      <ProjectManagerModal
-        isOpen={isProjectManagerOpen}
-        onClose={() => setIsProjectManagerOpen(false)}
-        projects={projects}
-        activeProjectId={activeProjectId}
-        onSelectProject={handleSelectProject}
-        onCreateProject={handleCreateProject}
-        onDeleteProject={handleDeleteProject}
-        theme={effectiveTheme}
-      />
-
-      {/* Keyboard Shortcuts Guide Modal */}
-      <KeyboardShortcutsModal
-        isOpen={isShortcutsModalOpen}
-        onClose={() => setIsShortcutsModalOpen(false)}
-        theme={effectiveTheme}
-      />
-
-      {/* System Settings Modal */}
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        theme={effectiveTheme}
-        themeMode={themeMode}
-        onThemeModeChange={mode => {
-          setThemeMode(mode);
-          localStorage.setItem('mathmind_theme_mode_v2', mode);
-          showToast(mode === 'dark' ? '已切换至深色模式' : mode === 'paper' ? '已切换至浅色纸张模式' : '已设置为跟随系统外观');
-        }}
-        canvasSettings={canvasSettings}
-        onUpdateCanvasSettings={handleUpdateCanvasSettings}
-        autoSaveMode={autoSaveMode}
-        onAutoSaveModeChange={handleChangeAutoSaveMode}
-        layoutType={layoutType}
-        onChangeLayout={setLayoutType}
-        projects={projects}
-        onExportAllProjects={handleExportAllProjects}
-        onResetToDefaults={handleResetToDefaults}
-        onManualSave={() => doSaveNow(true)}
-        onOpenSponsor={() => setIsSponsorOpen(true)}
-      />
-
-      {/* Sponsor Modal */}
-      <SponsorModal
-        isOpen={isSponsorOpen}
-        onClose={() => setIsSponsorOpen(false)}
-        theme={effectiveTheme}
-      />
-
-      {/* AI Ingestion Modal */}
-      <AiIngestionModal
-        isOpen={isAiModalOpen}
-        onClose={() => setIsAiModalOpen(false)}
+      {/* Node Detail Modal (Centered modal aligned with CreateNodeModal) */}
+      <NodeDetailModal
+        isOpen={editingNodeId !== null}
+        node={editingNode}
         allNodes={dataset.nodes}
+        downstreamMap={downstreamMap}
+        onClose={handleCloseEditNode}
+        onUpdateNode={handleUpdateNode}
+        onDeleteNode={handleDeleteNode}
+        onNavigateToNode={handleOpenEditNode}
+        onTriggerCopilot={handleTriggerCopilot}
         theme={effectiveTheme}
-        onBatchImport={handleBatchImportFromAi}
-        onOpenSingleInCreateModal={handleOpenAiSingleInCreateModal}
       />
+
+      {/* Lazy loaded modals wrapped in Suspense */}
+      <Suspense fallback={null}>
+        {/* Project Manager Modal */}
+        {isProjectManagerOpen && (
+          <ProjectManagerModal
+            isOpen={isProjectManagerOpen}
+            onClose={() => setIsProjectManagerOpen(false)}
+            projects={projects}
+            activeProjectId={activeProjectId}
+            onSelectProject={handleSelectProject}
+            onCreateProject={handleCreateProject}
+            onDeleteProject={handleDeleteProject}
+            theme={effectiveTheme}
+          />
+        )}
+
+        {/* Keyboard Shortcuts Guide Modal */}
+        {isShortcutsModalOpen && (
+          <KeyboardShortcutsModal
+            isOpen={isShortcutsModalOpen}
+            onClose={() => setIsShortcutsModalOpen(false)}
+            theme={effectiveTheme}
+          />
+        )}
+
+        {/* System Settings Modal */}
+        {isSettingsOpen && (
+          <SettingsModal
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+            theme={effectiveTheme}
+            themeMode={themeMode}
+            onThemeModeChange={mode => {
+              setThemeMode(mode);
+              localStorage.setItem('mathmind_theme_mode_v2', mode);
+              showToast(mode === 'dark' ? '已切换至深色模式' : mode === 'paper' ? '已切换至浅色纸张模式' : '已设置为跟随系统外观');
+            }}
+            canvasSettings={canvasSettings}
+            onUpdateCanvasSettings={handleUpdateCanvasSettings}
+            autoSaveMode={autoSaveMode}
+            onAutoSaveModeChange={handleChangeAutoSaveMode}
+            layoutType={layoutType}
+            onChangeLayout={setLayoutType}
+            projects={projects}
+            onExportAllProjects={handleExportAllProjects}
+            onResetToDefaults={handleResetToDefaults}
+            onManualSave={() => doSaveNow(true)}
+            onOpenSponsor={() => setIsSponsorOpen(true)}
+          />
+        )}
+
+        {/* Sponsor Modal */}
+        {isSponsorOpen && (
+          <SponsorModal
+            isOpen={isSponsorOpen}
+            onClose={() => setIsSponsorOpen(false)}
+            theme={effectiveTheme}
+          />
+        )}
+      </Suspense>
 
       {/* Toast Notification */}
       {toastMessage && (

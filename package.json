@@ -1,6 +1,6 @@
 {
   "name": "mathmind",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "基于 Web 的数学公理推导与命题图谱工具，具备高精度实时公式渲染与图布局算法。",
   "type": "module",
   "bin": {

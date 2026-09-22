@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { 
   CheckCircle2, 
   Clock, 
@@ -11,7 +11,9 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { AppTheme, AutoSaveMode, AUTO_SAVE_OPTIONS } from '../types';
-import { latexToUnicode } from '../utils/latexToUnicode';
+import { latexToUnicode, formatSingleLineFormulaTitle } from '../utils/latexToUnicode';
+
+import { MathRenderer } from './MathRenderer';
 import { useTranslation } from '../i18n/LanguageContext';
 
 interface StatusBarProps {
@@ -74,22 +76,27 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   // Current mode label
   const currentOption = AUTO_SAVE_OPTIONS.find(o => o.mode === autoSaveMode) || AUTO_SAVE_OPTIONS[0];
 
+  // Flattened selected title for status bar single-line display
+  const flattenedSelectedTitle = useMemo(() => {
+    return formatSingleLineFormulaTitle(selectedTitle || '');
+  }, [selectedTitle]);
+
   return (
     <footer
       className={`h-6 px-3 sm:px-4 border-t flex items-center justify-between text-[11px] font-mono select-none z-20 shrink-0 transition-colors gap-2 relative ${
         isDark
-          ? 'bg-[#18181B] border-white/10 text-[#A1A1AA]'
-          : 'bg-[#FAF8F5] border-black/10 text-[#78756E]'
+          ? 'bg-[#18181B] border-[#2E2E33] text-[#A1A1AA]'
+          : 'bg-[#FAF8F5] border-[#D4CDC0] text-[#78756E]'
       }`}
     >
       {/* Auto-save Configuration Popover */}
       {isMenuOpen && (
         <div
           ref={menuRef}
-          className={`absolute bottom-7 left-3 w-72 shadow-2xl border backdrop-blur-md p-3 z-50 animate-in fade-in zoom-in-95 duration-150 ${
+          className={`absolute bottom-7 left-3 w-72 shadow-2xl border p-3 z-50 animate-in fade-in zoom-in-95 duration-150 ${
             isDark
-              ? 'bg-[#18181B]/95 border-white/10 text-zinc-200'
-              : 'bg-white/95 border-black/10 text-stone-800'
+              ? 'bg-[#18181B] border-[#2E2E33] text-zinc-200'
+              : 'bg-[#FAF8F5] border-[#D4CDC0] text-stone-800'
           }`}
         >
           {/* Popover Header */}
@@ -235,11 +242,20 @@ export const StatusBar: React.FC<StatusBarProps> = ({
         {selectedTitle && (
           <>
             <span className="opacity-30 hidden md:inline">|</span>
-            <div className="truncate max-w-[160px] md:max-w-[220px] hidden md:block">
-              {t('statusBar.selectedLabel')}: <span className={isDark ? 'text-blue-300 font-serif' : 'text-[#1E3A5F] font-serif'}>{latexToUnicode(selectedTitle)}</span>
+            <div className="hidden md:flex items-center space-x-1 shrink min-w-0 max-w-[200px] lg:max-w-[320px] xl:max-w-[420px]">
+              <span className="shrink-0 opacity-70">{t('statusBar.selectedLabel')}:</span>
+              <div
+                className={`font-serif truncate min-w-0 max-w-full overflow-hidden text-ellipsis whitespace-nowrap [&_*]:!inline [&_*]:!whitespace-nowrap [&_*]:!m-0 [&_*]:!p-0 [&_.katex-display]:!inline [&_.katex-display]:!m-0 [&_.katex]:!text-[11px] ${
+                  isDark ? 'text-blue-300' : 'text-[#1E3A5F]'
+                }`}
+                title={latexToUnicode(selectedTitle.replace(/[\r\n]+/g, ' · '))}
+              >
+                <MathRenderer content={flattenedSelectedTitle} />
+              </div>
             </div>
           </>
         )}
+
       </div>
 
       {/* Right Shortcuts & History */}

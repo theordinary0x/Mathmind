@@ -155,6 +155,7 @@ export function applyGraphMutation(
           ...(update.proof_sketch !== undefined ? { proof_sketch: update.proof_sketch } : {}),
           ...(update.note !== undefined ? { note: update.note } : {}),
           ...(update.full_proof !== undefined ? { full_proof: update.full_proof } : {}),
+          ...(update.examples !== undefined ? { examples: [...update.examples] } : {}),
           ...(update.depends_on !== undefined ? { depends_on: [...update.depends_on] } : {})
         };
         appliedCount++;

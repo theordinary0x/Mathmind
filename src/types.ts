@@ -1,5 +1,56 @@
 export type PropositionType = 'axiom' | 'definition' | 'proposition' | 'theorem' | 'corollary' | string;
 
+export type PropositionStatus = 'doubt' | 'review' | 'core' | 'verified';
+
+export interface StatusConfig {
+  id: PropositionStatus;
+  label: string;
+  icon: string;
+  color: string;
+  darkColor: string;
+  badgeBg: string;
+  darkBadgeBg: string;
+}
+
+export const PROPOSITION_STATUSES: Record<PropositionStatus, StatusConfig> = {
+  doubt: {
+    id: 'doubt',
+    label: '存疑',
+    icon: '❓',
+    color: '#D97706',
+    darkColor: '#FBBF24',
+    badgeBg: '#FEF3C7',
+    darkBadgeBg: '#451A03'
+  },
+  review: {
+    id: 'review',
+    label: '需复习',
+    icon: '🔄',
+    color: '#2563EB',
+    darkColor: '#60A5FA',
+    badgeBg: '#DBEAFE',
+    darkBadgeBg: '#172554'
+  },
+  core: {
+    id: 'core',
+    label: '重点',
+    icon: '★',
+    color: '#DC2626',
+    darkColor: '#F87171',
+    badgeBg: '#FEE2E2',
+    darkBadgeBg: '#450A0A'
+  },
+  verified: {
+    id: 'verified',
+    label: '已证毕',
+    icon: '✔',
+    color: '#059669',
+    darkColor: '#34D399',
+    badgeBg: '#D1FAE5',
+    darkBadgeBg: '#022C22'
+  }
+};
+
 export interface PropositionNode {
   id: string;
   type: PropositionType;
@@ -8,9 +59,13 @@ export interface PropositionNode {
   proof_sketch: string;
   note?: string;
   full_proof?: string;
+  examples?: string[]; // Multiple mathematical examples / calculation demonstrations
   depends_on: string[]; // List of upstream proposition IDs this node directly relies on
   position?: { x: number; y: number };
+  status?: PropositionStatus;
+  tags?: string[];
 }
+
 
 export interface GraphDataset {
   version: string;

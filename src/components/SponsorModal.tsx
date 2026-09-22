@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { X, Heart, Coffee } from 'lucide-react';
 import { AppTheme } from '../types';
+import { useBackdropClose } from '../hooks/useBackdropClose';
+
 
 interface SponsorModalProps {
   isOpen: boolean;
@@ -26,15 +28,16 @@ export const SponsorModal: React.FC<SponsorModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  const backdropProps = useBackdropClose(onClose);
+
   if (!isOpen) return null;
 
   return (
     <div
-      onClick={e => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+      {...backdropProps}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-100"
     >
+
       <div
         className={`border shadow-2xl w-full max-w-sm flex flex-col overflow-hidden ${
           isDark

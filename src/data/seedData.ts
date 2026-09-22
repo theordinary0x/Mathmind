@@ -91,6 +91,10 @@ export const PEANO_DATASET: GraphDataset = {
       proof_sketch: '固定 $a$，对 $b$ 归纳，并结合引理 T1 与 T2。',
       note: '形式算术中的核心里程碑！',
       full_proof: '固定 $a$，对 $b$ 实施数学归纳法：\n\n1. **基础步 ($b = 0$)**：\n   左边 $= a + 0 = a$；右边 $= 0 + a = a$ (由 T1)。故成立。\n2. **归纳步**：假设 $a + k = k + a$。\n   考虑 $b = S(k)$：\n   左边 $= a + S(k) = S(a + k) = S(k + a)$；\n   右边 $= S(k) + a = S(k + a)$ (由 T2)。两端相等！\n\n由公理 P5，加法交换律恒成立。',
+      examples: [
+        '初等算术验证：设 $a = 2, b = 3$。则 $2 + 3 = 5$ 且 $3 + 2 = 5$，等式 $2 + 3 = 3 + 2$ 成立。',
+        '符号后继演算：设 $a = S(0), b = S(S(0))$。由展开知 $S(0) + S(S(0)) = S(S(S(0))) = S(S(0)) + S(0)$。'
+      ],
       depends_on: ['peano-5', 'thm-left-zero', 'thm-succ-left']
     },
     {

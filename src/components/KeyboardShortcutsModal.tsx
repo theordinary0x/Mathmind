@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { X, Keyboard } from 'lucide-react';
 import { AppTheme } from '../types';
 import { useTranslation } from '../i18n/LanguageContext';
+import { useBackdropClose } from '../hooks/useBackdropClose';
+
 
 interface KeyboardShortcutsModalProps {
   isOpen: boolean;
@@ -21,10 +23,13 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
   {
     category: '命题编辑',
     items: [
-      { keys: ['N', 'Ctrl + N'], description: '新建命题' },
-      { keys: ['双击画布'], description: '在鼠标位置新建命题' },
+      { keys: ['单击节点'], description: '选中命题（画布高亮，不弹窗）' },
+      { keys: ['Enter', '双击节点'], description: '打开命题详情弹窗' },
+      { keys: ['E'], description: '在弹窗内切换阅读 / 编辑模式' },
+      { keys: ['N'], description: '新建命题' },
+      { keys: ['双击画布'], description: '在鼠标位置原地新建命题' },
       { keys: ['Ctrl + Enter'], description: '保存 / 提交创建' },
-      { keys: ['Delete', 'Backspace'], description: '删除选中命题' },
+      { keys: ['Delete'], description: '删除选中命题' },
       { keys: ['Ctrl + C'], description: '复制命题' },
       { keys: ['Ctrl + X'], description: '剪切命题' },
       { keys: ['Ctrl + V'], description: '粘贴命题' }
@@ -41,12 +46,12 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
     category: '画布与视图',
     items: [
       { keys: ['1'], description: '分层拓扑布局 (Dagre)' },
-      { keys: ['2'], description: '力导向布局 (CoSE)' },
+      { keys: ['2'], description: '力导向物理布局 (CoSE)' },
       { keys: ['F'], description: '开启 / 关闭单链聚焦模式' },
       { keys: ['0'], description: '全览居中 (适应视口)' },
-      { keys: ['+', '='], description: '放大画布' },
+      { keys: ['='], description: '放大画布' },
       { keys: ['-'], description: '缩小画布' },
-      { keys: ['T'], description: '切换深色 / 浅色主题' }
+      { keys: ['T'], description: '切换深色 / 浅色外观' }
     ]
   },
   {
@@ -56,22 +61,21 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { keys: ['Shift + 拖拽'], description: '矩形框选命题群' },
       { keys: ['Alt + 拖拽'], description: '自由划线圈定命题 (套索 Lasso)' },
       { keys: ['B'], description: '开启 / 关闭画板框选模式' },
-      { keys: ['Delete', 'Backspace'], description: '批量删除当前选中的全部命题' },
+      { keys: ['Delete'], description: '批量删除当前选中的全部命题' },
       { keys: ['Esc'], description: '一键清空全部选中' }
     ]
   },
   {
     category: '系统与导航',
     items: [
-      { keys: ['Ctrl + ,'], description: '打开系统设置' },
-      { keys: ['Ctrl + Z'], description: '撤销' },
-      { keys: ['Ctrl + Y', 'Ctrl + Shift + Z'], description: '重做' },
+      { keys: ['/'], description: '聚焦全局搜索框' },
+      { keys: ['I'], description: '开关 Math Copilot 对话侧边栏' },
+      { keys: ['P'], description: '打开项目管理面板' },
+      { keys: ['Ctrl + ,'], description: '打开全局系统设置' },
       { keys: ['Ctrl + S'], description: '立即保存到本地存储' },
-      { keys: ['Alt + S', 'Ctrl + Shift + S'], description: '另存为 JSON 文件' },
-      { keys: ['P', 'Ctrl + P', 'M'], description: '打开项目管理' },
-      { keys: ['/'], description: '聚焦搜索框' },
-      { keys: ['I'], description: '打开 AI 教材智能录入 (批量/精修)' },
-      { keys: ['Shift + I', 'Ctrl + I'], description: '开关 Math Copilot 对话助手' },
+      { keys: ['Ctrl + Shift + S'], description: '另存为 JSON 文件' },
+      { keys: ['Ctrl + Z'], description: '撤销' },
+      { keys: ['Ctrl + Y'], description: '重做' },
       { keys: ['?'], description: '打开快捷键指南' }
     ]
   }
@@ -90,10 +94,13 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
     {
       category: t('shortcuts.catProposition'),
       items: [
-        { keys: ['N', 'Ctrl + N'], description: t('shortcuts.newProp') },
-        { keys: ['双击画布 / DblClick'], description: t('shortcuts.dblClickCanvas') },
+        { keys: ['Click Node'], description: '选中命题 (仅高亮，不弹窗)' },
+        { keys: ['Enter', 'DblClick Node'], description: '打开命题详情弹窗' },
+        { keys: ['E'], description: '在弹窗内切换阅读 / 编辑模式' },
+        { keys: ['N'], description: t('shortcuts.newProp') },
+        { keys: ['DblClick Canvas'], description: t('shortcuts.dblClickCanvas') },
         { keys: ['Ctrl + Enter'], description: t('shortcuts.saveSubmit') },
-        { keys: ['Delete', 'Backspace'], description: t('shortcuts.deleteProp') },
+        { keys: ['Delete'], description: t('shortcuts.deleteProp') },
         { keys: ['Ctrl + C'], description: t('shortcuts.copyProp') },
         { keys: ['Ctrl + X'], description: t('shortcuts.cutProp') },
         { keys: ['Ctrl + V'], description: t('shortcuts.pasteProp') }
@@ -113,7 +120,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
         { keys: ['2'], description: t('shortcuts.layoutCose') },
         { keys: ['F'], description: t('shortcuts.toggleFocus') },
         { keys: ['0'], description: t('shortcuts.fitView') },
-        { keys: ['+', '='], description: t('shortcuts.zoomIn') },
+        { keys: ['='], description: t('shortcuts.zoomIn') },
         { keys: ['-'], description: t('shortcuts.zoomOut') },
         { keys: ['T'], description: t('shortcuts.toggleTheme') }
       ]
@@ -125,22 +132,21 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
         { keys: ['Shift + Drag'], description: t('shortcuts.shiftDragBox') },
         { keys: ['Alt + Drag'], description: t('shortcuts.altDragLasso') },
         { keys: ['B'], description: t('shortcuts.toggleBoxMode') },
-        { keys: ['Delete', 'Backspace'], description: t('shortcuts.batchDelete') },
+        { keys: ['Delete'], description: t('shortcuts.batchDelete') },
         { keys: ['Esc'], description: t('shortcuts.clearSelection') }
       ]
     },
     {
       category: t('shortcuts.catSystem'),
       items: [
-        { keys: ['Ctrl + ,'], description: t('shortcuts.openSettings') },
-        { keys: ['Ctrl + Z'], description: t('shortcuts.undo') },
-        { keys: ['Ctrl + Y', 'Ctrl + Shift + Z'], description: t('shortcuts.redo') },
-        { keys: ['Ctrl + S'], description: t('shortcuts.saveStorage') },
-        { keys: ['Alt + S', 'Ctrl + Shift + S'], description: t('shortcuts.saveAsJson') },
-        { keys: ['P', 'Ctrl + P'], description: t('shortcuts.openProjects') },
         { keys: ['/'], description: t('shortcuts.focusSearch') },
-        { keys: ['I'], description: t('shortcuts.openAi') },
-        { keys: ['Shift + I', 'Ctrl + I'], description: 'Math Copilot' },
+        { keys: ['I'], description: 'Math Copilot 智能侧边栏' },
+        { keys: ['P'], description: t('shortcuts.openProjects') },
+        { keys: ['Ctrl + ,'], description: t('shortcuts.openSettings') },
+        { keys: ['Ctrl + S'], description: t('shortcuts.saveStorage') },
+        { keys: ['Ctrl + Shift + S'], description: t('shortcuts.saveAsJson') },
+        { keys: ['Ctrl + Z'], description: t('shortcuts.undo') },
+        { keys: ['Ctrl + Y'], description: t('shortcuts.redo') },
         { keys: ['?'], description: t('shortcuts.openShortcuts') }
       ]
     }
@@ -158,15 +164,16 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  const backdropProps = useBackdropClose(onClose);
+
   if (!isOpen) return null;
 
   return (
     <div
-      onClick={e => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+      {...backdropProps}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-100"
     >
+
       <div
         className={`border shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden ${
           isDark

@@ -1,6 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { PropositionNode, NODE_TYPES } from '../../types';
+import { latexToUnicode, formatSingleLineFormulaTitle } from '../../utils/latexToUnicode';
+import { MathRenderer } from '../MathRenderer';
+
 
 interface PrerequisitePickerProps {
   allNodes: PropositionNode[];
@@ -88,8 +91,14 @@ export const PrerequisitePicker: React.FC<PrerequisitePickerProps> = ({
                 >
                   {candType.label}
                 </span>
-                <span className="truncate font-serif">{cand.title}</span>
+                <div
+                  className="truncate font-serif min-w-0 max-w-full overflow-hidden text-ellipsis whitespace-nowrap [&_*]:!inline [&_*]:!whitespace-nowrap [&_*]:!m-0 [&_*]:!p-0 [&_.katex-display]:!inline [&_.katex-display]:!m-0"
+                  title={latexToUnicode(cand.title.replace(/[\r\n]+/g, ' · '))}
+                >
+                  <MathRenderer content={formatSingleLineFormulaTitle(cand.title)} />
+                </div>
               </div>
+
             </label>
           );
         })}

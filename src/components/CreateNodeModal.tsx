@@ -1,14 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { X, Plus, Search, ChevronDown, ChevronRight, BookMarked } from 'lucide-react';
-import { PropositionNode, PropositionType, NODE_TYPES, AppTheme } from '../types';
-import { MathRenderer } from './MathRenderer';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Plus, Sparkles, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
+import { PropositionNode, PropositionType, NODE_TYPES, AppTheme, PropositionStatus } from '../types';
+import { MathSymbolToolbar } from './MathSymbolToolbar';
+import { PrerequisitePicker } from './drawer/PrerequisitePicker';
+import { FieldLatexPreview } from './drawer/FieldLatexPreview';
 import { useTranslation } from '../i18n/LanguageContext';
+import { useBackdropClose } from '../hooks/useBackdropClose';
+
 
 interface CreateNodeModalProps {
   isOpen: boolean;
   onClose: () => void;
   allNodes: PropositionNode[];
   onCreateNode: (newNode: PropositionNode) => void;
+  onTriggerCopilot?: (prompt: string) => void;
   theme: AppTheme;
   initialPosition?: { x: number; y: number } | null;
   initialNodeData?: Partial<PropositionNode> | null;
@@ -19,20 +24,26 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
   onClose,
   allNodes,
   onCreateNode,
+  onTriggerCopilot,
   theme,
   initialPosition,
-  initialNodeData,
+  initialNodeData
 }) => {
   const [title, setTitle] = useState('');
   const [type, setType] = useState<PropositionType>('theorem');
+  const [status, setStatus] = useState<PropositionStatus | undefined>(undefined);
+  const [tags, setTags] = useState<string[]>([]);
   const [statement, setStatement] = useState('');
   const [proofSketch, setProofSketch] = useState('');
   const [note, setNote] = useState('');
   const [fullProof, setFullProof] = useState('');
+  const [examples, setExamples] = useState<string[]>([]);
   const [isFullProofExpanded, setIsFullProofExpanded] = useState(false);
   const [dependsOn, setDependsOn] = useState<string[]>([]);
-  const [searchPrereq, setSearchPrereq] = useState('');
+  const [activeField, setActiveField] = useState<string>('title');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const activeElementRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const { t } = useTranslation();
   const isDark = theme === 'dark';
 
@@ -42,47 +53,123 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
       if (initialNodeData) {
         setTitle(initialNodeData.title || '');
         setType(initialNodeData.type || 'theorem');
+        setStatus(initialNodeData.status);
+        setTags(initialNodeData.tags || []);
         setStatement(initialNodeData.statement || '');
         setProofSketch(initialNodeData.proof_sketch || '');
         setNote(initialNodeData.note || '');
         setFullProof(initialNodeData.full_proof || '');
+        setExamples(initialNodeData.examples || []);
         setIsFullProofExpanded(Boolean(initialNodeData.full_proof));
         setDependsOn(initialNodeData.depends_on || []);
       } else {
         setTitle('');
         setType('theorem');
+        setStatus(undefined);
+        setTags([]);
         setStatement('');
         setProofSketch('');
         setNote('');
         setFullProof('');
+        setExamples([]);
         setIsFullProofExpanded(false);
         setDependsOn([]);
       }
-      setSearchPrereq('');
+      setActiveField('title');
+      setErrorMessage(null);
     }
   }, [isOpen, initialNodeData]);
 
-  // Handle keyboard shortcuts: ESC to close, Ctrl+Enter to submit
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        onClose();
-      } else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        e.stopPropagation();
-        submitFormRef.current?.();
+  const recordCursor = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement> | React.SyntheticEvent) => {
+    activeElementRef.current = e.currentTarget as HTMLInputElement | HTMLTextAreaElement;
+  };
+
+  const handleInsertSymbol = (symbol: string) => {
+    const el = activeElementRef.current;
+
+    // Handle insertion for dynamic example fields (e.g. 'example_0')
+    if (activeField.startsWith('example_')) {
+      const idx = parseInt(activeField.replace('example_', ''), 10);
+      const examplesCopy = [...examples];
+      const currentVal = examplesCopy[idx] || '';
+
+      let start = currentVal.length;
+      let end = currentVal.length;
+      if (el && document.body.contains(el)) {
+        start = typeof el.selectionStart === 'number' ? el.selectionStart : currentVal.length;
+        end = typeof el.selectionEnd === 'number' ? el.selectionEnd : currentVal.length;
       }
-    };
-    window.addEventListener('keydown', handleKeyDown, { capture: true });
-    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
-  }, [isOpen, onClose]);
 
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+      const newVal = currentVal.substring(0, start) + symbol + currentVal.substring(end);
+      examplesCopy[idx] = newVal;
+      setExamples(examplesCopy);
 
-  const submitFormRef = React.useRef<() => void>(() => {});
+      let cursorOffset = symbol.length;
+      if (symbol === '$ $') {
+        cursorOffset = 1;
+      } else if (symbol === '$$\n\n$$') {
+        cursorOffset = 3;
+      }
+
+      requestAnimationFrame(() => {
+        if (el && document.body.contains(el)) {
+          el.focus();
+          const nextPos = start + cursorOffset;
+          el.setSelectionRange(nextPos, nextPos);
+        }
+      });
+      return;
+    }
+
+    let currentVal = '';
+    if (activeField === 'title') currentVal = title;
+    else if (activeField === 'statement') currentVal = statement;
+    else if (activeField === 'proof_sketch') currentVal = proofSketch;
+    else if (activeField === 'full_proof') currentVal = fullProof;
+    else if (activeField === 'note') currentVal = note;
+
+    let start = currentVal.length;
+    let end = currentVal.length;
+
+    if (el && document.body.contains(el)) {
+      start = typeof el.selectionStart === 'number' ? el.selectionStart : currentVal.length;
+      end = typeof el.selectionEnd === 'number' ? el.selectionEnd : currentVal.length;
+    }
+
+    const newVal = currentVal.substring(0, start) + symbol + currentVal.substring(end);
+    if (activeField === 'title') setTitle(newVal);
+    else if (activeField === 'statement') setStatement(newVal);
+    else if (activeField === 'proof_sketch') setProofSketch(newVal);
+    else if (activeField === 'full_proof') setFullProof(newVal);
+    else if (activeField === 'note') setNote(newVal);
+
+    let cursorOffset = symbol.length;
+    if (symbol === '$ $') {
+      cursorOffset = 1;
+    } else if (symbol === '$$\n\n$$') {
+      cursorOffset = 3;
+    }
+
+    requestAnimationFrame(() => {
+      if (el && document.body.contains(el)) {
+        el.focus();
+        const nextPos = start + cursorOffset;
+        el.setSelectionRange(nextPos, nextPos);
+      }
+    });
+  };
+
+  const handleTogglePrerequisite = (candId: string) => {
+    setDependsOn(prev => {
+      const current = new Set(prev);
+      if (current.has(candId)) {
+        current.delete(candId);
+      } else {
+        current.add(candId);
+      }
+      return Array.from(current);
+    });
+  };
 
   const doSubmit = () => {
     try {
@@ -92,16 +179,21 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
         return;
       }
 
+      const cleanExamples = examples.map(ex => ex.trim()).filter(Boolean);
+
       const newNode: PropositionNode = {
-        id: `prop-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        id: initialNodeData?.id || `prop-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         title: cleanTitle,
         type,
         statement: statement.trim() || cleanTitle,
         proof_sketch: proofSketch.trim(),
         note: note.trim() || undefined,
         full_proof: fullProof.trim() || undefined,
+        examples: cleanExamples.length > 0 ? cleanExamples : undefined,
         depends_on: Array.isArray(dependsOn) ? dependsOn : [],
-        position: initialPosition || undefined
+        position: initialPosition || initialNodeData?.position || undefined,
+        status: status || undefined,
+        tags: tags.length > 0 ? tags : undefined
       };
 
       onCreateNode(newNode);
@@ -112,318 +204,454 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
     }
   };
 
-  submitFormRef.current = doSubmit;
+  // Keyboard shortcut: ESC to close, Ctrl+Enter to submit
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        doSubmit();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
+  }, [isOpen, title, type, statement, proofSketch, fullProof, note, examples, dependsOn]);
+
+  const backdropProps = useBackdropClose(onClose);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    doSubmit();
-  };
-
-  const filteredNodes = (allNodes || []).filter(n => {
-    if (!n || !n.title) return false;
-    if (!searchPrereq) return true;
-    return n.title.toLowerCase().includes(searchPrereq.toLowerCase());
-  });
-
   return (
     <div
-      onClick={e => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-100"
+      {...backdropProps}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-100 select-none"
     >
+
       <div
-        className={`border shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden backdrop-blur-md ${
+        className={`border shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden font-sans select-text ${
           isDark
-            ? 'bg-[#18181B] border-white/10 text-zinc-100'
-            : 'bg-white border-black/10 text-stone-800'
+            ? 'bg-[#18181B] border-[#2E2E33] text-[#EDECE8]'
+            : 'bg-[#FAF8F5] border-[#D4CDC0] text-[#2C2B29]'
         }`}
       >
         {/* Header */}
         <div
-          className={`px-5 py-3.5 border-b flex items-center justify-between ${
-            isDark ? 'bg-zinc-900/60 border-white/10' : 'bg-[#FAF8F5] border-black/10'
+          className={`px-5 py-3 border-b flex items-center justify-between shrink-0 ${
+            isDark ? 'bg-[#202024] border-[#2E2E33]' : 'bg-[#F2EFE9] border-[#D4CDC0]'
           }`}
         >
-          <div className="flex items-center space-x-2">
-            <h3 className="font-serif font-bold text-sm">{initialNodeData ? t('createModal.modalTitleEdit') : t('createModal.modalTitleCreate')}</h3>
+          <div className="flex items-center space-x-2 min-w-0 pr-2">
+            <select
+              value={type}
+              onChange={e => setType(e.target.value as PropositionType)}
+              className={`text-xs px-2 py-1 border font-serif focus:outline-none cursor-pointer ${
+                isDark ? 'bg-[#121214] border-[#2E2E33] text-white' : 'bg-white border-[#D4CDC0] text-[#2C2B29]'
+              }`}
+            >
+              <option value="axiom">{t('nodeTypes.axiom')}</option>
+              <option value="definition">{t('nodeTypes.definition')}</option>
+              <option value="proposition">{t('nodeTypes.proposition')}</option>
+              <option value="theorem">{t('nodeTypes.theorem')}</option>
+              <option value="corollary">{t('nodeTypes.corollary')}</option>
+            </select>
+            <select
+              value={status || ''}
+              onChange={e => setStatus((e.target.value as PropositionStatus) || undefined)}
+              className={`text-xs px-2 py-1 border font-serif focus:outline-none cursor-pointer ${
+                isDark ? 'bg-[#121214] border-[#2E2E33] text-white' : 'bg-white border-[#D4CDC0] text-[#2C2B29]'
+              }`}
+              title="研读标记状态"
+            >
+              <option value="">无标记</option>
+              <option value="doubt">❓ 存疑</option>
+              <option value="core">★ 重点</option>
+              <option value="review">🔄 需复习</option>
+              <option value="verified">✔ 已证毕</option>
+            </select>
+            <span className="text-[11px] font-mono opacity-60 flex items-center">
+              ✨ {initialNodeData ? t('createModal.modalTitleEdit') : t('header.newProposition')}
+            </span>
             {initialPosition && (
-              <span className="text-[10px] font-mono px-2 py-0.5 border text-blue-500 border-blue-500/30 bg-blue-500/10">
+              <span className="text-[10px] font-mono px-1.5 py-0.5 border text-blue-500 border-blue-500/30 bg-blue-500/10">
                 ({Math.round(initialPosition.x)}, {Math.round(initialPosition.y)})
               </span>
             )}
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1 opacity-60 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
+
+          <div className="flex items-center space-x-1.5 shrink-0">
+            {onTriggerCopilot && (
+              <button
+                type="button"
+                onClick={() => {
+                  onTriggerCopilot(
+                    title.trim()
+                      ? `请为数学命题【${title.trim()}】生成严密规范的数学陈述、核心证明思路与前置依赖。`
+                      : '请推荐或指导我创建一个数学命题，并给出严谨陈述与证明思路。'
+                  );
+                }}
+                className={`flex items-center space-x-1 px-2 py-1 text-xs border transition-colors cursor-pointer ${
+                  isDark
+                    ? 'border-[#2E2E33] hover:border-blue-500 text-zinc-300 hover:text-white bg-[#121214]'
+                    : 'border-[#D4CDC0] hover:border-blue-600 text-stone-700 hover:text-blue-600 bg-white'
+                }`}
+                title="呼叫 Copilot 助手生成或建议命题内容"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span className="hidden sm:inline">AI 辅助</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+              title="关闭 (Esc)"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
+        {/* LaTeX Symbols Quick Insert Toolbar */}
+        <MathSymbolToolbar onInsert={handleInsertSymbol} theme={theme} />
+
+        {/* Modal Body */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {errorMessage && (
             <div className="p-2.5 text-xs bg-red-500/10 border border-red-500/30 text-red-500 font-serif">
               {errorMessage}
             </div>
           )}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2">
-              <label className="block text-[11px] font-semibold opacity-75 mb-1 font-serif flex items-center justify-between">
-                <span>
-                  命题标题 <span className="text-red-500">*</span>
-                </span>
-                <span className="text-[10px] font-normal opacity-50 font-sans">
-                  Enter 或 \\ 换行 · 支持 LaTeX
-                </span>
-              </label>
-              <textarea
-                required
-                autoFocus
-                rows={Math.min(3, Math.max(1, (title.match(/\n/g) || []).length + 1))}
-                value={title}
-                onChange={e => {
-                  setTitle(e.target.value);
-                  if (errorMessage) setErrorMessage(null);
-                }}
-                onKeyDown={e => {
-                  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                    e.preventDefault();
-                    doSubmit();
-                  }
-                }}
-                placeholder="如: T5: 加法消去律 ($a+c=b+c \implies a=b$)"
-                className={`w-full text-xs font-serif p-2 border transition-colors focus:outline-none resize-none leading-relaxed ${
-                  isDark
-                    ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'
-                    : 'bg-[#FAF8F5] border-black/10 text-stone-900 focus:border-stone-800'
-                }`}
-              />
-              {title && (title.includes('$') || title.includes('\\')) && (
-                <div className="mt-1.5 p-2 border border-dashed border-black/10 dark:border-white/10 text-xs font-serif font-bold bg-black/5 dark:bg-white/5">
-                  <span className="text-[9px] opacity-40 block mb-0.5 font-sans font-normal">标题实时预览：</span>
-                  <MathRenderer content={title.replace(/\\\\|\\n|<br\s*\/?>/gi, '\n')} />
-                </div>
-              )}
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold opacity-75 mb-1 font-serif">类型</label>
-              <select
-                value={type}
-                onChange={e => setType(e.target.value as PropositionType)}
-                className={`w-full text-xs p-2 border transition-colors focus:outline-none font-serif ${
-                  isDark
-                    ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'
-                    : 'bg-[#FAF8F5] border-black/10 text-stone-900 focus:border-stone-800'
-                }`}
-              >
-                <option value="axiom">公理</option>
-                <option value="definition">定义</option>
-                <option value="proposition">命题</option>
-                <option value="theorem">定理</option>
-                <option value="corollary">推论</option>
-              </select>
-            </div>
-          </div>
 
+          {/* Title */}
           <div>
-            <label className="block text-[11px] font-semibold opacity-75 mb-1 font-serif">
-              命题陈述 (支持 LaTeX)
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px] font-semibold opacity-70 font-serif">
+                命题标题 <span className="text-red-500">*</span>
+              </label>
+              <span className="text-[10px] opacity-40 font-mono">Enter 或 \\ 换行 · 支持 LaTeX</span>
+            </div>
             <textarea
-              value={statement}
-              onChange={e => setStatement(e.target.value)}
-              rows={2}
-              placeholder="如: 对任意 $a, b, c \in \mathbb{N}$，若 $a + c = b + c$，则 $a = b$"
-              className={`w-full text-xs font-serif p-2 border transition-colors focus:outline-none leading-relaxed ${
+              autoFocus
+              value={title}
+              rows={Math.min(3, Math.max(1, (title.match(/\n/g) || []).length + 1))}
+              onFocus={e => {
+                setActiveField('title');
+                recordCursor(e);
+              }}
+              onClick={recordCursor}
+              onKeyUp={recordCursor}
+              onSelect={recordCursor}
+              onChange={e => {
+                setTitle(e.target.value);
+                if (errorMessage) setErrorMessage(null);
+              }}
+              placeholder="如: T5: 加法消去律 ($a+c=b+c \implies a=b$)"
+              className={`w-full text-sm font-serif font-bold p-2.5 border focus:outline-none resize-none leading-relaxed ${
                 isDark
-                  ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'
-                  : 'bg-[#FAF8F5] border-black/10 text-stone-900 focus:border-stone-800'
+                  ? 'bg-[#121214] border-[#2E2E33] text-white'
+                  : 'bg-white border-[#D4CDC0] text-[#2C2B29]'
               }`}
             />
-            {statement && (statement.includes('$') || statement.includes('\\')) && (
-              <div
-                className={`mt-1.5 p-2 text-xs font-serif border ${
-                  isDark ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-stone-100 border-black/10 text-stone-800'
-                }`}
-              >
-                <div className="text-[10px] font-mono opacity-50 mb-0.5">LaTeX 实时渲染预览:</div>
-                <MathRenderer content={statement} />
-              </div>
-            )}
+            <FieldLatexPreview
+              label="标题渲染预览"
+              content={title}
+              isDark={isDark}
+              className="font-serif font-bold"
+            />
           </div>
 
+          {/* Tags Configuration */}
           <div>
-            <label className="block text-[11px] font-semibold opacity-75 mb-1 font-serif">
-              证明思路
-            </label>
+            <div className="text-[11px] font-semibold opacity-70 mb-1 font-serif">
+              自由标签 (Tags，用逗号或空格分隔)
+            </div>
             <input
               type="text"
-              value={proofSketch}
-              onChange={e => setProofSketch(e.target.value)}
-              placeholder="简要概括推导思路..."
-              className={`w-full text-xs p-2 border transition-colors focus:outline-none ${
+              value={tags.join(', ')}
+              onChange={e => {
+                const raw = e.target.value;
+                const parsed = raw.split(/[,，\s]+/).map(t => t.trim()).filter(Boolean);
+                setTags(parsed);
+              }}
+              placeholder="如: 反例, 期末考点, 拓扑闭包"
+              className={`w-full text-xs p-2.5 border font-mono focus:outline-none ${
                 isDark
-                  ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'
-                  : 'bg-[#FAF8F5] border-black/10 text-stone-900 focus:border-stone-800'
+                  ? 'bg-[#121214] border-[#2E2E33] text-white placeholder-zinc-500'
+                  : 'bg-white border-[#D4CDC0] text-[#2C2B29] placeholder-stone-400'
               }`}
             />
-            {proofSketch && (proofSketch.includes('$') || proofSketch.includes('\\')) && (
-              <div
-                className={`mt-1.5 p-2 text-xs font-serif border ${
-                  isDark ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-stone-100 border-black/10 text-stone-800'
-                }`}
+          </div>
+
+          {/* Statement */}
+          <div>
+            <div className="text-[11px] font-semibold opacity-70 mb-1 font-serif">
+              命题陈述 (Statement)
+            </div>
+            <textarea
+              value={statement}
+              onFocus={e => {
+                setActiveField('statement');
+                recordCursor(e);
+              }}
+              onClick={recordCursor}
+              onKeyUp={recordCursor}
+              onSelect={recordCursor}
+              onChange={e => setStatement(e.target.value)}
+              rows={3}
+              placeholder="支持 LaTeX 语法，如 $x \in \mathbb{N}$ 或 $$a+b=b+a$$"
+              className={`w-full p-2.5 text-xs font-serif border focus:outline-none leading-relaxed resize-none ${
+                isDark
+                  ? 'bg-[#121214] border-[#2E2E33] text-white'
+                  : 'bg-white border-[#D4CDC0] text-[#2C2B29]'
+              }`}
+            />
+            <FieldLatexPreview
+              label="陈述渲染预览"
+              content={statement}
+              isDark={isDark}
+              className="font-serif"
+            />
+          </div>
+
+          {/* Proof Sketch */}
+          <div>
+            <div className="text-[11px] font-semibold opacity-70 mb-1 font-serif">
+              证明思路概括 (Proof Sketch)
+            </div>
+            <textarea
+              value={proofSketch}
+              onFocus={e => {
+                setActiveField('proof_sketch');
+                recordCursor(e);
+              }}
+              onClick={recordCursor}
+              onKeyUp={recordCursor}
+              onSelect={recordCursor}
+              onChange={e => setProofSketch(e.target.value)}
+              rows={2}
+              placeholder="一两句话概述推导核心思路..."
+              className={`w-full p-2.5 text-xs border focus:outline-none resize-none ${
+                isDark
+                  ? 'bg-[#121214] border-[#2E2E33] text-white'
+                  : 'bg-white border-[#D4CDC0] text-[#2C2B29]'
+              }`}
+            />
+            <FieldLatexPreview
+              label="思路渲染预览"
+              content={proofSketch}
+              isDark={isDark}
+              className="font-serif italic"
+            />
+          </div>
+
+          {/* Full Proof (Collapsible) */}
+          <div className="border-t border-inherit pt-3">
+            <div className="flex items-center justify-between mb-1">
+              <button
+                type="button"
+                onClick={() => setIsFullProofExpanded(!isFullProofExpanded)}
+                className="flex items-center space-x-1 text-xs font-semibold font-serif text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
               >
-                <div className="text-[10px] font-mono opacity-50 mb-0.5">LaTeX 实时渲染预览:</div>
-                <MathRenderer content={proofSketch} />
+                {isFullProofExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                <span>完整严格证明 (Full Proof)</span>
+                {fullProof && <span className="text-[10px] opacity-60 font-mono">({fullProof.length} 字符)</span>}
+              </button>
+
+              {onTriggerCopilot && !fullProof && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    onTriggerCopilot(
+                      title.trim()
+                        ? `请为命题【${title.trim()}】生成完整严谨的分步数学推导证明。`
+                        : '请为当前正在新建的命题补充严谨的分步证明。'
+                    )
+                  }
+                  className={`inline-flex items-center space-x-1 px-2 py-0.5 text-[11px] font-serif border transition-all cursor-pointer ${
+                    isDark
+                      ? 'border-[#E07A5F]/40 bg-[#E07A5F]/10 hover:bg-[#E07A5F]/20 text-[#F28482]'
+                      : 'border-[#E07A5F]/40 bg-[#FFF5F2] hover:bg-[#FFEAE5] text-[#C45D40]'
+                  }`}
+                  title="唤起 Copilot 自动生成完整推导"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>AI 补充证明</span>
+                </button>
+              )}
+            </div>
+
+            {isFullProofExpanded && (
+              <div className="mt-2 space-y-1.5 animate-in fade-in duration-150">
+                <textarea
+                  value={fullProof}
+                  onFocus={e => {
+                    setActiveField('full_proof');
+                    recordCursor(e);
+                  }}
+                  onClick={recordCursor}
+                  onKeyUp={recordCursor}
+                  onSelect={recordCursor}
+                  onChange={e => setFullProof(e.target.value)}
+                  rows={6}
+                  placeholder="严格分步推导正文（支持 Markdown 与 LaTeX 公式，如 $\implies$, $$...$$）"
+                  className={`w-full p-2.5 text-xs font-serif border focus:outline-none leading-relaxed ${
+                    isDark
+                      ? 'bg-[#121214] border-[#2E2E33] text-white'
+                      : 'bg-white border-[#D4CDC0] text-[#2C2B29]'
+                  }`}
+                />
+                <FieldLatexPreview
+                  label="证明渲染预览"
+                  content={fullProof}
+                  isDark={isDark}
+                  className="font-serif leading-relaxed"
+                />
               </div>
             )}
           </div>
 
-          {/* Full Proof (Optional Collapsible) */}
-          <div className={`border ${isDark ? 'border-white/10' : 'border-black/10'}`}>
-            <button
-              type="button"
-              onClick={() => setIsFullProofExpanded(!isFullProofExpanded)}
-              className={`w-full px-3 py-2 flex items-center justify-between text-xs font-serif font-bold transition-colors ${
-                isDark ? 'bg-zinc-800/60 hover:bg-zinc-800' : 'bg-stone-50 hover:bg-stone-100'
-              }`}
-            >
-              <div className="flex items-center space-x-1.5">
-                <BookMarked className="w-3.5 h-3.5 opacity-60" />
-                <span>完整证明正文 (可选)</span>
-                {fullProof.trim() && (
-                  <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/20 text-blue-400 font-mono">
-                    已填写
+          {/* Multi-Example Dynamic Editor (典型实例 / 算例) */}
+          <div className="border-t border-inherit pt-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <span className="text-[11px] font-semibold opacity-70 font-serif">
+                  典型实例 / 算例 (Examples)
+                </span>
+                {examples.length > 0 && (
+                  <span className="text-[10px] font-mono opacity-50">
+                    ({examples.length})
                   </span>
                 )}
               </div>
-              {isFullProofExpanded ? (
-                <ChevronDown className="w-3.5 h-3.5 opacity-60" />
-              ) : (
-                <ChevronRight className="w-3.5 h-3.5 opacity-60" />
-              )}
-            </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setExamples(prev => [...prev, '']);
+                  setActiveField(`example_${examples.length}`);
+                }}
+                className={`inline-flex items-center space-x-1 px-2 py-0.5 text-xs border transition-colors cursor-pointer ${
+                  isDark
+                    ? 'border-[#2E2E33] hover:border-blue-500 bg-[#121214] text-zinc-300 hover:text-white'
+                    : 'border-[#D4CDC0] hover:border-blue-600 bg-white text-stone-700 hover:text-blue-600'
+                }`}
+              >
+                <Plus className="w-3 h-3" />
+                <span>添加实例</span>
+              </button>
+            </div>
 
-            {isFullProofExpanded && (
-              <div className={`p-3 border-t ${isDark ? 'bg-zinc-900/40 border-white/10' : 'bg-white border-black/10'}`}>
-                <textarea
-                  value={fullProof}
-                  onChange={e => setFullProof(e.target.value)}
-                  rows={5}
-                  placeholder="详细分步证明推导（支持 Markdown 与 LaTeX 公式，如 $...$ 或 $$...$$）..."
-                  className={`w-full text-xs font-mono p-2 border transition-colors focus:outline-none leading-relaxed ${
-                    isDark
-                      ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'
-                      : 'bg-[#FAF8F5] border-black/10 text-stone-900 focus:border-stone-800'
-                  }`}
-                />
-                {fullProof && (fullProof.includes('$') || fullProof.includes('\\')) && (
+            {examples.length > 0 ? (
+              <div className="space-y-3">
+                {examples.map((ex, idx) => (
                   <div
-                    className={`mt-2 p-2.5 text-xs font-serif border ${
-                      isDark ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-stone-100 border-black/10 text-stone-800'
+                    key={idx}
+                    className={`p-3 border space-y-2 ${
+                      isDark ? 'bg-[#121214] border-[#2E2E33]' : 'bg-white border-[#D4CDC0]'
                     }`}
                   >
-                    <div className="text-[10px] font-mono opacity-50 mb-1">完整证明实时渲染预览:</div>
-                    <MathRenderer content={fullProof} />
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-mono font-semibold opacity-70">
+                        例 {idx + 1}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setExamples(prev => prev.filter((_, i) => i !== idx))}
+                        className="p-1 text-red-500/70 hover:text-red-500 transition-colors cursor-pointer"
+                        title="删除此实例"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <textarea
+                      value={ex}
+                      rows={2}
+                      onFocus={e => {
+                        setActiveField(`example_${idx}`);
+                        recordCursor(e);
+                      }}
+                      onClick={recordCursor}
+                      onKeyUp={recordCursor}
+                      onSelect={recordCursor}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setExamples(prev => {
+                          const copy = [...prev];
+                          copy[idx] = val;
+                          return copy;
+                        });
+                      }}
+                      placeholder="输入具体算例、应用示范或特例反例，支持 LaTeX..."
+                      className={`w-full p-2 text-xs font-serif border focus:outline-none resize-none leading-relaxed ${
+                        isDark
+                          ? 'bg-[#18181B] border-[#2E2E33] text-white'
+                          : 'bg-[#FAF8F5] border-[#D4CDC0] text-[#2C2B29]'
+                      }`}
+                    />
+                    <FieldLatexPreview
+                      label={`例 ${idx + 1} 渲染预览`}
+                      content={ex}
+                      isDark={isDark}
+                    />
                   </div>
-                )}
+                ))}
+              </div>
+            ) : (
+              <div className="text-xs opacity-40 font-serif italic py-1">
+                暂无实例。可点击右上角「添加实例」补充具体算例或应用场景。
               </div>
             )}
           </div>
 
-          {/* Prerequisite selection */}
-          <div>
-            <label className="block text-[11px] font-semibold opacity-75 mb-1 font-serif">
-              前置依赖 ({dependsOn.length})
-            </label>
-            <div className="relative mb-2">
-              <Search className="w-3 h-3 opacity-50 absolute left-2.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchPrereq}
-                onChange={e => setSearchPrereq(e.target.value)}
-                placeholder="搜索前置命题..."
-                className={`w-full pl-7 pr-3 py-1.5 text-xs border transition-colors focus:outline-none font-serif ${
-                  isDark
-                    ? 'bg-zinc-800/70 border-white/10 text-white focus:border-blue-500'
-                    : 'bg-[#FAF8F5] border-black/10 text-stone-900 focus:border-stone-800'
-                }`}
-              />
-            </div>
-            <div
-              className={`max-h-32 overflow-y-auto space-y-1 border p-1.5 ${
-                isDark ? 'bg-zinc-900/40 border-white/10' : 'bg-[#FAF8F5] border-black/10'
-              }`}
-            >
-              {filteredNodes.length === 0 ? (
-                <p className="text-[11px] opacity-50 p-2">未找到匹配的前置命题</p>
-              ) : (
-                filteredNodes.map(cand => {
-                  const isChecked = dependsOn.includes(cand.id);
-                  const candType = NODE_TYPES[cand.type] || NODE_TYPES.theorem;
-                  return (
-                    <label
-                      key={cand.id}
-                      className={`flex items-center space-x-2 p-1.5 text-xs cursor-pointer border transition-colors ${
-                        isChecked
-                          ? isDark
-                            ? 'bg-blue-500/10 border-blue-500/40 text-blue-300'
-                            : 'bg-stone-100 border-stone-300 text-stone-900'
-                          : 'border-transparent hover:bg-black/5 dark:hover:bg-white/5'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => {
-                          if (isChecked) {
-                            setDependsOn(dependsOn.filter(id => id !== cand.id));
-                          } else {
-                            setDependsOn([...dependsOn, cand.id]);
-                          }
-                        }}
-                        className="text-blue-600 focus:ring-0"
-                      />
-                      <span
-                        className="w-1.5 h-1.5 shrink-0"
-                        style={{ backgroundColor: isDark ? candType.darkBorderColor : candType.borderColor }}
-                      />
-                      <span className="font-serif truncate">{cand.title}</span>
-                    </label>
-                  );
-                })
-              )}
-            </div>
+          {/* Prerequisites Picker */}
+          <div className="border-t border-inherit pt-3">
+            <PrerequisitePicker
+              currentNodeId={initialNodeData?.id || ''}
+              allNodes={allNodes}
+              selectedPrereqIds={dependsOn}
+              onTogglePrereq={handleTogglePrerequisite}
+              isDark={isDark}
+            />
           </div>
+        </div>
 
-          {/* Actions */}
-          <div className="pt-3 border-t border-black/10 dark:border-white/10 flex items-center justify-end space-x-2">
+        {/* Footer */}
+        <div
+          className={`px-5 py-3 border-t flex items-center justify-between shrink-0 select-none ${
+            isDark ? 'bg-[#202024] border-[#2E2E33]' : 'bg-[#F2EFE9] border-[#D4CDC0]'
+          }`}
+        >
+          <span className="text-[11px] opacity-50 font-mono hidden sm:inline">
+            Ctrl + Enter {initialNodeData ? '保存' : '创建'} · Esc 取消
+          </span>
+          <div className="flex items-center space-x-2 ml-auto">
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-1.5 text-xs opacity-75 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+              className={`px-3 py-1.5 text-xs border transition-colors cursor-pointer ${
+                isDark
+                  ? 'border-[#2E2E33] hover:bg-white/5 text-zinc-300'
+                  : 'border-[#D4CDC0] hover:bg-black/5 text-stone-700'
+              }`}
             >
               取消 (Esc)
             </button>
+
             <button
-              type="submit"
-              className={`flex items-center space-x-1 px-4 py-1.5 text-xs font-medium transition-colors shadow-xs ${
-                isDark
-                  ? 'bg-blue-600 hover:bg-blue-500 text-white'
-                  : 'bg-stone-900 hover:bg-stone-800 text-white'
-              }`}
-              title="创建 (Ctrl+Enter)"
+              type="button"
+              onClick={doSubmit}
+              className="flex items-center space-x-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium transition-colors cursor-pointer shadow-sm"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>创建 (Ctrl+Enter)</span>
+              <span>{initialNodeData ? '保存修改 (Ctrl+Enter)' : '创建命题 (Ctrl+Enter)'}</span>
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

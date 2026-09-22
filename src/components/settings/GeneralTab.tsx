@@ -148,14 +148,16 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
         </div>
       </div>
 
-      <hr className={isDark ? 'border-white/10' : 'border-black/10'} />
+
+
+      <hr className={isDark ? 'border-[#2E2E33]' : 'border-[#D4CDC0]'} />
 
       <div>
         <h3 className="text-sm font-bold uppercase tracking-wider mb-1 opacity-70">
           排版与数学排版引擎
         </h3>
         <div className={`p-4 border space-y-2 ${
-          isDark ? 'border-white/10 bg-zinc-900/40' : 'border-black/10 bg-white'
+          isDark ? 'border-[#2E2E33] bg-[#121214]' : 'border-[#D4CDC0] bg-white'
         }`}>
           <div className="flex items-center space-x-2 text-xs font-medium">
             <Sparkles className="w-4 h-4 text-amber-500" />

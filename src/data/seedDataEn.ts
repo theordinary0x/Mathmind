@@ -91,6 +91,10 @@ export const PEANO_DATASET_EN: GraphDataset = {
       proof_sketch: 'Fix $a$, apply induction on $b$, utilizing Lemmas T1 and T2.',
       note: 'Crucial structural milestone in formal arithmetic!',
       full_proof: 'Fix $a$, induct on $b$:\\n\\n1. **Base ($b = 0$)**: $a + 0 = a$ (by D1); $0 + a = a$ (by T1). Hence $a + 0 = 0 + a$.\\n2. **Inductive step**: Assume $a + k = k + a$. For $b = S(k)$:\\n   $a + S(k) = S(a + k) = S(k + a)$ (by D2 and IH)\\n   Right side: $S(k) + a = S(k + a)$ (by T2). Both sides are equal!\\n\\nBy Axiom P5, commutativity holds for all natural numbers.',
+      examples: [
+        'Elementary arithmetic demonstration: Let $a = 2, b = 3$. Then $2 + 3 = 5$ and $3 + 2 = 5$, verifying $2 + 3 = 3 + 2$.',
+        'Formal successor calculus: For $a = S(0), b = S(S(0))$, expansion yields $S(0) + S(S(0)) = S(S(S(0))) = S(S(0)) + S(0)$.'
+      ],
       depends_on: ['peano-5', 'thm-left-zero', 'thm-succ-left']
     },
     {

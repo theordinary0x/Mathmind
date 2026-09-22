@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { X, Plus, Folder, Trash2, ArrowRight } from 'lucide-react';
 import { Project, AppTheme } from '../types';
 import { useTranslation } from '../i18n/LanguageContext';
+import { useBackdropClose } from '../hooks/useBackdropClose';
+
 
 interface ProjectManagerModalProps {
   isOpen: boolean;
@@ -28,6 +30,10 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   const [newProjectName, setNewProjectName] = useState('');
   const [template, setTemplate] = useState<'blank' | 'peano' | 'euclid'>('blank');
 
+  const { t } = useTranslation();
+  const isDark = theme === 'dark';
+  const backdropProps = useBackdropClose(onClose);
+
   // Handle ESC key to dismiss modal
   useEffect(() => {
     if (!isOpen) return;
@@ -42,9 +48,6 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
 
   if (!isOpen) return null;
 
-  const { t } = useTranslation();
-  const isDark = theme === 'dark';
-
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProjectName.trim()) return;
@@ -55,12 +58,12 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
   };
 
   return (
+
     <div
-      onClick={e => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+      {...backdropProps}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-100"
     >
+
       <div
         className={`border shadow-2xl w-full max-w-lg flex flex-col overflow-hidden backdrop-blur-md ${
           isDark

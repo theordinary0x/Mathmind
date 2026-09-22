@@ -13,8 +13,10 @@ import {
   ClipboardPaste, 
   Check 
 } from 'lucide-react';
-import { PropositionNode, PropositionType, AppTheme, NODE_TYPES } from '../types';
-import { latexToUnicode } from '../utils/latexToUnicode';
+import { PropositionNode, PropositionType, AppTheme, NODE_TYPES, PropositionStatus, PROPOSITION_STATUSES } from '../types';
+import { latexToUnicode, formatSingleLineFormulaTitle } from '../utils/latexToUnicode';
+import { MathRenderer } from './MathRenderer';
+
 import { useTranslation } from '../i18n/LanguageContext';
 
 export interface ContextMenuState {
@@ -45,6 +47,7 @@ interface ContextMenuProps {
   theme: AppTheme;
   selectedNodeCount?: number;
   onBatchDelete?: () => void;
+  onUpdateNodeStatus?: (nodeId: string, status?: PropositionStatus) => void;
 }
 
 export const ContextMenu: React.FC<ContextMenuProps> = ({
@@ -66,6 +69,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   theme,
   selectedNodeCount,
   onBatchDelete,
+  onUpdateNodeStatus,
 }) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const isDark = theme === 'dark';
@@ -98,34 +102,39 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   if (!menuState.isOpen) return null;
 
   // Smart boundary collision detection
-  const menuWidth = 220;
-  const menuHeight = menuState.type === 'node' ? 320 : 180;
+  const menuWidth = 224;
+  const menuHeight = menuState.type === 'node' ? 480 : 200;
   const screenW = window.innerWidth;
   const screenH = window.innerHeight;
 
   let posX = menuState.x;
   let posY = menuState.y;
 
-  if (posX + menuWidth > screenW - 10) {
-    posX = screenW - menuWidth - 10;
+  if (posX + menuWidth > screenW - 12) {
+    posX = screenW - menuWidth - 12;
   }
-  if (posY + menuHeight > screenH - 10) {
-    posY = screenH - menuHeight - 10;
+  if (posY + menuHeight > screenH - 12) {
+    posY = screenH - menuHeight - 12;
   }
-  if (posX < 10) posX = 10;
-  if (posY < 10) posY = 10;
+  if (posX < 12) posX = 12;
+  if (posY < 12) posY = 12;
 
   return (
     <>
       <div
         ref={menuRef}
         style={{ left: `${posX}px`, top: `${posY}px` }}
-        className={`fixed z-50 w-56 border shadow-2xl py-1.5 text-xs select-none backdrop-blur-md transition-all animate-in fade-in zoom-in-95 duration-100 ${
+        onContextMenu={e => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        className={`fixed z-50 w-56 max-h-[calc(100vh-24px)] overflow-y-auto overflow-x-hidden border shadow-2xl py-1.5 text-xs select-none backdrop-blur-md transition-all animate-in fade-in zoom-in-95 duration-100 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-black/20 dark:[&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-track]:bg-transparent ${
           isDark
             ? 'bg-[#18181B]/95 border-white/10 text-zinc-200 divide-white/10'
             : 'bg-white/95 border-black/10 text-stone-800 divide-black/5'
         }`}
       >
+
       {menuState.type === 'node' && menuState.node ? (
         /* Node Right-Click Actions */
         <div className="divide-y divide-inherit">
@@ -134,10 +143,14 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             <div className="text-[10px] opacity-50 uppercase tracking-wider font-mono">
               {menuState.node.id}
             </div>
-            <div className="font-bold text-xs truncate max-w-full">
-              {latexToUnicode(menuState.node.title)}
+            <div
+              className="font-bold text-xs truncate max-w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap [&_*]:!inline [&_*]:!whitespace-nowrap [&_*]:!m-0 [&_*]:!p-0 [&_.katex-display]:!inline [&_.katex-display]:!m-0"
+              title={latexToUnicode(menuState.node.title.replace(/[\r\n]+/g, ' · '))}
+            >
+              <MathRenderer content={formatSingleLineFormulaTitle(menuState.node.title)} />
             </div>
           </div>
+
 
           <div className="py-1">
             <button
@@ -228,6 +241,45 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
                 </button>
               );
             })}
+          </div>
+
+          {/* Status Quick Marking */}
+          <div className="py-1">
+            <div className="px-3 py-1 text-[10px] uppercase tracking-wider opacity-50 font-mono">
+              研读标记:
+            </div>
+            {(['doubt', 'core', 'review', 'verified'] as PropositionStatus[]).map(statusKey => {
+              const conf = PROPOSITION_STATUSES[statusKey];
+              const isCurrent = menuState.node!.status === statusKey;
+              return (
+                <button
+                  key={statusKey}
+                  onClick={() => {
+                    onUpdateNodeStatus?.(menuState.node!.id, isCurrent ? undefined : statusKey);
+                    onClose();
+                  }}
+                  className="w-full px-3 py-1 text-left flex items-center justify-between hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-[11px]"
+                >
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs">{conf.icon}</span>
+                    <span>{conf.label}</span>
+                  </div>
+                  {isCurrent && <Check className="w-3 h-3 text-emerald-500" />}
+                </button>
+              );
+            })}
+            {menuState.node!.status && (
+              <button
+                onClick={() => {
+                  onUpdateNodeStatus?.(menuState.node!.id, undefined);
+                  onClose();
+                }}
+                className="w-full px-3 py-1 text-left flex items-center space-x-2 hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-[11px] opacity-70 hover:opacity-100"
+              >
+                <span className="text-xs">✕</span>
+                <span>清除标记</span>
+              </button>
+            )}
           </div>
 
           <div className="py-1">

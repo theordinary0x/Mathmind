@@ -37,7 +37,6 @@ interface HeaderProps {
   searchQuery: string;
   onSearchChange: (q: string) => void;
   onOpenCreateModal: () => void;
-  onOpenAiIngestion?: () => void;
   isCopilotOpen?: boolean;
   onToggleCopilot?: () => void;
   onSaveAs: () => void;
@@ -98,7 +97,6 @@ export const Header: React.FC<HeaderProps> = ({
   searchQuery,
   onSearchChange,
   onOpenCreateModal,
-  onOpenAiIngestion,
   isCopilotOpen,
   onToggleCopilot,
   onSaveAs,
@@ -122,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header
       className={`h-13 sm:h-14 px-3 sm:px-4 border-b flex items-center justify-between select-none z-20 shrink-0 transition-colors gap-2 overflow-x-auto no-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden whitespace-nowrap ${
-        isDark ? 'bg-[#18181B] border-white/10 text-[#EDECE8]' : 'bg-[#FAF8F5] border-black/10 text-[#2C2B29]'
+        isDark ? 'bg-[#18181B] border-[#2E2E33] text-[#EDECE8]' : 'bg-[#FAF8F5] border-[#D4CDC0] text-[#2C2B29]'
       }`}
     >
       {/* Left: Brand & Project Info & History */}
@@ -145,7 +143,7 @@ export const Header: React.FC<HeaderProps> = ({
               ? 'hover:bg-white/5 text-zinc-200'
               : 'hover:bg-black/5 text-stone-800'
           }`}
-          title={`${t('header.projectManager')} (P / Ctrl+P)`}
+          title={`${t('header.projectManager')} (P)`}
         >
           <Layers className="w-3.5 h-3.5 text-[#60A5FA] shrink-0" />
           <span className="font-serif font-medium max-w-[60px] sm:max-w-[100px] md:max-w-[130px] lg:max-w-[170px] truncate">
@@ -190,7 +188,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Center: Search Bar */}
-      <div className="relative flex-1 min-w-[60px] max-w-[110px] sm:max-w-[150px] md:max-w-[200px] mx-1 shrink">
+      <div className="relative flex-1 min-w-[70px] max-w-[130px] sm:max-w-[160px] md:max-w-[210px] mx-1 shrink">
         <Search className="w-3.5 h-3.5 opacity-40 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
         <input
           type="text"
@@ -200,8 +198,8 @@ export const Header: React.FC<HeaderProps> = ({
           placeholder={t('header.searchPlaceholder')}
           className={`w-full pl-7 pr-4 py-1 text-xs border focus:outline-none transition-all font-serif ${
             isDark
-              ? 'bg-white/5 border-white/10 text-white placeholder-zinc-500 focus:border-blue-400/60 focus:bg-white/10'
-              : 'bg-black/5 border-black/10 text-stone-900 placeholder-stone-400 focus:border-stone-400 focus:bg-white'
+              ? 'bg-[#121214] border-[#2E2E33] text-white placeholder-zinc-500 focus:border-blue-500'
+              : 'bg-white border-[#D4CDC0] text-stone-900 placeholder-stone-400 focus:border-blue-500'
           }`}
         />
         {searchQuery && (
@@ -216,11 +214,12 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right Controls */}
       <div className="flex items-center space-x-1 sm:space-x-1.5 shrink-0">
-        {/* Layout Switcher (Sleek Segmented Capsule) */}
-        <div className={`hidden sm:flex items-center p-0.5 ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
+        {/* Canvas Tools Cluster */}
+        <div className={`hidden sm:flex items-center p-0.5 border ${isDark ? 'bg-[#121214] border-[#2E2E33]' : 'bg-[#F2EFE9] border-[#D4CDC0]'}`}>
+          {/* Layout Switcher */}
           <button
             onClick={() => onChangeLayout('dagre')}
-            className={`flex items-center space-x-1 px-1.5 sm:px-2 py-1 text-xs transition-all whitespace-nowrap ${
+            className={`flex items-center space-x-1 px-1.5 py-0.5 text-xs transition-all whitespace-nowrap ${
               layoutType === 'dagre'
                 ? isDark
                   ? 'bg-[#27272A] text-white shadow-xs font-semibold'
@@ -235,7 +234,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
           <button
             onClick={() => onChangeLayout('cose')}
-            className={`flex items-center space-x-1 px-1.5 sm:px-2 py-1 text-xs transition-all whitespace-nowrap ${
+            className={`flex items-center space-x-1 px-1.5 py-0.5 text-xs transition-all whitespace-nowrap ${
               layoutType === 'cose'
                 ? isDark
                   ? 'bg-[#27272A] text-white shadow-xs font-semibold'
@@ -248,43 +247,43 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="hidden xl:inline">{language === 'zh' ? '力导向' : 'Force'}</span>
             <KbdBadge isDark={isDark} active={layoutType === 'cose'}>2</KbdBadge>
           </button>
+
+          <div className="h-3 w-[1px] bg-black/10 dark:bg-white/10 mx-0.5 shrink-0" />
+
+          {/* Focus Mode */}
+          <button
+            onClick={onToggleFocusMode}
+            className={`flex items-center space-x-1 px-1.5 py-0.5 text-xs transition-colors whitespace-nowrap ${
+              isFocusMode
+                ? 'bg-blue-600 text-white font-medium shadow-xs'
+                : isDark
+                  ? 'hover:bg-white/5 text-zinc-300 opacity-75 hover:opacity-100'
+                  : 'hover:bg-black/5 text-stone-700 opacity-75 hover:opacity-100'
+            }`}
+            title={`${t('header.focusMode')} (F)`}
+          >
+            {isFocusMode ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+            <KbdBadge isDark={isDark} active={isFocusMode}>F</KbdBadge>
+          </button>
+
+          {/* Connect Mode */}
+          <button
+            onClick={onToggleConnectingMode}
+            className={`flex items-center space-x-1 px-1.5 py-0.5 text-xs transition-colors whitespace-nowrap ${
+              isConnectingMode
+                ? 'bg-blue-600 text-white font-medium shadow-xs'
+                : isDark
+                  ? 'hover:bg-white/5 text-zinc-300 opacity-75 hover:opacity-100'
+                  : 'hover:bg-black/5 text-stone-700 opacity-75 hover:opacity-100'
+            }`}
+            title={`${t('header.connectMode')} (L)`}
+          >
+            <Link2 className="w-3 h-3" />
+            <KbdBadge isDark={isDark} active={isConnectingMode}>L</KbdBadge>
+          </button>
         </div>
 
-        {/* Focus Mode Toggle */}
-        <button
-          onClick={onToggleFocusMode}
-          className={`hidden sm:flex items-center space-x-1 px-1.5 sm:px-2 py-1 text-xs transition-colors whitespace-nowrap ${
-            isFocusMode
-              ? 'bg-blue-600 text-white font-medium shadow-xs'
-              : isDark
-                ? 'hover:bg-white/5 text-zinc-300 opacity-80 hover:opacity-100'
-                : 'hover:bg-black/5 text-stone-700 opacity-80 hover:opacity-100'
-          }`}
-          title={`${t('header.focusMode')} (F)`}
-        >
-          {isFocusMode ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-          <span className="hidden xl:inline">{isFocusMode ? (language === 'zh' ? '聚焦: 开' : 'Focus: On') : (language === 'zh' ? '聚焦' : 'Focus')}</span>
-          <KbdBadge isDark={isDark} active={isFocusMode}>F</KbdBadge>
-        </button>
-
-        {/* Connect Mode Toggle */}
-        <button
-          onClick={onToggleConnectingMode}
-          className={`hidden sm:flex items-center space-x-1 px-1.5 sm:px-2 py-1 text-xs transition-colors whitespace-nowrap ${
-            isConnectingMode
-              ? 'bg-blue-600 text-white font-medium shadow-xs'
-              : isDark
-                ? 'hover:bg-white/5 text-zinc-300 opacity-80 hover:opacity-100'
-                : 'hover:bg-black/5 text-stone-700 opacity-80 hover:opacity-100'
-          }`}
-          title={`${t('header.connectMode')} (L)`}
-        >
-          <Link2 className="w-3.5 h-3.5" />
-          <span className="hidden xl:inline">{isConnectingMode ? (language === 'zh' ? '连线中...' : 'Connecting...') : (language === 'zh' ? '连线' : 'Connect')}</span>
-          <KbdBadge isDark={isDark} active={isConnectingMode}>L</KbdBadge>
-        </button>
-
-        {/* New Proposition Button */}
+        {/* Primary Action: New Proposition */}
         <button
           onClick={onOpenCreateModal}
           className={`flex items-center space-x-1 px-2 sm:px-2.5 py-1 text-xs font-medium transition-all shadow-xs whitespace-nowrap ${
@@ -292,137 +291,120 @@ export const Header: React.FC<HeaderProps> = ({
               ? 'bg-blue-600 hover:bg-blue-500 text-white'
               : 'bg-[#2C2B29] hover:bg-[#3F3E3A] text-white'
           }`}
-          title={`${t('header.newProposition')} (N / Ctrl+N)`}
+          title={`${t('header.newProposition')} (N)`}
         >
           <Plus className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">{t('header.newProposition')}</span>
-          <KbdBadge isDark={isDark} variant="solid" className="hidden xl:inline-flex">N</KbdBadge>
+          <span className="hidden md:inline">{t('header.newProposition')}</span>
+          <span className="md:hidden">新建</span>
+          <KbdBadge isDark={isDark} variant="solid" className="hidden lg:inline-flex">N</KbdBadge>
         </button>
-
-        {/* AI Ingestion Modal Button */}
-        {onOpenAiIngestion && (
-          <button
-            onClick={onOpenAiIngestion}
-            className={`flex items-center space-x-1 px-2 sm:px-2.5 py-1 text-xs font-medium transition-all shadow-xs whitespace-nowrap ${
-              isDark
-                ? 'bg-blue-900/40 hover:bg-blue-800/60 text-blue-200 border border-blue-700/50'
-                : 'bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200'
-            }`}
-            title="教材/试题智能录入与批量提炼 (I)"
-          >
-            <BookOpen className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-            <span className="hidden sm:inline">{language === 'zh' ? '教材录入' : 'AI Ingest'}</span>
-            <KbdBadge isDark={isDark} className="hidden xl:inline-flex">I</KbdBadge>
-          </button>
-        )}
 
         {/* AI Copilot Sidebar Toggle Button */}
         {onToggleCopilot && (
           <button
             onClick={onToggleCopilot}
-            className={`flex items-center space-x-1 px-2 sm:px-2.5 py-1 text-xs font-medium transition-all shadow-xs whitespace-nowrap ${
+            className={`flex items-center space-x-1 px-2.5 sm:px-3 py-1 text-xs font-medium transition-all shadow-xs whitespace-nowrap border ${
               isCopilotOpen
-                ? 'bg-blue-600 text-white ring-2 ring-blue-400/50 font-semibold'
+                ? 'bg-blue-600 text-white border-blue-500 font-semibold'
                 : isDark
-                ? 'bg-indigo-600/90 hover:bg-indigo-500 text-white'
-                : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                ? 'bg-[#202024] hover:bg-[#27272A] text-zinc-200 border-[#2E2E33]'
+                : 'bg-white hover:bg-stone-100 text-stone-800 border-[#D4CDC0]'
             }`}
-            title="Math Copilot 智能结对助手 (Shift+I)"
+            title="Math Copilot 智能结对助手 (I)"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+            <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span className="hidden sm:inline">{language === 'zh' ? 'AI 助手' : 'AI Copilot'}</span>
-            <KbdBadge isDark={isDark} variant="solid" className="hidden xl:inline-flex">Shift+I</KbdBadge>
+            <KbdBadge isDark={isDark} variant="solid" className="hidden lg:inline-flex">I</KbdBadge>
           </button>
         )}
 
-        {/* Save to Local / Export */}
-        <button
-          onClick={() => (onManualSave ? onManualSave() : onSaveAs())}
-          onContextMenu={e => {
-            e.preventDefault();
-            onSaveAs();
-          }}
-          className={`hidden sm:flex items-center space-x-1 px-1.5 sm:px-2 py-1 text-xs transition-colors whitespace-nowrap ${
-            isDark ? 'hover:bg-white/5 text-zinc-300' : 'hover:bg-black/5 text-stone-700'
-          }`}
-          title={language === 'zh' ? '立即保存 (Ctrl+S) · 右键或 Alt+S 另存为文件' : 'Save (Ctrl+S) · Right-click or Alt+S to Save As'}
-        >
-          <Save className="w-3.5 h-3.5 text-blue-400" />
-          <span className="hidden 2xl:inline">{t('common.save')}</span>
-          <KbdBadge isDark={isDark} className="hidden xl:inline-flex">Ctrl+S</KbdBadge>
-        </button>
+        <div className="h-4 w-[1px] bg-black/10 dark:bg-white/10 hidden sm:block shrink-0 mx-0.5" />
 
-        {/* Import JSON */}
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className={`hidden sm:block p-1.5 transition-colors ${
-            isDark ? 'hover:bg-white/5 text-zinc-300' : 'hover:bg-black/5 text-stone-700'
-          }`}
-          title={`${t('common.import')} JSON`}
-        >
-          <Upload className="w-3.5 h-3.5" />
-        </button>
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={onImport}
-          accept=".json"
-          className="hidden"
-        />
-
-        {/* Shortcuts Help */}
-        {onOpenShortcutsModal && (
+        {/* Utility Icon Group */}
+        <div className="flex items-center space-x-0.5 shrink-0">
+          {/* Save */}
           <button
-            onClick={onOpenShortcutsModal}
-            className={`hidden sm:flex items-center space-x-1 p-1.5 transition-colors ${
+            onClick={() => (onManualSave ? onManualSave() : onSaveAs())}
+            onContextMenu={e => {
+              e.preventDefault();
+              onSaveAs();
+            }}
+            className={`p-1.5 transition-colors ${
               isDark ? 'hover:bg-white/5 text-zinc-300' : 'hover:bg-black/5 text-stone-700'
             }`}
-            title={`${t('header.shortcuts')} (?)`}
+            title={language === 'zh' ? '立即保存 (Ctrl+S) · 右键另存为 (Ctrl+Shift+S)' : 'Save (Ctrl+S) · Right-click to Save As (Ctrl+Shift+S)'}
           >
-            <Keyboard className="w-3.5 h-3.5" />
-            <KbdBadge isDark={isDark} className="hidden xl:inline-flex">?</KbdBadge>
+            <Save className="w-3.5 h-3.5 text-blue-400" />
           </button>
-        )}
 
-        {/* Theme Toggle (Dark / Light) */}
-        <button
-          onClick={onToggleTheme}
-          className={`flex items-center space-x-1 p-1.5 transition-colors text-amber-500 ${
-            isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'
-          }`}
-          title={isDark ? (language === 'zh' ? '切换浅色模式 (T)' : 'Switch to Light (T)') : (language === 'zh' ? '切换深色模式 (T)' : 'Switch to Dark (T)')}
-        >
-          {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5 text-[#1E3A5F]" />}
-          <KbdBadge isDark={isDark} className="hidden xl:inline-flex">T</KbdBadge>
-        </button>
-
-        {/* Sponsor Button */}
-        {onOpenSponsor && (
+          {/* Import JSON */}
           <button
-            onClick={onOpenSponsor}
-            className={`flex items-center space-x-1 p-1.5 transition-colors ${
-              isDark ? 'hover:bg-white/5 text-amber-400 hover:text-amber-300' : 'hover:bg-black/5 text-amber-600 hover:text-amber-700'
+            onClick={() => fileInputRef.current?.click()}
+            className={`p-1.5 transition-colors ${
+              isDark ? 'hover:bg-white/5 text-zinc-300' : 'hover:bg-black/5 text-stone-700'
             }`}
-            title={`${t('header.sponsor')}`}
+            title={`${t('common.import')} JSON`}
           >
-            <Coffee className="w-3.5 h-3.5" />
-            <span className="hidden 2xl:inline text-xs font-serif">{t('header.sponsor')}</span>
+            <Upload className="w-3.5 h-3.5" />
           </button>
-        )}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={onImport}
+            accept=".json"
+            className="hidden"
+          />
 
-        {/* System Settings */}
-        {onOpenSettings && (
+          {/* Shortcuts Help */}
+          {onOpenShortcutsModal && (
+            <button
+              onClick={onOpenShortcutsModal}
+              className={`p-1.5 transition-colors ${
+                isDark ? 'hover:bg-white/5 text-zinc-300' : 'hover:bg-black/5 text-stone-700'
+              }`}
+              title={`${t('header.shortcuts')} (?)`}
+            >
+              <Keyboard className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          {/* Theme Toggle (Dark / Light) */}
           <button
-            onClick={onOpenSettings}
-            className={`flex items-center space-x-1 p-1.5 transition-colors ${
-              isDark ? 'hover:bg-white/5 text-zinc-300 hover:text-white' : 'hover:bg-black/5 text-stone-700 hover:text-black'
+            onClick={onToggleTheme}
+            className={`p-1.5 transition-colors text-amber-500 ${
+              isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'
             }`}
-            title={`${t('header.settings')} (Ctrl+,)`}
+            title={isDark ? (language === 'zh' ? '切换浅色模式 (T)' : 'Switch to Light (T)') : (language === 'zh' ? '切换深色模式 (T)' : 'Switch to Dark (T)')}
           >
-            <Settings className="w-3.5 h-3.5 text-blue-400" />
-            <KbdBadge isDark={isDark} className="hidden xl:inline-flex">Ctrl+,</KbdBadge>
+            {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5 text-[#1E3A5F]" />}
           </button>
-        )}
+
+          {/* Sponsor Button */}
+          {onOpenSponsor && (
+            <button
+              onClick={onOpenSponsor}
+              className={`p-1.5 transition-colors ${
+                isDark ? 'hover:bg-white/5 text-amber-400 hover:text-amber-300' : 'hover:bg-black/5 text-amber-600 hover:text-amber-700'
+              }`}
+              title={`${t('header.sponsor')}`}
+            >
+              <Coffee className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          {/* System Settings */}
+          {onOpenSettings && (
+            <button
+              onClick={onOpenSettings}
+              className={`p-1.5 transition-colors ${
+                isDark ? 'hover:bg-white/5 text-zinc-300 hover:text-white' : 'hover:bg-black/5 text-stone-700 hover:text-black'
+              }`}
+              title={`${t('header.settings')} (Ctrl+,)`}
+            >
+              <Settings className="w-3.5 h-3.5 text-blue-400" />
+            </button>
+          )}
+        </div>
       </div>
     </header>
   );

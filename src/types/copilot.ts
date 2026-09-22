@@ -11,6 +11,7 @@ export interface NodeUpdateDiff {
   proof_sketch?: string;
   note?: string;
   full_proof?: string;
+  examples?: string[];
   depends_on?: string[];
   change_summary?: string;
 }

@@ -30,6 +30,8 @@ import { CanvasTab } from './settings/CanvasTab';
 import { StorageTab } from './settings/StorageTab';
 import { ShortcutsTab } from './settings/ShortcutsTab';
 import { AiConfigTab } from './settings/AiConfigTab';
+import { useBackdropClose } from '../hooks/useBackdropClose';
+
 
 export interface SettingsModalProps {
   isOpen: boolean;
@@ -125,30 +127,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     };
   }, [projects, isOpen]);
 
+  const backdropProps = useBackdropClose(onClose);
+
   if (!isOpen) return null;
 
   return (
     <div
+      {...backdropProps}
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn"
-      onClick={e => {
-        if (e.target === e.currentTarget) onClose();
-      }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="settings-modal-title"
     >
+
       <div
         className={`relative w-full max-w-3xl h-[620px] max-h-[92vh] border shadow-2xl flex flex-col overflow-hidden transition-colors ${
           isDark
-            ? 'bg-[#18181B] border-white/15 text-[#EDECE8]'
-            : 'bg-[#FAF8F5] border-black/15 text-[#2C2B29]'
+            ? 'bg-[#18181B] border-[#2E2E33] text-[#EDECE8]'
+            : 'bg-[#FAF8F5] border-[#D4CDC0] text-[#2C2B29]'
         }`}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div
           className={`px-4 sm:px-5 py-3 sm:py-4 border-b flex items-center justify-between shrink-0 ${
-            isDark ? 'border-white/10 bg-zinc-900/60' : 'border-black/10 bg-white/70'
+            isDark ? 'border-[#2E2E33] bg-[#202024]' : 'border-[#D4CDC0] bg-[#F2EFE9]'
           }`}
         >
           <div className="flex items-center space-x-2 sm:space-x-2.5 min-w-0 pr-2">
@@ -167,7 +170,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className={`p-1.5 transition-colors shrink-0 ${
+            className={`p-1.5 transition-colors shrink-0 cursor-pointer ${
               isDark ? 'hover:bg-white/10 text-zinc-400 hover:text-white' : 'hover:bg-black/5 text-stone-500 hover:text-black'
             }`}
             title="关闭 (Esc)"
@@ -181,7 +184,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Tab Nav */}
           <div
             className={`w-full sm:w-44 md:w-52 border-b sm:border-b-0 sm:border-r p-2 sm:p-2.5 flex flex-row sm:flex-col gap-1.5 sm:space-y-1 shrink-0 overflow-x-auto sm:overflow-y-auto no-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
-              isDark ? 'border-white/10 bg-zinc-900/30' : 'border-black/10 bg-stone-100/50'
+              isDark ? 'border-[#2E2E33] bg-[#121214]' : 'border-[#D4CDC0] bg-[#F2EFE9]'
             }`}
           >
             <button

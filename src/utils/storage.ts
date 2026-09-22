@@ -314,10 +314,13 @@ export function parseImportedJson(jsonString: string): GraphDataset {
       proof_sketch: String(raw.proof_sketch || ''),
       full_proof: raw.full_proof ? String(raw.full_proof) : undefined,
       note: raw.note ? String(raw.note) : undefined,
+      examples: Array.isArray(raw.examples) ? raw.examples.map(String).filter(Boolean) : undefined,
       depends_on: Array.isArray(raw.depends_on) ? raw.depends_on.map(String) : [],
       position: (raw.position && typeof raw.position.x === 'number' && typeof raw.position.y === 'number')
         ? { x: raw.position.x, y: raw.position.y }
-        : undefined
+        : undefined,
+      status: raw.status,
+      tags: Array.isArray(raw.tags) ? raw.tags.map(String).filter(Boolean) : undefined
     };
   });
 
