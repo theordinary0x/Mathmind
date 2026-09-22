@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { X, Plus, Sparkles, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { PropositionNode, PropositionType, NODE_TYPES, AppTheme, PropositionStatus } from '../types';
 import { MathSymbolToolbar } from './MathSymbolToolbar';
@@ -6,6 +6,7 @@ import { PrerequisitePicker } from './drawer/PrerequisitePicker';
 import { FieldLatexPreview } from './drawer/FieldLatexPreview';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useBackdropClose } from '../hooks/useBackdropClose';
+import { UnsavedChangesModal } from './UnsavedChangesModal';
 
 
 interface CreateNodeModalProps {
@@ -42,6 +43,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
   const [dependsOn, setDependsOn] = useState<string[]>([]);
   const [activeField, setActiveField] = useState<string>('title');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showUnsavedPrompt, setShowUnsavedPrompt] = useState<boolean>(false);
 
   const activeElementRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const { t } = useTranslation();
@@ -50,6 +52,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
   // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
+      setShowUnsavedPrompt(false);
       if (initialNodeData) {
         setTitle(initialNodeData.title || '');
         setType(initialNodeData.type || 'theorem');
@@ -79,6 +82,32 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
       setErrorMessage(null);
     }
   }, [isOpen, initialNodeData]);
+
+  // 计算是否输入或修改了表单内容
+  const isDirty = useMemo(() => {
+    if (initialNodeData) {
+      return (
+        title !== (initialNodeData.title || '') ||
+        type !== (initialNodeData.type || 'theorem') ||
+        status !== initialNodeData.status ||
+        statement !== (initialNodeData.statement || '') ||
+        proofSketch !== (initialNodeData.proof_sketch || '') ||
+        note !== (initialNodeData.note || '') ||
+        fullProof !== (initialNodeData.full_proof || '') ||
+        JSON.stringify(examples) !== JSON.stringify(initialNodeData.examples || []) ||
+        JSON.stringify(dependsOn) !== JSON.stringify(initialNodeData.depends_on || [])
+      );
+    }
+    return (
+      title.trim() !== '' ||
+      statement.trim() !== '' ||
+      proofSketch.trim() !== '' ||
+      fullProof.trim() !== '' ||
+      note.trim() !== '' ||
+      examples.length > 0 ||
+      dependsOn.length > 0
+    );
+  }, [initialNodeData, title, type, status, statement, proofSketch, note, fullProof, examples, dependsOn]);
 
   const recordCursor = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement> | React.SyntheticEvent) => {
     activeElementRef.current = e.currentTarget as HTMLInputElement | HTMLTextAreaElement;
@@ -204,14 +233,33 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
     }
   };
 
+  const requestClose = () => {
+    if (isDirty) {
+      setShowUnsavedPrompt(true);
+    } else {
+      onClose();
+    }
+  };
+
+  const handleConfirmDiscard = () => {
+    setShowUnsavedPrompt(false);
+    onClose();
+  };
+
+  const handleCancelStay = () => {
+    setShowUnsavedPrompt(false);
+  };
+
   // Keyboard shortcut: ESC to close, Ctrl+Enter to submit
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (showUnsavedPrompt) return;
+
       if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
-        onClose();
+        requestClose();
       } else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault();
         e.stopPropagation();
@@ -220,9 +268,13 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
     };
     window.addEventListener('keydown', handleKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
-  }, [isOpen, title, type, statement, proofSketch, fullProof, note, examples, dependsOn]);
+  }, [isOpen, showUnsavedPrompt, isDirty, title, type, statement, proofSketch, fullProof, note, examples, dependsOn]);
 
-  const backdropProps = useBackdropClose(onClose);
+  // 点击外部蒙版：在编辑页面任何情况下无法退出
+  const handleBackdropClick = () => {
+    // 静默拦截，禁止退出
+  };
+  const backdropProps = useBackdropClose(handleBackdropClick);
 
   if (!isOpen) return null;
 
@@ -309,7 +361,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
 
             <button
               type="button"
-              onClick={onClose}
+              onClick={requestClose}
               className="p-1.5 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
               title="关闭 (Esc)"
             >
@@ -633,7 +685,7 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
           <div className="flex items-center space-x-2 ml-auto">
             <button
               type="button"
-              onClick={onClose}
+              onClick={requestClose}
               className={`px-3 py-1.5 text-xs border transition-colors cursor-pointer ${
                 isDark
                   ? 'border-[#2E2E33] hover:bg-white/5 text-zinc-300'
@@ -654,6 +706,14 @@ export const CreateNodeModal: React.FC<CreateNodeModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Unsaved Changes Confirmation Modal */}
+      <UnsavedChangesModal
+        isOpen={showUnsavedPrompt}
+        onConfirmDiscard={handleConfirmDiscard}
+        onCancelStay={handleCancelStay}
+        isDark={isDark}
+      />
     </div>
   );
 };

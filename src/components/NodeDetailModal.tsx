@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   X, Check, Trash2, Sparkles, BookOpen, Edit3 
 } from 'lucide-react';
@@ -8,6 +8,7 @@ import { NodeReadView } from './drawer/NodeReadView';
 import { NodeEditView } from './drawer/NodeEditView';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useBackdropClose } from '../hooks/useBackdropClose';
+import { UnsavedChangesModal } from './UnsavedChangesModal';
 
 interface NodeDetailModalProps {
   isOpen: boolean;
@@ -39,11 +40,21 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
   const [activeField, setActiveField] = useState<string>('title');
   const [isFullProofExpanded, setIsFullProofExpanded] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showUnsavedPrompt, setShowUnsavedPrompt] = useState<boolean>(false);
+  const [pendingCloseAction, setPendingCloseAction] = useState<'cancel_edit' | 'close_modal'>('cancel_edit');
 
   const activeElementRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const { t } = useTranslation();
   const isDark = theme === 'dark';
-  const backdropProps = useBackdropClose(onClose);
+
+  // 点击外部蒙版：在编辑页面任何情况下无法退出
+  const handleBackdropClick = () => {
+    if (mode === 'edit') {
+      return;
+    }
+    onClose();
+  };
+  const backdropProps = useBackdropClose(handleBackdropClick);
 
   // Synchronize formData with incoming node prop and reset to Read mode
   useEffect(() => {
@@ -52,8 +63,25 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
       setIsFullProofExpanded(Boolean(node.full_proof));
       setErrorMessage(null);
       setMode('read'); // Always open in read mode by default
+      setShowUnsavedPrompt(false);
     }
   }, [node?.id, isOpen]);
+
+  // 计算编辑表单是否被修改
+  const isDirty = useMemo(() => {
+    if (!node || !formData || mode !== 'edit') return false;
+    return (
+      formData.title !== node.title ||
+      formData.type !== node.type ||
+      formData.status !== node.status ||
+      formData.statement !== node.statement ||
+      formData.proof_sketch !== node.proof_sketch ||
+      (formData.full_proof || '') !== (node.full_proof || '') ||
+      (formData.note || '') !== (node.note || '') ||
+      JSON.stringify(formData.depends_on || []) !== JSON.stringify(node.depends_on || []) ||
+      JSON.stringify(formData.examples || []) !== JSON.stringify(node.examples || [])
+    );
+  }, [node, formData, mode]);
 
   const recordCursor = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement> | React.SyntheticEvent) => {
     activeElementRef.current = e.currentTarget as HTMLInputElement | HTMLTextAreaElement;
@@ -169,12 +197,43 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
     setMode('read'); // Switch back to read mode after saving
   };
 
-  const handleCancelEdit = () => {
+  const requestCancelEdit = () => {
+    if (isDirty) {
+      setPendingCloseAction('cancel_edit');
+      setShowUnsavedPrompt(true);
+    } else {
+      if (node) {
+        setFormData({ ...node });
+        setErrorMessage(null);
+      }
+      setMode('read');
+    }
+  };
+
+  const requestCloseModal = () => {
+    if (mode === 'edit' && isDirty) {
+      setPendingCloseAction('close_modal');
+      setShowUnsavedPrompt(true);
+    } else {
+      onClose();
+    }
+  };
+
+  const handleConfirmDiscard = () => {
+    setShowUnsavedPrompt(false);
     if (node) {
       setFormData({ ...node });
       setErrorMessage(null);
     }
-    setMode('read');
+    if (pendingCloseAction === 'close_modal') {
+      onClose();
+    } else {
+      setMode('read');
+    }
+  };
+
+  const handleCancelStay = () => {
+    setShowUnsavedPrompt(false);
   };
 
   // Keyboard shortcut routing inside NodeDetailModal
@@ -182,6 +241,8 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (showUnsavedPrompt) return;
+
       const activeEl = document.activeElement as HTMLElement | null;
       const isInputActive = activeEl && (
         activeEl.tagName === 'INPUT' || 
@@ -193,7 +254,7 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
         e.preventDefault();
         e.stopPropagation();
         if (mode === 'edit') {
-          handleCancelEdit();
+          requestCancelEdit();
         } else {
           onClose();
         }
@@ -201,7 +262,11 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
         // Toggle Read / Edit mode via 'E' when not typing
         e.preventDefault();
         e.stopPropagation();
-        setMode(prev => (prev === 'read' ? 'edit' : 'read'));
+        if (mode === 'edit') {
+          requestCancelEdit();
+        } else {
+          setMode('edit');
+        }
       } else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         if (mode === 'edit') {
           e.preventDefault();
@@ -213,7 +278,7 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, mode, formData, node]);
+  }, [isOpen, mode, formData, node, isDirty, showUnsavedPrompt, pendingCloseAction]);
 
   if (!isOpen || !node || !formData) return null;
 
@@ -317,7 +382,11 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
             }`}>
               <button
                 type="button"
-                onClick={() => setMode('read')}
+                onClick={() => {
+                  if (mode === 'edit') {
+                    requestCancelEdit();
+                  }
+                }}
                 className={`flex items-center space-x-1 px-2.5 py-1 text-xs transition-colors cursor-pointer ${
                   mode === 'read'
                     ? isDark ? 'bg-[#27272A] text-white font-medium shadow-xs' : 'bg-[#E5E0D8] text-stone-900 font-medium shadow-xs'
@@ -380,7 +449,7 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
             {/* Close */}
             <button
               type="button"
-              onClick={onClose}
+              onClick={requestCloseModal}
               className="p-1.5 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
               title="关闭 (Esc)"
             >
@@ -471,7 +540,7 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
             <div className="flex items-center space-x-2 ml-auto">
               <button
                 type="button"
-                onClick={handleCancelEdit}
+                onClick={requestCancelEdit}
                 className={`px-3 py-1.5 text-xs border transition-colors cursor-pointer ${
                   isDark
                     ? 'border-[#2E2E33] hover:bg-white/5 text-zinc-300'
@@ -492,6 +561,14 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
           </div>
         )}
       </div>
+
+      {/* Unsaved Changes Confirmation Modal */}
+      <UnsavedChangesModal
+        isOpen={showUnsavedPrompt}
+        onConfirmDiscard={handleConfirmDiscard}
+        onCancelStay={handleCancelStay}
+        isDark={isDark}
+      />
     </div>
   );
 };

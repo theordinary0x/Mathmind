@@ -25,9 +25,20 @@ export class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error in React component tree:', error, errorInfo);
     this.setState({ errorInfo });
+
+    // 若检测到版本构建更新导致的动态分包 404 (Failed to fetch dynamically imported module)，自动尝试静默刷新拉取最新资源
+    const errMsg = String(error?.message || '');
+    if (errMsg.includes('dynamically imported module') || errMsg.includes('Failed to fetch dynamically')) {
+      const hasReloaded = sessionStorage.getItem('mathmind_chunk_retry');
+      if (!hasReloaded) {
+        sessionStorage.setItem('mathmind_chunk_retry', 'true');
+        window.location.reload();
+      }
+    }
   }
 
   private handleReload = () => {
+    sessionStorage.removeItem('mathmind_chunk_retry');
     window.location.reload();
   };
 

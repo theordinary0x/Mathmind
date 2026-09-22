@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { PropositionNode, Project, AppTheme, ThemeMode, PropositionType, AutoSaveMode, CanvasSettings, PropositionStatus, PROPOSITION_STATUSES } from './types';
 import { useAutoSave } from './hooks/useAutoSave';
 import { useAppKeyboardShortcuts } from './hooks/useAppKeyboardShortcuts';
@@ -29,12 +29,10 @@ import { CopilotSidebar, CopilotExternalTrigger } from './components/copilot/Cop
 import { applyGraphMutation } from './utils/graphMutationEngine';
 import { GraphMutationDiff } from './types/copilot';
 import { StatusBar } from './components/StatusBar';
-
-// Lazy loaded secondary modals for bundle optimization (Code Splitting)
-const ProjectManagerModal = lazy(() => import('./components/ProjectManagerModal').then(m => ({ default: m.ProjectManagerModal })));
-const KeyboardShortcutsModal = lazy(() => import('./components/KeyboardShortcutsModal').then(m => ({ default: m.KeyboardShortcutsModal })));
-const SettingsModal = lazy(() => import('./components/SettingsModal').then(m => ({ default: m.SettingsModal })));
-const SponsorModal = lazy(() => import('./components/SponsorModal').then(m => ({ default: m.SponsorModal })));
+import { ProjectManagerModal } from './components/ProjectManagerModal';
+import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
+import { SettingsModal } from './components/SettingsModal';
+import { SponsorModal } from './components/SponsorModal';
 
 export const App: React.FC = () => {
   const { t, language } = useTranslation();
@@ -789,66 +787,64 @@ export const App: React.FC = () => {
         theme={effectiveTheme}
       />
 
-      {/* Lazy loaded modals wrapped in Suspense */}
-      <Suspense fallback={null}>
-        {/* Project Manager Modal */}
-        {isProjectManagerOpen && (
-          <ProjectManagerModal
-            isOpen={isProjectManagerOpen}
-            onClose={() => setIsProjectManagerOpen(false)}
-            projects={projects}
-            activeProjectId={activeProjectId}
-            onSelectProject={handleSelectProject}
-            onCreateProject={handleCreateProject}
-            onDeleteProject={handleDeleteProject}
-            theme={effectiveTheme}
-          />
-        )}
+      {/* Modals */}
+      {/* Project Manager Modal */}
+      {isProjectManagerOpen && (
+        <ProjectManagerModal
+          isOpen={isProjectManagerOpen}
+          onClose={() => setIsProjectManagerOpen(false)}
+          projects={projects}
+          activeProjectId={activeProjectId}
+          onSelectProject={handleSelectProject}
+          onCreateProject={handleCreateProject}
+          onDeleteProject={handleDeleteProject}
+          theme={effectiveTheme}
+        />
+      )}
 
-        {/* Keyboard Shortcuts Guide Modal */}
-        {isShortcutsModalOpen && (
-          <KeyboardShortcutsModal
-            isOpen={isShortcutsModalOpen}
-            onClose={() => setIsShortcutsModalOpen(false)}
-            theme={effectiveTheme}
-          />
-        )}
+      {/* Keyboard Shortcuts Guide Modal */}
+      {isShortcutsModalOpen && (
+        <KeyboardShortcutsModal
+          isOpen={isShortcutsModalOpen}
+          onClose={() => setIsShortcutsModalOpen(false)}
+          theme={effectiveTheme}
+        />
+      )}
 
-        {/* System Settings Modal */}
-        {isSettingsOpen && (
-          <SettingsModal
-            isOpen={isSettingsOpen}
-            onClose={() => setIsSettingsOpen(false)}
-            theme={effectiveTheme}
-            themeMode={themeMode}
-            onThemeModeChange={mode => {
-              setThemeMode(mode);
-              localStorage.setItem('mathmind_theme_mode_v2', mode);
-              showToast(mode === 'dark' ? '已切换至深色模式' : mode === 'paper' ? '已切换至浅色纸张模式' : '已设置为跟随系统外观');
-            }}
-            canvasSettings={canvasSettings}
-            onUpdateCanvasSettings={handleUpdateCanvasSettings}
-            autoSaveMode={autoSaveMode}
-            onAutoSaveModeChange={handleChangeAutoSaveMode}
-            layoutType={layoutType}
-            onChangeLayout={setLayoutType}
-            projects={projects}
-            onExportAllProjects={handleExportAllProjects}
-            onResetToDefaults={handleResetToDefaults}
-            onManualSave={() => doSaveNow(true)}
-            onOpenSponsor={() => setIsSponsorOpen(true)}
-          />
-        )}
+      {/* System Settings Modal */}
+      {isSettingsOpen && (
+        <SettingsModal
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+          theme={effectiveTheme}
+          themeMode={themeMode}
+          onThemeModeChange={mode => {
+            setThemeMode(mode);
+            localStorage.setItem('mathmind_theme_mode_v2', mode);
+            showToast(mode === 'dark' ? '已切换至深色模式' : mode === 'paper' ? '已切换至浅色纸张模式' : '已设置为跟随系统外观');
+          }}
+          canvasSettings={canvasSettings}
+          onUpdateCanvasSettings={handleUpdateCanvasSettings}
+          autoSaveMode={autoSaveMode}
+          onAutoSaveModeChange={handleChangeAutoSaveMode}
+          layoutType={layoutType}
+          onChangeLayout={setLayoutType}
+          projects={projects}
+          onExportAllProjects={handleExportAllProjects}
+          onResetToDefaults={handleResetToDefaults}
+          onManualSave={() => doSaveNow(true)}
+          onOpenSponsor={() => setIsSponsorOpen(true)}
+        />
+      )}
 
-        {/* Sponsor Modal */}
-        {isSponsorOpen && (
-          <SponsorModal
-            isOpen={isSponsorOpen}
-            onClose={() => setIsSponsorOpen(false)}
-            theme={effectiveTheme}
-          />
-        )}
-      </Suspense>
+      {/* Sponsor Modal */}
+      {isSponsorOpen && (
+        <SponsorModal
+          isOpen={isSponsorOpen}
+          onClose={() => setIsSponsorOpen(false)}
+          theme={effectiveTheme}
+        />
+      )}
 
       {/* Toast Notification */}
       {toastMessage && (

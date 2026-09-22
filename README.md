@@ -7,7 +7,7 @@
 面向数学与理论计算机科学学习者，将概念网络建模为**有向无环拓扑图 (DAG)**。<br />
 从公理与定义出发，步步追踪严谨推演，理清概念因果脉络。
 
-[![npm version](https://img.shields.io/badge/npm-v1.2.0-blue.svg?style=flat-square)](https://www.npmjs.com/package/mathmind)
+[![npm version](https://img.shields.io/badge/npm-v1.1.1-blue.svg?style=flat-square)](https://www.npmjs.com/package/mathmind)
 [![license](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
 [![node](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg?style=flat-square)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
