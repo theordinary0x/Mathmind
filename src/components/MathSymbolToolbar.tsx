@@ -69,7 +69,7 @@ export const MathSymbolToolbar: React.FC<MathSymbolToolbarProps> = ({ onInsert, 
 
   return (
     <div
-      className={`border px-2 py-1 flex items-center space-x-3 overflow-x-auto text-xs select-none ${
+      className={`border px-2 py-1 flex items-center space-x-3 overflow-x-auto scrollbar-thin touch-pan-x text-xs select-none ${
         isDark ? 'bg-[#222226] border-[#3F3F46]' : 'bg-[#FAF8F5] border-[#D4CDC0]'
       }`}
     >

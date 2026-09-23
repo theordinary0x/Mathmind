@@ -191,20 +191,20 @@ export const useCopilotChat = ({
   }, [activeSessionId]);
 
   // 统一文件解析处理（支持 Office、图片、PDF、代码/文本）
-  const handleProcessFile = useCallback(async (file: File) => {
+  const handleProcessFile = useCallback(async (file: File): Promise<CopilotAttachment | null> => {
     const fileNameLower = file.name.toLowerCase();
 
     // 严禁上传 .ipynb（用户明确要求）
     if (fileNameLower.endsWith('.ipynb')) {
       alert('暂不支持 .ipynb 文件。如需分析代码或推导，请直接上传 .py、.tex、.md 或文本格式。');
-      return;
+      return null;
     }
 
     // 1. Office 文档 (Word, PowerPoint, Excel, CSV, TSV)
     if (isOfficeFile(file.name)) {
       try {
         const officeData = await processOfficeFile(file);
-        setAttachment({
+        const att: CopilotAttachment = {
           name: officeData.fileName,
           size: officeData.fileSize,
           mimeType:
@@ -213,70 +213,79 @@ export const useCopilotChat = ({
               : 'application/vnd.openxmlformats-officedocument',
           data: '',
           textContent: officeData.textContent
-        });
+        };
+        setAttachment(att);
+        return att;
       } catch (err: any) {
         console.error('Failed to parse office file:', err);
         alert(`解析办公文档失败: ${err.message || err}`);
+        return null;
       }
-      return;
     }
 
     // 2. 学术与代码文件 (.tex, .py, .cpp, .md, .typ, .bib, .json, .ts, etc.)
     if (isCodeOrTextFile(file.name)) {
       try {
         const text = await file.text();
-        setAttachment({
+        const att: CopilotAttachment = {
           name: file.name,
           size: file.size,
           mimeType: 'text/plain',
           data: '',
           textContent: text
-        });
+        };
+        setAttachment(att);
+        return att;
       } catch (err: any) {
         console.error('Failed to read text file:', err);
         alert(`读取文本/代码文件失败: ${err.message || err}`);
+        return null;
       }
-      return;
     }
 
     // 3. PDF
     if (file.type === 'application/pdf' || fileNameLower.endsWith('.pdf')) {
       try {
         const { data, textContent } = await processPdfFile(file);
-        setAttachment({
+        const att: CopilotAttachment = {
           name: file.name,
           size: file.size,
           mimeType: 'application/pdf',
           data,
           textContent,
           previewUrl: undefined
-        });
+        };
+        setAttachment(att);
+        return att;
       } catch (err: any) {
         console.error('Failed to process PDF file:', err);
         alert(`解析 PDF 失败: ${err.message || err}`);
+        return null;
       }
-      return;
     }
 
     // 4. 图片
     if (file.type.startsWith('image/') || /\.(png|jpe?g|webp|gif|bmp|svg)$/i.test(fileNameLower)) {
       try {
         const { data, previewUrl, mimeType } = await processImageFile(file);
-        setAttachment({
+        const att: CopilotAttachment = {
           name: file.name,
           size: file.size,
           mimeType: mimeType || 'image/jpeg',
           data,
           previewUrl
-        });
+        };
+        setAttachment(att);
+        return att;
       } catch (err: any) {
         console.error('Failed to process image file:', err);
         alert(`解析图片失败: ${err.message || err}`);
+        return null;
       }
-      return;
     }
 
     alert('支持上传图片 (PNG, JPG)、PDF、Office 文档 (Word, PPT, Excel, CSV) 以及代码/学术文本 (.tex, .py, .md 等)。');
+    return null;
   }, []);
 
   // 文件上传选择
@@ -465,14 +474,13 @@ export const useCopilotChat = ({
 
   // 发送新消息
   const handleSendMessage = useCallback(
-    async (textToSend?: string) => {
+    async (textToSend?: string, customAttachment?: CopilotAttachment | null) => {
       const prompt = (textToSend !== undefined ? textToSend : inputPrompt).trim();
-      if ((!prompt && !attachment) || isLoading) return;
+      const currentAttachment = customAttachment !== undefined ? customAttachment : attachment;
+      if ((!prompt && !currentAttachment) || isLoading) return;
 
       const userMessageId = `msg_user_${Date.now()}`;
       const assistantMessageId = `msg_asst_${Date.now() + 1}`;
-
-      const currentAttachment = attachment;
       const userMsg: CopilotMessage = {
         id: userMessageId,
         role: 'user',

@@ -33,6 +33,10 @@ import { ProjectManagerModal } from './components/ProjectManagerModal';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { SettingsModal } from './components/SettingsModal';
 import { SponsorModal } from './components/SponsorModal';
+import { useIsMobile } from './hooks/useIsMobile';
+import { MobileHeader } from './components/mobile/MobileHeader';
+import { MobileBottomBar } from './components/mobile/MobileBottomBar';
+import { MobileMenuDrawer } from './components/mobile/MobileMenuDrawer';
 
 export const App: React.FC = () => {
   const { t, language } = useTranslation();
@@ -99,6 +103,19 @@ export const App: React.FC = () => {
   const [isSponsorOpen, setIsSponsorOpen] = useState<boolean>(false);
   const [isCopilotOpen, setIsCopilotOpen] = useState<boolean>(false);
   const [copilotExternalTrigger, setCopilotExternalTrigger] = useState<CopilotExternalTrigger | null>(null);
+
+  const isMobile = useIsMobile();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+
+  const handleCapturePhoto = useCallback((file: File) => {
+    setIsCopilotOpen(true);
+    setCopilotExternalTrigger({
+      text: '请识别并提取这张笔记/教材截图中的所有数学定义、公理、定理与推论，并理清它们之间的前置推导依赖关系，生成可合入当前知识体系的命题图谱变更集。',
+      autoSend: true,
+      timestamp: Date.now(),
+      file
+    });
+  }, []);
 
   const handleTriggerCopilot = useCallback((message: string, autoSend: boolean = true) => {
     setIsCopilotOpen(true);
@@ -658,37 +675,47 @@ export const App: React.FC = () => {
       }`}
     >
       {/* Top Header */}
-      <Header
-        currentProject={currentProject}
-        onOpenProjectManager={() => setIsProjectManagerOpen(true)}
-        layoutType={layoutType}
-        onChangeLayout={setLayoutType}
-        isFocusMode={isFocusMode}
-        onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
-        isConnectingMode={isConnectingMode}
-        onToggleConnectingMode={() => setIsConnectingMode(!isConnectingMode)}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onOpenCreateModal={() => handleOpenCreateModal()}
-        isCopilotOpen={isCopilotOpen}
-        onToggleCopilot={() => setIsCopilotOpen(prev => !prev)}
-        onSaveAs={handleSaveAs}
-        onManualSave={() => doSaveNow(true)}
-        onImport={handleImportJson}
-        nodeCount={dataset.nodes.length}
-        theme={effectiveTheme}
-        onToggleTheme={cycleTheme}
-        canUndo={historyIndex > 0}
-        canRedo={historyIndex < history.length - 1}
-        onUndo={handleUndo}
-        onRedo={handleRedo}
-        onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        onOpenSponsor={() => setIsSponsorOpen(true)}
-      />
+      {isMobile ? (
+        <MobileHeader
+          currentProject={currentProject}
+          nodeCount={dataset.nodes.length}
+          onOpenProjectManager={() => setIsProjectManagerOpen(true)}
+          onOpenMenu={() => setIsMobileMenuOpen(true)}
+          isDark={isDark}
+        />
+      ) : (
+        <Header
+          currentProject={currentProject}
+          onOpenProjectManager={() => setIsProjectManagerOpen(true)}
+          layoutType={layoutType}
+          onChangeLayout={setLayoutType}
+          isFocusMode={isFocusMode}
+          onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
+          isConnectingMode={isConnectingMode}
+          onToggleConnectingMode={() => setIsConnectingMode(!isConnectingMode)}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onOpenCreateModal={() => handleOpenCreateModal()}
+          isCopilotOpen={isCopilotOpen}
+          onToggleCopilot={() => setIsCopilotOpen(prev => !prev)}
+          onSaveAs={handleSaveAs}
+          onManualSave={() => doSaveNow(true)}
+          onImport={handleImportJson}
+          nodeCount={dataset.nodes.length}
+          theme={effectiveTheme}
+          onToggleTheme={cycleTheme}
+          canUndo={historyIndex > 0}
+          canRedo={historyIndex < history.length - 1}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenSponsor={() => setIsSponsorOpen(true)}
+        />
+      )}
 
       {/* Main Canvas Area */}
-      <main className="flex-1 relative overflow-hidden">
+      <main className={`flex-1 relative overflow-hidden ${isMobile ? 'pb-13' : ''}`}>
         <GraphCanvas
           key={currentProject.id}
           nodes={dataset.nodes}
@@ -737,26 +764,60 @@ export const App: React.FC = () => {
           theme={effectiveTheme}
           externalTrigger={copilotExternalTrigger}
           onClearExternalTrigger={() => setCopilotExternalTrigger(null)}
+          isMobile={isMobile}
         />
       </main>
 
-      {/* Status Bar */}
-      <StatusBar
-        theme={effectiveTheme}
-        projectName={currentProject.name}
-        nodeCount={dataset.nodes.length}
-        edgeCount={totalEdgesCount}
-        selectedTitle={selectedNode?.title || null}
-        lastSavedTime={lastSavedTime}
-        canUndo={historyIndex > 0}
-        canRedo={historyIndex < history.length - 1}
-        onOpenShortcuts={() => setIsShortcutsModalOpen(true)}
-        autoSaveMode={autoSaveMode}
-        onChangeAutoSaveMode={handleChangeAutoSaveMode}
-        isDirty={isDirty}
-        isSaving={isSaving}
-        onManualSave={() => doSaveNow(true)}
-      />
+      {/* Bottom Bar or Status Bar */}
+      {isMobile ? (
+        <>
+          <MobileBottomBar
+            isDark={isDark}
+            isCopilotOpen={isCopilotOpen}
+            onToggleCopilot={() => setIsCopilotOpen(prev => !prev)}
+            onOpenCreateModal={() => handleOpenCreateModal()}
+            onCapturePhoto={handleCapturePhoto}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+          />
+          <MobileMenuDrawer
+            isOpen={isMobileMenuOpen}
+            onClose={() => setIsMobileMenuOpen(false)}
+            isDark={isDark}
+            theme={effectiveTheme}
+            onToggleTheme={cycleTheme}
+            layoutType={layoutType}
+            onChangeLayout={setLayoutType}
+            isFocusMode={isFocusMode}
+            onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
+            canUndo={historyIndex > 0}
+            canRedo={historyIndex < history.length - 1}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            onSaveAs={handleSaveAs}
+            onImport={handleImportJson}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenSponsor={() => setIsSponsorOpen(true)}
+          />
+        </>
+      ) : (
+        <StatusBar
+          theme={effectiveTheme}
+          projectName={currentProject.name}
+          nodeCount={dataset.nodes.length}
+          edgeCount={totalEdgesCount}
+          selectedTitle={selectedNode?.title || null}
+          lastSavedTime={lastSavedTime}
+          canUndo={historyIndex > 0}
+          canRedo={historyIndex < history.length - 1}
+          onOpenShortcuts={() => setIsShortcutsModalOpen(true)}
+          autoSaveMode={autoSaveMode}
+          onChangeAutoSaveMode={handleChangeAutoSaveMode}
+          isDirty={isDirty}
+          isSaving={isSaving}
+          onManualSave={() => doSaveNow(true)}
+        />
+      )}
 
       {/* Create Proposition Modal */}
       <CreateNodeModal

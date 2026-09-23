@@ -15,21 +15,24 @@ import {
   Trash2, 
   Settings, 
   Send, 
-  Square,
+  Square, 
   Paperclip, 
-  UploadCloud,
-  MessageSquare,
-  Download,
-  Share2,
-  Copy,
-  Check,
-  ChevronDown
+  Camera, 
+  ArrowLeft, 
+  UploadCloud, 
+  MessageSquare, 
+  Download, 
+  Share2, 
+  Copy, 
+  Check, 
+  ChevronDown 
 } from 'lucide-react';
 
 export interface CopilotExternalTrigger {
   text: string;
   autoSend?: boolean;
   timestamp: number;
+  file?: File;
 }
 
 interface CopilotSidebarProps {
@@ -43,6 +46,7 @@ interface CopilotSidebarProps {
   theme: AppTheme;
   externalTrigger?: CopilotExternalTrigger | null;
   onClearExternalTrigger?: () => void;
+  isMobile?: boolean;
 }
 
 export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
@@ -55,7 +59,8 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
   onOpenSettings,
   theme,
   externalTrigger,
-  onClearExternalTrigger
+  onClearExternalTrigger,
+  isMobile = false
 }) => {
   const isDark = theme === 'dark';
   const [previewingAttachment, setPreviewingAttachment] = useState<AttachmentPreviewData | null>(null);
@@ -131,6 +136,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const exportMenuRef = useRef<HTMLDivElement>(null);
 
 
@@ -247,19 +253,32 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     return () => window.removeEventListener('keydown', handleSidebarKeyDown, true);
   }, [isOpen, isDraggingFile, previewingAttachment, isExportMenuOpen, isSessionDrawerOpen, inputPrompt, onClose, setIsDraggingFile]);
 
-  // 响应来自外部组件（如命题详情抽屉）的 Copilot 触发
+  // 响应来自外部组件（如命题详情抽屉或移动端拍照）的 Copilot 触发
   useEffect(() => {
-    if (externalTrigger && externalTrigger.text && externalTrigger.timestamp !== lastHandledTriggerRef.current) {
+    if (externalTrigger && (externalTrigger.text || externalTrigger.file) && externalTrigger.timestamp !== lastHandledTriggerRef.current) {
       lastHandledTriggerRef.current = externalTrigger.timestamp;
-      if (externalTrigger.autoSend) {
-        handleSendMessage(externalTrigger.text);
-      } else {
-        setInputPrompt(externalTrigger.text);
-        textareaRef.current?.focus();
+      if (externalTrigger.file) {
+        handleProcessFile(externalTrigger.file).then(att => {
+          if (externalTrigger.text) {
+            if (externalTrigger.autoSend) {
+              handleSendMessage(externalTrigger.text, att || undefined);
+            } else {
+              setInputPrompt(externalTrigger.text);
+              textareaRef.current?.focus();
+            }
+          }
+        });
+      } else if (externalTrigger.text) {
+        if (externalTrigger.autoSend) {
+          handleSendMessage(externalTrigger.text);
+        } else {
+          setInputPrompt(externalTrigger.text);
+          textareaRef.current?.focus();
+        }
       }
       onClearExternalTrigger?.();
     }
-  }, [externalTrigger, handleSendMessage, setInputPrompt, onClearExternalTrigger]);
+  }, [externalTrigger, handleProcessFile, handleSendMessage, setInputPrompt, onClearExternalTrigger]);
 
   // 自动滚底
   const scrollToBottom = useCallback(() => {
@@ -349,9 +368,13 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     <aside
       onPaste={handlePaste}
       style={{
-        width: typeof window !== 'undefined' && window.innerWidth < 640 ? '100%' : `${sidebarWidth}px`
+        width: isMobile || (typeof window !== 'undefined' && window.innerWidth < 640) ? '100%' : `${sidebarWidth}px`
       }}
-      className={`fixed right-0 top-13 sm:top-14 bottom-6 max-w-full z-30 flex flex-col border-l select-text ${
+      className={`fixed ${
+        isMobile 
+          ? 'inset-0 z-50' 
+          : 'right-0 top-13 sm:top-14 bottom-6 z-30 border-l'
+      } max-w-full flex flex-col select-text ${
         isResizing ? '' : 'transition-[width] duration-200'
       } ${
         isDark
@@ -364,17 +387,19 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
       onDrop={handleDrop}
     >
       {/* 左边缘拖拽调节手柄 */}
-      <div
-        onMouseDown={handleResizeMouseDown}
-        className="hidden sm:flex absolute left-0 top-0 bottom-0 w-2 -translate-x-1 cursor-col-resize z-40 group items-center justify-center select-none"
-        title="拖拽调节侧边栏宽度"
-      >
-        <div className={`w-0.5 h-8 rounded-full transition-colors ${
-          isResizing 
-            ? 'bg-blue-500' 
-            : 'bg-transparent group-hover:bg-blue-500/60'
-        }`} />
-      </div>
+      {!isMobile && (
+        <div
+          onMouseDown={handleResizeMouseDown}
+          className="hidden sm:flex absolute left-0 top-0 bottom-0 w-2 -translate-x-1 cursor-col-resize z-40 group items-center justify-center select-none"
+          title="拖拽调节侧边栏宽度"
+        >
+          <div className={`w-0.5 h-8 rounded-full transition-colors ${
+            isResizing 
+              ? 'bg-blue-500' 
+              : 'bg-transparent group-hover:bg-blue-500/60'
+          }`} />
+        </div>
+      )}
 
       {/* 拖拽全域释放蒙层（仅覆盖内容区域，不遮盖顶部标题栏与关闭按钮） */}
       {isDraggingFile && (
@@ -423,6 +448,19 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
         isDark ? 'bg-[#18181B]' : 'bg-[#FAF8F5]'
       }`}>
         <div className="flex items-center space-x-2 min-w-0 pr-2">
+          {/* 移动端专属返回画布大按钮 */}
+          {isMobile && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex items-center space-x-1 px-2.5 py-1 text-xs border border-blue-500/40 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 font-serif shrink-0 cursor-pointer active:scale-95 transition-transform"
+              title="返回图谱画布"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>返回画布</span>
+            </button>
+          )}
+
           {/* 会话抽屉切换按钮 */}
           <button
             type="button"
@@ -633,24 +671,43 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
             style={{ minHeight: '36px', maxHeight: '140px' }}
           />
 
-          {/* 下半部分：操作按钮栏 (左侧上传附件，右侧发送) */}
+          {/* 下半部分：操作按钮栏 (左侧上传附件与拍照，右侧发送) */}
           <div className="flex items-center justify-between pt-1.5 mt-1 border-t border-black/5 dark:border-white/5">
-            {/* 上传附件按钮 */}
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="p-1 opacity-60 hover:opacity-100 hover:text-blue-500 transition-colors cursor-pointer rounded-xs"
-              title="上传图片、PDF、Word、PPT、Excel、CSV、LaTeX 或代码文件"
-            >
-              <Paperclip className="w-3.5 h-3.5" />
-            </button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              accept="image/*,application/pdf,.docx,.pptx,.xlsx,.csv,.tsv,.txt,.md,.markdown,.tex,.latex,.bib,.typ,.py,.cpp,.c,.h,.hpp,.java,.rs,.go,.ts,.js,.jsx,.tsx,.html,.css,.json,.yaml,.yml,.toml,.xml,.sql,.r,.m"
-              className="hidden"
-            />
+            {/* 上传附件与拍照 */}
+            <div className="flex items-center space-x-1">
+              <button
+                type="button"
+                onClick={() => cameraInputRef.current?.click()}
+                className="p-1 opacity-70 hover:opacity-100 hover:text-blue-500 transition-colors cursor-pointer rounded-xs"
+                title="手机拍照录入笔记 (直连相机)"
+              >
+                <Camera className="w-3.5 h-3.5 text-blue-500" />
+              </button>
+              <input
+                type="file"
+                ref={cameraInputRef}
+                onChange={handleFileUpload}
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+              />
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-1 opacity-60 hover:opacity-100 hover:text-blue-500 transition-colors cursor-pointer rounded-xs"
+                title="上传图片、PDF、Word、PPT、Excel、CSV、LaTeX 或代码文件"
+              >
+                <Paperclip className="w-3.5 h-3.5" />
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                accept="image/*,application/pdf,.docx,.pptx,.xlsx,.csv,.tsv,.txt,.md,.markdown,.tex,.latex,.bib,.typ,.py,.cpp,.c,.h,.hpp,.java,.rs,.go,.ts,.js,.jsx,.tsx,.html,.css,.json,.yaml,.yml,.toml,.xml,.sql,.r,.m"
+                className="hidden"
+              />
+            </div>
 
             {/* 发送 / 停止生成 切换按钮 */}
             {isGenerating ? (
