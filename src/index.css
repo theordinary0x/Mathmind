@@ -81,3 +81,59 @@ body {
 .math-markdown code:not(pre code) { padding: 0.15rem 0.35rem; font-family: monospace; font-size: 0.9em; background: rgba(128, 128, 128, 0.15); }
 .math-markdown hr { border: none; border-top: 1px solid rgba(128, 128, 128, 0.2); margin: 0.8rem 0; }
 
+/* ========================================================
+   Visual Layering: Corner Geometry & Surface Material
+   ======================================================== */
+:root {
+  --mm-radius-sm: 6px;
+  --mm-radius-md: 10px;
+  --mm-radius-lg: 14px;
+  --mm-radius-xl: 18px;
+  --mm-radius-2xl: 24px;
+}
+
+/* Sharp Corner Override: Force sharp 90-degree corners when in sharp mode */
+html.corner-sharp .rounded-xs,
+html.corner-sharp .rounded-sm,
+html.corner-sharp .rounded,
+html.corner-sharp .rounded-md,
+html.corner-sharp .rounded-lg,
+html.corner-sharp .rounded-xl,
+html.corner-sharp .rounded-2xl,
+html.corner-sharp .rounded-3xl,
+html.corner-sharp .rounded-full:not(.node-avatar):not(.badge-dot) {
+  border-radius: 0px !important;
+}
+
+/* Solid Material Override: Disable backdrop filters for solid high-contrast mode */
+html.material-solid .backdrop-blur-none,
+html.material-solid .backdrop-blur-xs,
+html.material-solid .backdrop-blur-sm,
+html.material-solid .backdrop-blur,
+html.material-solid .backdrop-blur-md,
+html.material-solid .backdrop-blur-lg,
+html.material-solid .backdrop-blur-xl {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.material-solid.dark .glass-panel {
+  background-color: #18181B !important;
+}
+html.material-solid:not(.dark) .glass-panel {
+  background-color: #FAF8F5 !important;
+}
+
+/* Glass Material (Frosted Acrylic) */
+html.material-glass.dark .glass-panel {
+  background-color: rgba(24, 24, 27, 0.82) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+}
+html.material-glass:not(.dark) .glass-panel {
+  background-color: rgba(250, 248, 245, 0.86) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+}
+
+

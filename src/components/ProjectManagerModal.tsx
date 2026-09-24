@@ -65,10 +65,10 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
     >
 
       <div
-        className={`border shadow-2xl w-full max-w-lg flex flex-col overflow-hidden backdrop-blur-md ${
+        className={`border shadow-2xl w-full max-w-lg flex flex-col overflow-hidden rounded-2xl glass-panel transition-all ${
           isDark
-            ? 'bg-[#18181B] border-white/10 text-zinc-100'
-            : 'bg-white border-black/10 text-stone-800'
+            ? 'border-white/10 text-zinc-100'
+            : 'border-black/10 text-stone-800'
         }`}
       >
         {/* Header */}

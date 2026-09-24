@@ -84,6 +84,8 @@ export interface Project {
 
 export type ThemeMode = 'dark' | 'paper' | 'system';
 export type AppTheme = 'dark' | 'paper';
+export type CornerStyle = 'rounded' | 'sharp';
+export type SurfaceMaterial = 'glass' | 'solid';
 
 export type BackgroundPresetType = 
   | 'paper' 

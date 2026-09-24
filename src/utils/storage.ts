@@ -1,4 +1,4 @@
-import { GraphDataset, Project, PropositionNode, AppTheme, CanvasSettings, DEFAULT_CANVAS_SETTINGS, AutoSaveMode } from '../types';
+import { GraphDataset, Project, PropositionNode, AppTheme, CanvasSettings, DEFAULT_CANVAS_SETTINGS, AutoSaveMode, CornerStyle, SurfaceMaterial } from '../types';
 import { DEFAULT_PROJECTS, PEANO_DATASET, EUCLID_DATASET } from '../data/seedData';
 import { DEFAULT_PROJECTS_EN, PEANO_DATASET_EN, EUCLID_DATASET_EN } from '../data/seedDataEn';
 import { Language } from '../i18n/types';
@@ -12,6 +12,48 @@ const ACTIVE_PROJ_KEY = 'mathmind_active_project_id_v2';
 const THEME_STORAGE_KEY = 'mathmind_theme_v1';
 const CANVAS_SETTINGS_KEY = 'mathmind_canvas_settings_v2';
 const AUTOSAVE_MODE_KEY = 'mathmind_autosave_mode_v1';
+const CORNER_STYLE_KEY = 'mathmind_corner_style_v1';
+const SURFACE_MATERIAL_KEY = 'mathmind_surface_material_v1';
+
+export function getSavedCornerStyle(): CornerStyle {
+  try {
+    const saved = localStorage.getItem(CORNER_STYLE_KEY);
+    if (saved === 'rounded' || saved === 'sharp') {
+      return saved;
+    }
+    return 'rounded';
+  } catch {
+    return 'rounded';
+  }
+}
+
+export function saveCornerStyle(style: CornerStyle): void {
+  try {
+    localStorage.setItem(CORNER_STYLE_KEY, style);
+  } catch (err) {
+    console.error('Failed to save corner style:', err);
+  }
+}
+
+export function getSavedSurfaceMaterial(): SurfaceMaterial {
+  try {
+    const saved = localStorage.getItem(SURFACE_MATERIAL_KEY);
+    if (saved === 'glass' || saved === 'solid') {
+      return saved;
+    }
+    return 'glass';
+  } catch {
+    return 'glass';
+  }
+}
+
+export function saveSurfaceMaterial(material: SurfaceMaterial): void {
+  try {
+    localStorage.setItem(SURFACE_MATERIAL_KEY, material);
+  } catch (err) {
+    console.error('Failed to save surface material:', err);
+  }
+}
 
 export function getSavedAutoSaveMode(): AutoSaveMode {
   try {

@@ -299,10 +299,10 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-100 select-none"
     >
       <div
-        className={`border shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden font-sans select-text ${
+        className={`border shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden font-sans select-text rounded-2xl glass-panel transition-all ${
           isDark
-            ? 'bg-[#18181B] border-[#2E2E33] text-[#EDECE8]'
-            : 'bg-[#FAF8F5] border-[#D4CDC0] text-[#2C2B29]'
+            ? 'bg-[#18181B] border-white/10 text-[#EDECE8]'
+            : 'bg-[#FAF8F5] border-black/10 text-[#2C2B29]'
         }`}
       >
         {/* Header */}

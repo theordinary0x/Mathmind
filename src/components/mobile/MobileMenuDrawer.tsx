@@ -13,9 +13,11 @@ import {
   Coffee, 
   Undo2, 
   Redo2,
-  BookOpen
+  BookOpen,
+  Sparkles,
+  Square
 } from 'lucide-react';
-import { AppTheme } from '../../types';
+import { AppTheme, CornerStyle, SurfaceMaterial } from '../../types';
 
 interface MobileMenuDrawerProps {
   isOpen: boolean;
@@ -23,6 +25,10 @@ interface MobileMenuDrawerProps {
   isDark: boolean;
   theme: AppTheme;
   onToggleTheme: () => void;
+  cornerStyle: CornerStyle;
+  onToggleCornerStyle: () => void;
+  surfaceMaterial: SurfaceMaterial;
+  onToggleSurfaceMaterial: () => void;
   layoutType: 'dagre' | 'cose';
   onChangeLayout: (type: 'dagre' | 'cose') => void;
   isFocusMode: boolean;
@@ -43,6 +49,10 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
   isDark,
   theme,
   onToggleTheme,
+  cornerStyle,
+  onToggleCornerStyle,
+  surfaceMaterial,
+  onToggleSurfaceMaterial,
   layoutType,
   onChangeLayout,
   isFocusMode,
@@ -66,10 +76,10 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
       onClick={onClose}
     >
       <div
-        className={`w-full max-w-sm border shadow-2xl p-4 font-sans select-text animate-in slide-in-from-bottom-4 duration-150 ${
+        className={`w-full max-w-sm border shadow-2xl p-4 font-sans select-text animate-in slide-in-from-bottom-4 duration-150 rounded-2xl glass-panel ${
           isDark
-            ? 'bg-[#18181B] border-[#2E2E33] text-[#EDECE8]'
-            : 'bg-[#FAF8F5] border-[#D4CDC0] text-[#2C2B29]'
+            ? 'border-white/10 text-[#EDECE8]'
+            : 'border-black/10 text-[#2C2B29]'
         }`}
         onClick={e => e.stopPropagation()}
       >
@@ -82,7 +92,7 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+            className="p-1 opacity-60 hover:opacity-100 transition-opacity cursor-pointer rounded-lg"
           >
             <X className="w-4 h-4" />
           </button>
@@ -90,21 +100,55 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
 
         {/* 快捷操作网格 */}
         <div className="grid grid-cols-2 gap-2 py-3 text-xs">
-          {/* 外观切换 */}
+          {/* 外观模式切换 */}
           <button
             type="button"
             onClick={() => {
               onToggleTheme();
               onClose();
             }}
-            className={`flex items-center space-x-2 p-2.5 border transition-colors cursor-pointer ${
+            className={`flex items-center space-x-2 p-2.5 border transition-all cursor-pointer rounded-xl ${
               isDark
-                ? 'bg-[#202024] border-[#2E2E33] hover:border-blue-500'
-                : 'bg-white border-[#D4CDC0] hover:border-blue-600'
+                ? 'bg-white/5 border-white/10 hover:border-blue-500'
+                : 'bg-black/5 border-black/10 hover:border-blue-600'
             }`}
           >
             {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-blue-500" />}
-            <span>{isDark ? '切换浅色纸张' : '切换深色黑曜'}</span>
+            <span>{isDark ? '切浅色纸张' : '切深色黑曜'}</span>
+          </button>
+
+          {/* 边角形态切换（圆角 / 直角） */}
+          <button
+            type="button"
+            onClick={() => {
+              onToggleCornerStyle();
+              onClose();
+            }}
+            className={`flex items-center space-x-2 p-2.5 border transition-all cursor-pointer rounded-xl ${
+              isDark
+                ? 'bg-white/5 border-white/10 hover:border-blue-500'
+                : 'bg-black/5 border-black/10 hover:border-blue-600'
+            }`}
+          >
+            <Square className="w-4 h-4 text-blue-400" />
+            <span>{cornerStyle === 'rounded' ? '形态：圆角' : '形态：直角'}</span>
+          </button>
+
+          {/* 表面材质切换（毛玻璃 / 纯色） */}
+          <button
+            type="button"
+            onClick={() => {
+              onToggleSurfaceMaterial();
+              onClose();
+            }}
+            className={`flex items-center space-x-2 p-2.5 border transition-all cursor-pointer rounded-xl ${
+              isDark
+                ? 'bg-white/5 border-white/10 hover:border-blue-500'
+                : 'bg-black/5 border-black/10 hover:border-blue-600'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span>{surfaceMaterial === 'glass' ? '材质：毛玻璃' : '材质：纯色'}</span>
           </button>
 
           {/* 布局切换 */}
@@ -114,21 +158,21 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
               onChangeLayout(layoutType === 'dagre' ? 'cose' : 'dagre');
               onClose();
             }}
-            className={`flex items-center space-x-2 p-2.5 border transition-colors cursor-pointer ${
+            className={`flex items-center space-x-2 p-2.5 border transition-all cursor-pointer rounded-xl ${
               isDark
-                ? 'bg-[#202024] border-[#2E2E33] hover:border-blue-500'
-                : 'bg-white border-[#D4CDC0] hover:border-blue-600'
+                ? 'bg-white/5 border-white/10 hover:border-blue-500'
+                : 'bg-black/5 border-black/10 hover:border-blue-600'
             }`}
           >
             {layoutType === 'dagre' ? (
               <>
                 <Network className="w-4 h-4 text-purple-400" />
-                <span>切为力导向布局</span>
+                <span>切力导向布局</span>
               </>
             ) : (
               <>
                 <GitFork className="w-4 h-4 text-emerald-400" />
-                <span>切为分层推导布局</span>
+                <span>切分层布局</span>
               </>
             )}
           </button>
@@ -140,14 +184,14 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
               onToggleFocusMode();
               onClose();
             }}
-            className={`flex items-center space-x-2 p-2.5 border transition-colors cursor-pointer ${
+            className={`flex items-center space-x-2 p-2.5 border transition-all cursor-pointer rounded-xl ${
               isDark
-                ? 'bg-[#202024] border-[#2E2E33] hover:border-blue-500'
-                : 'bg-white border-[#D4CDC0] hover:border-blue-600'
+                ? 'bg-white/5 border-white/10 hover:border-blue-500'
+                : 'bg-black/5 border-black/10 hover:border-blue-600'
             }`}
           >
             {isFocusMode ? <EyeOff className="w-4 h-4 text-amber-500" /> : <Eye className="w-4 h-4 text-blue-500" />}
-            <span>{isFocusMode ? '退出聚焦推导' : '开启聚焦推导'}</span>
+            <span>{isFocusMode ? '退出聚焦' : '开启聚焦'}</span>
           </button>
 
           {/* 系统设置 */}
@@ -157,10 +201,10 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
               onClose();
               onOpenSettings();
             }}
-            className={`flex items-center space-x-2 p-2.5 border transition-colors cursor-pointer ${
+            className={`flex items-center space-x-2 p-2.5 border transition-all cursor-pointer rounded-xl ${
               isDark
-                ? 'bg-[#202024] border-[#2E2E33] hover:border-blue-500'
-                : 'bg-white border-[#D4CDC0] hover:border-blue-600'
+                ? 'bg-white/5 border-white/10 hover:border-blue-500'
+                : 'bg-black/5 border-black/10 hover:border-blue-600'
             }`}
           >
             <Settings className="w-4 h-4 text-zinc-400" />
@@ -172,11 +216,11 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
             type="button"
             disabled={!canUndo}
             onClick={onUndo}
-            className={`flex items-center space-x-2 p-2.5 border transition-colors ${
+            className={`flex items-center space-x-2 p-2.5 border transition-all rounded-xl ${
               canUndo
                 ? isDark
-                  ? 'bg-[#202024] border-[#2E2E33] hover:border-blue-500 cursor-pointer'
-                  : 'bg-white border-[#D4CDC0] hover:border-blue-600 cursor-pointer'
+                  ? 'bg-white/5 border-white/10 hover:border-blue-500 cursor-pointer'
+                  : 'bg-black/5 border-black/10 hover:border-blue-600 cursor-pointer'
                 : 'opacity-40 cursor-not-allowed border-black/5 dark:border-white/5'
             }`}
           >
@@ -188,11 +232,11 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
             type="button"
             disabled={!canRedo}
             onClick={onRedo}
-            className={`flex items-center space-x-2 p-2.5 border transition-colors ${
+            className={`flex items-center space-x-2 p-2.5 border transition-all rounded-xl ${
               canRedo
                 ? isDark
-                  ? 'bg-[#202024] border-[#2E2E33] hover:border-blue-500 cursor-pointer'
-                  : 'bg-white border-[#D4CDC0] hover:border-blue-600 cursor-pointer'
+                  ? 'bg-white/5 border-white/10 hover:border-blue-500 cursor-pointer'
+                  : 'bg-black/5 border-black/10 hover:border-blue-600 cursor-pointer'
                 : 'opacity-40 cursor-not-allowed border-black/5 dark:border-white/5'
             }`}
           >
@@ -207,28 +251,28 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
               onClose();
               onSaveAs();
             }}
-            className={`flex items-center space-x-2 p-2.5 border transition-colors cursor-pointer ${
+            className={`flex items-center space-x-2 p-2.5 border transition-all cursor-pointer rounded-xl ${
               isDark
-                ? 'bg-[#202024] border-[#2E2E33] hover:border-blue-500'
-                : 'bg-white border-[#D4CDC0] hover:border-blue-600'
+                ? 'bg-white/5 border-white/10 hover:border-blue-500'
+                : 'bg-black/5 border-black/10 hover:border-blue-600'
             }`}
           >
             <Download className="w-4 h-4 text-emerald-500" />
-            <span>导出 JSON 讲义</span>
+            <span>导出讲义</span>
           </button>
 
           {/* 导入 JSON */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className={`flex items-center space-x-2 p-2.5 border transition-colors cursor-pointer ${
+            className={`flex items-center space-x-2 p-2.5 border transition-all cursor-pointer rounded-xl ${
               isDark
-                ? 'bg-[#202024] border-[#2E2E33] hover:border-blue-500'
-                : 'bg-white border-[#D4CDC0] hover:border-blue-600'
+                ? 'bg-white/5 border-white/10 hover:border-blue-500'
+                : 'bg-black/5 border-black/10 hover:border-blue-600'
             }`}
           >
             <Upload className="w-4 h-4 text-blue-500" />
-            <span>导入体系文件</span>
+            <span>导入体系</span>
           </button>
           <input
             type="file"
@@ -250,7 +294,7 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
               onClose();
               onOpenSponsor();
             }}
-            className="w-full flex items-center justify-center space-x-2 p-2 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-xs font-medium transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center space-x-2 p-2 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 text-xs font-medium transition-colors cursor-pointer rounded-xl"
           >
             <Coffee className="w-4 h-4" />
             <span>为作者赞助一杯奶茶 🥤</span>

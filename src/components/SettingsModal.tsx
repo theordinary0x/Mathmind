@@ -14,7 +14,9 @@ import {
   ThemeMode,
   CanvasSettings,
   AutoSaveMode,
-  Project
+  Project,
+  CornerStyle,
+  SurfaceMaterial
 } from '../types';
 import { calculateStorageUsage } from '../utils/storage';
 import { AiProvider, AiSettings } from '../types/ai';
@@ -39,6 +41,10 @@ export interface SettingsModalProps {
   theme: AppTheme;
   themeMode: ThemeMode;
   onThemeModeChange: (mode: ThemeMode) => void;
+  cornerStyle: CornerStyle;
+  onCornerStyleChange: (style: CornerStyle) => void;
+  surfaceMaterial: SurfaceMaterial;
+  onSurfaceMaterialChange: (material: SurfaceMaterial) => void;
   canvasSettings: CanvasSettings;
   onUpdateCanvasSettings: (newSettings: CanvasSettings) => void;
   autoSaveMode: AutoSaveMode;
@@ -60,6 +66,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   theme,
   themeMode,
   onThemeModeChange,
+  cornerStyle,
+  onCornerStyleChange,
+  surfaceMaterial,
+  onSurfaceMaterialChange,
   canvasSettings,
   onUpdateCanvasSettings,
   autoSaveMode,
@@ -141,27 +151,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     >
 
       <div
-        className={`relative w-full max-w-3xl h-[620px] max-h-[92vh] border shadow-2xl flex flex-col overflow-hidden transition-colors ${
+        className={`relative w-full max-w-3xl h-[620px] max-h-[92vh] border shadow-2xl flex flex-col overflow-hidden transition-all rounded-2xl glass-panel ${
           isDark
-            ? 'bg-[#18181B] border-[#2E2E33] text-[#EDECE8]'
-            : 'bg-[#FAF8F5] border-[#D4CDC0] text-[#2C2B29]'
+            ? 'border-white/10 text-[#EDECE8]'
+            : 'border-black/10 text-[#2C2B29]'
         }`}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div
           className={`px-4 sm:px-5 py-3 sm:py-4 border-b flex items-center justify-between shrink-0 ${
-            isDark ? 'border-[#2E2E33] bg-[#202024]' : 'border-[#D4CDC0] bg-[#F2EFE9]'
+            isDark ? 'border-white/10 bg-white/5' : 'border-black/10 bg-black/5'
           }`}
         >
           <div className="flex items-center space-x-2 sm:space-x-2.5 min-w-0 pr-2">
-            <div className="p-1.5 sm:p-2 bg-blue-500/10 text-blue-500 shrink-0">
+            <div className="p-1.5 sm:p-2 bg-blue-500/10 text-blue-500 shrink-0 rounded-lg">
               <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
               <h2 id="settings-modal-title" className="font-serif font-bold text-sm sm:text-lg flex items-center space-x-1.5 sm:space-x-2">
                 <span>{t('settings.title')}</span>
-                <span className="text-[10px] sm:text-xs font-mono px-1.5 py-0.5 bg-blue-500/15 text-blue-500 font-normal">
+                <span className="text-[10px] sm:text-xs font-mono px-1.5 py-0.5 bg-blue-500/15 text-blue-500 font-normal rounded-md">
                   Ctrl + ,
                 </span>
               </h2>
@@ -170,7 +180,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className={`p-1.5 transition-colors shrink-0 cursor-pointer ${
+            className={`p-1.5 transition-colors shrink-0 cursor-pointer rounded-lg ${
               isDark ? 'hover:bg-white/10 text-zinc-400 hover:text-white' : 'hover:bg-black/5 text-stone-500 hover:text-black'
             }`}
             title="关闭 (Esc)"
@@ -184,12 +194,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Tab Nav */}
           <div
             className={`w-full sm:w-44 md:w-52 border-b sm:border-b-0 sm:border-r p-2 sm:p-2.5 flex flex-row sm:flex-col gap-1.5 sm:space-y-1 shrink-0 overflow-x-auto sm:overflow-y-auto no-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
-              isDark ? 'border-[#2E2E33] bg-[#121214]' : 'border-[#D4CDC0] bg-[#F2EFE9]'
+              isDark ? 'border-white/10 bg-black/20' : 'border-black/10 bg-black/5'
             }`}
           >
             <button
               onClick={() => setActiveTab('general')}
-              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap ${
+              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all text-left whitespace-nowrap rounded-xl ${
                 activeTab === 'general'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : isDark
@@ -203,7 +213,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <button
               onClick={() => setActiveTab('canvas')}
-              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap ${
+              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all text-left whitespace-nowrap rounded-xl ${
                 activeTab === 'canvas'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : isDark
@@ -217,7 +227,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <button
               onClick={() => setActiveTab('storage')}
-              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap ${
+              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all text-left whitespace-nowrap rounded-xl ${
                 activeTab === 'storage'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : isDark
@@ -231,7 +241,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <button
               onClick={() => setActiveTab('shortcuts')}
-              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap ${
+              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all text-left whitespace-nowrap rounded-xl ${
                 activeTab === 'shortcuts'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : isDark
@@ -245,7 +255,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <button
               onClick={() => setActiveTab('ai')}
-              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap ${
+              className={`shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all text-left whitespace-nowrap rounded-xl ${
                 activeTab === 'ai'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : isDark
@@ -263,7 +273,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   onClose();
                   onOpenSponsor();
                 }}
-                className="sm:mt-auto shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors text-left whitespace-nowrap text-amber-500 hover:bg-amber-500/10"
+                className="sm:mt-auto shrink-0 flex items-center space-x-2 px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-all text-left whitespace-nowrap text-amber-500 hover:bg-amber-500/10 rounded-xl"
               >
                 <Coffee className="w-4 h-4 shrink-0" />
                 <span>{t('header.sponsor')}</span>
@@ -277,6 +287,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <GeneralTab
                 themeMode={themeMode}
                 onThemeModeChange={onThemeModeChange}
+                cornerStyle={cornerStyle}
+                onCornerStyleChange={onCornerStyleChange}
+                surfaceMaterial={surfaceMaterial}
+                onSurfaceMaterialChange={onSurfaceMaterialChange}
                 isDark={isDark}
               />
             )}

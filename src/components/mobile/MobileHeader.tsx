@@ -19,15 +19,15 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
 }) => {
   return (
     <header
-      className={`h-12 px-3 border-b flex items-center justify-between shrink-0 select-none z-20 ${
+      className={`h-12 px-3 border-b flex items-center justify-between shrink-0 select-none z-20 glass-panel backdrop-blur-md ${
         isDark
-          ? 'bg-[#18181B] border-[#2E2E33] text-[#EDECE8]'
-          : 'bg-[#FAF8F5] border-[#D4CDC0] text-[#2C2B29]'
+          ? 'border-white/10 text-[#EDECE8]'
+          : 'border-black/10 text-[#2C2B29]'
       }`}
     >
       {/* 左侧：Logo 与品牌 */}
       <div className="flex items-center space-x-2 shrink-0">
-        <div className="p-1 border border-blue-500/30 bg-blue-500/10">
+        <div className="p-1 border border-blue-500/30 bg-blue-500/10 rounded-lg">
           <BookOpen className="w-4 h-4 text-[#3B82F6]" />
         </div>
         <span className="font-serif font-bold text-sm tracking-tight">
@@ -39,10 +39,10 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
       <button
         type="button"
         onClick={onOpenProjectManager}
-        className={`flex items-center space-x-1 px-2.5 py-1 text-xs border max-w-[170px] truncate transition-colors cursor-pointer ${
+        className={`flex items-center space-x-1.5 px-2.5 py-1 text-xs border max-w-[170px] truncate transition-all cursor-pointer rounded-lg ${
           isDark
-            ? 'bg-[#202024] border-[#2E2E33] hover:border-blue-500 text-zinc-200'
-            : 'bg-white border-[#D4CDC0] hover:border-blue-600 text-stone-800'
+            ? 'bg-white/5 border-white/10 hover:border-blue-500 text-zinc-200'
+            : 'bg-black/5 border-black/10 hover:border-blue-600 text-stone-800'
         }`}
         title="切换或管理数学体系"
       >
@@ -60,10 +60,10 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
       <button
         type="button"
         onClick={onOpenMenu}
-        className={`p-1.5 border transition-colors cursor-pointer ${
+        className={`p-1.5 border transition-all cursor-pointer rounded-lg ${
           isDark
-            ? 'border-[#2E2E33] hover:border-blue-500 text-zinc-200 bg-[#202024]'
-            : 'border-[#D4CDC0] hover:border-blue-600 text-stone-800 bg-white'
+            ? 'border-white/10 hover:border-blue-500 text-zinc-200 bg-white/5'
+            : 'border-black/10 hover:border-blue-600 text-stone-800 bg-black/5'
         }`}
         title="更多工具与设置"
       >

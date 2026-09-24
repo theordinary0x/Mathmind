@@ -175,10 +175,10 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
     >
 
       <div
-        className={`border shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden ${
+        className={`border shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden rounded-2xl glass-panel transition-all ${
           isDark
-            ? 'bg-[#18181B] border-white/10 text-[#EDECE8]'
-            : 'bg-white border-black/10 text-[#2C2B29]'
+            ? 'border-white/10 text-[#EDECE8]'
+            : 'border-black/10 text-[#2C2B29]'
         }`}
       >
         {/* Header */}

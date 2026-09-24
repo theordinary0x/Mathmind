@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { PropositionNode, Project, AppTheme, ThemeMode, PropositionType, AutoSaveMode, CanvasSettings, PropositionStatus, PROPOSITION_STATUSES } from './types';
+import { PropositionNode, Project, AppTheme, ThemeMode, PropositionType, AutoSaveMode, CanvasSettings, PropositionStatus, PROPOSITION_STATUSES, CornerStyle, SurfaceMaterial } from './types';
 import { useAutoSave } from './hooks/useAutoSave';
 import { useAppKeyboardShortcuts } from './hooks/useAppKeyboardShortcuts';
 import { 
@@ -17,8 +17,13 @@ import {
   saveAutoSaveMode,
   getSavedCanvasSettings,
   saveCanvasSettings,
-  exportAllProjectsBackup
+  exportAllProjectsBackup,
+  getSavedCornerStyle,
+  saveCornerStyle,
+  getSavedSurfaceMaterial,
+  saveSurfaceMaterial
 } from './utils/storage';
+import { SplashScreen } from './components/SplashScreen';
 import { Header } from './components/Header';
 import { useTranslation } from './i18n/LanguageContext';
 import { GraphCanvas } from './components/GraphCanvas';
@@ -66,16 +71,60 @@ export const App: React.FC = () => {
     return themeMode;
   }, [themeMode, systemPrefersDark]);
 
-  // Synchronize documentElement class for Tailwind dark: variants and global styles
+  // Visual Layers State: Corner Geometry & Surface Material
+  const [cornerStyle, setCornerStyle] = useState<CornerStyle>(() => getSavedCornerStyle());
+  const [surfaceMaterial, setSurfaceMaterial] = useState<SurfaceMaterial>(() => getSavedSurfaceMaterial());
+
+  // Synchronize documentElement class for Tailwind dark: variants and visual layers
   useEffect(() => {
+    const root = document.documentElement;
+    // 1. Theme
     if (effectiveTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
+      root.classList.add('dark');
+      root.classList.remove('light');
     } else {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.classList.add('light');
+      root.classList.remove('dark');
+      root.classList.add('light');
     }
-  }, [effectiveTheme]);
+
+    // 2. Corner Geometry
+    if (cornerStyle === 'rounded') {
+      root.classList.add('corner-rounded');
+      root.classList.remove('corner-sharp');
+    } else {
+      root.classList.add('corner-sharp');
+      root.classList.remove('corner-rounded');
+    }
+
+    // 3. Surface Material
+    if (surfaceMaterial === 'glass') {
+      root.classList.add('material-glass');
+      root.classList.remove('material-solid');
+    } else {
+      root.classList.add('material-solid');
+      root.classList.remove('material-glass');
+    }
+  }, [effectiveTheme, cornerStyle, surfaceMaterial]);
+
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const showToast = useCallback((msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 2800);
+  }, []);
+
+  const handleCornerStyleChange = useCallback((style: CornerStyle) => {
+    setCornerStyle(style);
+    saveCornerStyle(style);
+    showToast(style === 'rounded' ? '已切换为优雅圆角风格' : '已切换为严谨直角风格');
+  }, [showToast]);
+
+  const handleSurfaceMaterialChange = useCallback((mat: SurfaceMaterial) => {
+    setSurfaceMaterial(mat);
+    saveSurfaceMaterial(mat);
+    showToast(mat === 'glass' ? '已开启磨砂毛玻璃材质' : '已切换为纯平不透明材质');
+  }, [showToast]);
 
   const cycleTheme = () => {
     const next: ThemeMode = effectiveTheme === 'dark' ? 'paper' : 'dark';
@@ -130,13 +179,6 @@ export const App: React.FC = () => {
     saveCanvasSettings(newSettings);
   }, []);
 
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const showToast = useCallback((msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 2800);
-  }, []);
 
   const {
     autoSaveMode,
@@ -674,6 +716,9 @@ export const App: React.FC = () => {
         isDark ? 'bg-[#121214] text-[#EDECE8]' : 'bg-[#FAF8F5] text-[#2C2B29]'
       }`}
     >
+      {/* App Opening Animation (Masks initial layout and formula calculation jumps) */}
+      <SplashScreen isDark={isDark} />
+
       {/* Top Header */}
       {isMobile ? (
         <MobileHeader
@@ -776,7 +821,6 @@ export const App: React.FC = () => {
             isCopilotOpen={isCopilotOpen}
             onToggleCopilot={() => setIsCopilotOpen(prev => !prev)}
             onOpenCreateModal={() => handleOpenCreateModal()}
-            onCapturePhoto={handleCapturePhoto}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
           />
@@ -786,6 +830,10 @@ export const App: React.FC = () => {
             isDark={isDark}
             theme={effectiveTheme}
             onToggleTheme={cycleTheme}
+            cornerStyle={cornerStyle}
+            onToggleCornerStyle={() => handleCornerStyleChange(cornerStyle === 'rounded' ? 'sharp' : 'rounded')}
+            surfaceMaterial={surfaceMaterial}
+            onToggleSurfaceMaterial={() => handleSurfaceMaterialChange(surfaceMaterial === 'glass' ? 'solid' : 'glass')}
             layoutType={layoutType}
             onChangeLayout={setLayoutType}
             isFocusMode={isFocusMode}
@@ -884,6 +932,10 @@ export const App: React.FC = () => {
             localStorage.setItem('mathmind_theme_mode_v2', mode);
             showToast(mode === 'dark' ? '已切换至深色模式' : mode === 'paper' ? '已切换至浅色纸张模式' : '已设置为跟随系统外观');
           }}
+          cornerStyle={cornerStyle}
+          onCornerStyleChange={handleCornerStyleChange}
+          surfaceMaterial={surfaceMaterial}
+          onSurfaceMaterialChange={handleSurfaceMaterialChange}
           canvasSettings={canvasSettings}
           onUpdateCanvasSettings={handleUpdateCanvasSettings}
           autoSaveMode={autoSaveMode}
