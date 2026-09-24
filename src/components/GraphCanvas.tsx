@@ -8,6 +8,7 @@ import { getSavedCanvasSettings, saveCanvasSettings } from '../utils/storage';
 import { latexToUnicode } from '../utils/latexToUnicode';
 import { getCytoscapeStyles } from '../styles/cytoscapeStyles';
 import { getGraphLayoutConfig } from '../utils/layoutConfigs';
+import { animateConstellationEntrance, animateRelayoutPulse } from '../utils/canvasAnimation';
 import { getCanvasBackgroundStyle } from '../utils/canvasBackground';
 import { useCanvasHighlight } from '../hooks/useCanvasHighlight';
 import { useCanvasElementsSync } from '../hooks/useCanvasElementsSync';
@@ -368,12 +369,81 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
   }, [isConnectingMode]);
 
   // Layout runner with smooth animation & anti-overlap parameters
-  const runLayout = useCallback((type: 'dagre' | 'cose', _isSwitch: boolean = false) => {
+  const runLayout = useCallback((type: 'dagre' | 'cose', isSwitch: boolean = false) => {
     const cy = cyRef.current;
     if (!cy || cy.elements().length === 0) return;
 
-    const layoutConfig = getGraphLayoutConfig(type, fpsMode);
+    if (isSwitch) {
+      // 1. Initial full-load or project switch: compute target topology coordinates
+      const layoutConfig = {
+        ...getGraphLayoutConfig(type, 'off'),
+        animate: false,
+        fit: false
+      };
+      const layout = cy.layout(layoutConfig);
+      layout.one('layoutstop', () => {
+        // Delay slightly (320ms) so constellation blooming unfolds in sync as splash curtain parts
+        setTimeout(() => {
+          if (!cyRef.current) return;
+          animateConstellationEntrance(cyRef.current, fpsMode, () => {
+            setCurrentZoomPercent(Math.round(cyRef.current?.zoom() ? cyRef.current.zoom() * 100 : 100));
+          });
+        }, 320);
+      });
+      layout.run();
+      return;
+    }
 
+    if (type === 'dagre') {
+      // Record current positions before running dagre layout
+      const prevPositions = new Map<string, { x: number; y: number }>();
+      cy.nodes().forEach(n => {
+        prevPositions.set(n.id(), { ...n.position() });
+      });
+
+      const layoutConfig = getGraphLayoutConfig('dagre', fpsMode);
+      const layout = cy.layout(layoutConfig);
+
+      layout.one('layoutstop', () => {
+        // Calculate max displacement between previous and new positions
+        let maxDisplacement = 0;
+        cy.nodes().forEach(n => {
+          const prev = prevPositions.get(n.id());
+          if (prev) {
+            const dx = n.position().x - prev.x;
+            const dy = n.position().y - prev.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > maxDisplacement) maxDisplacement = dist;
+          }
+        });
+
+        // If nodes did not move (e.g. user clicked relayout on same layout), trigger elastic pulse!
+        if (maxDisplacement < 5) {
+          animateRelayoutPulse(cy, fpsMode, () => {
+            setCurrentZoomPercent(Math.round(cy.zoom() * 100));
+          });
+        } else {
+          cy.resize();
+          const fitDuration = fpsMode === 'off' ? 0 : fpsMode === 'economy' ? 180 : fpsMode === 'high' ? 550 : 350;
+          if (fitDuration > 0) {
+            cy.animate({
+              fit: { eles: cy.elements(), padding: 60 },
+              duration: fitDuration,
+              easing: 'ease-out-cubic'
+            });
+          } else {
+            cy.fit(cy.elements(), 60);
+          }
+          setCurrentZoomPercent(Math.round(cy.zoom() * 100));
+        }
+      });
+
+      layout.run();
+      return;
+    }
+
+    // CoSE iterative force-directed simulation
+    const layoutConfig = getGraphLayoutConfig('cose', fpsMode);
     const layout = cy.layout(layoutConfig);
 
     // Smoothly frame all elements in view upon layout completion
