@@ -2,6 +2,9 @@
 node_modules/
 dist/
 dist-ssr/
+release/
+apk_output/
+android/
 *.local
 
 # Editor and OS temporary files
