@@ -1,6 +1,6 @@
 import React from 'react';
-import { Sun, Moon, Laptop, Check, Sparkles, Square, Layers, CircleDot } from 'lucide-react';
-import { ThemeMode, CornerStyle, SurfaceMaterial } from '../../types';
+import { Sun, Moon, Laptop, Check, Sparkles, Square, Layers, CircleDot, Zap, ZapOff, Activity, Gauge } from 'lucide-react';
+import { ThemeMode, CornerStyle, SurfaceMaterial, AnimationFpsMode } from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
 
 interface GeneralTabProps {
@@ -10,6 +10,8 @@ interface GeneralTabProps {
   onCornerStyleChange: (style: CornerStyle) => void;
   surfaceMaterial: SurfaceMaterial;
   onSurfaceMaterialChange: (material: SurfaceMaterial) => void;
+  fpsMode: AnimationFpsMode;
+  onFpsModeChange: (mode: AnimationFpsMode) => void;
   isDark: boolean;
 }
 
@@ -20,6 +22,8 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
   onCornerStyleChange,
   surfaceMaterial,
   onSurfaceMaterialChange,
+  fpsMode,
+  onFpsModeChange,
   isDark
 }) => {
   const { t, language, setLanguage } = useTranslation();
@@ -275,6 +279,133 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
               </div>
             </div>
             {surfaceMaterial === 'solid' && <Check className="w-4 h-4 text-blue-500" />}
+          </button>
+        </div>
+      </div>
+
+      <hr className={isDark ? 'border-[#2E2E33]' : 'border-[#D4CDC0]'} />
+
+      {/* 5. 动画与目标帧率 (FPS Profile) */}
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="text-sm font-bold uppercase tracking-wider opacity-70">
+            动画与目标帧率 (Animation & FPS Target)
+          </h3>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 font-semibold border border-blue-500/20">
+            {fpsMode === 'high' ? '120Hz+ 满血高刷' : fpsMode === 'standard' ? '60 FPS 标准' : fpsMode === 'economy' ? '30 FPS 节能' : '0 FPS 极速无影'}
+          </span>
+        </div>
+        <p className="text-xs opacity-60 mb-3">
+          调控画布拓扑物理模拟重绘频率与全局动画补间时长，兼顾丝滑视效与设备功耗。
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* High 120Hz */}
+          <button
+            type="button"
+            onClick={() => onFpsModeChange('high')}
+            className={`p-3.5 border flex items-center justify-between transition-all rounded-xl ${
+              fpsMode === 'high'
+                ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/30'
+                : isDark
+                ? 'border-white/10 hover:border-white/20 bg-zinc-900/40'
+                : 'border-black/10 hover:border-black/20 bg-white'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-lg border border-amber-500/40 flex items-center justify-center bg-amber-500/10">
+                <Zap className="w-4 h-4 text-amber-500" />
+              </div>
+              <div className="text-left">
+                <div className="text-xs font-bold flex items-center gap-1.5">
+                  <span>120Hz+ 满血高刷</span>
+                  <span className="text-[9px] px-1 py-0.2 bg-amber-500/20 text-amber-400 rounded">流畅优先</span>
+                </div>
+                <div className="text-[10px] opacity-60">高频物理细分重绘与 650ms 丝滑长补间</div>
+              </div>
+            </div>
+            {fpsMode === 'high' && <Check className="w-4 h-4 text-blue-500" />}
+          </button>
+
+          {/* Standard 60fps */}
+          <button
+            type="button"
+            onClick={() => onFpsModeChange('standard')}
+            className={`p-3.5 border flex items-center justify-between transition-all rounded-xl ${
+              fpsMode === 'standard'
+                ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/30'
+                : isDark
+                ? 'border-white/10 hover:border-white/20 bg-zinc-900/40'
+                : 'border-black/10 hover:border-black/20 bg-white'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-lg border border-blue-500/40 flex items-center justify-center bg-blue-500/10">
+                <Activity className="w-4 h-4 text-blue-500" />
+              </div>
+              <div className="text-left">
+                <div className="text-xs font-bold flex items-center gap-1.5">
+                  <span>60 FPS 标准流体</span>
+                  <span className="text-[9px] px-1 py-0.2 bg-blue-500/20 text-blue-400 rounded">推荐</span>
+                </div>
+                <div className="text-[10px] opacity-60">平衡帧率与计算负荷，经典流体动效</div>
+              </div>
+            </div>
+            {fpsMode === 'standard' && <Check className="w-4 h-4 text-blue-500" />}
+          </button>
+
+          {/* Economy 30fps */}
+          <button
+            type="button"
+            onClick={() => onFpsModeChange('economy')}
+            className={`p-3.5 border flex items-center justify-between transition-all rounded-xl ${
+              fpsMode === 'economy'
+                ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/30'
+                : isDark
+                ? 'border-white/10 hover:border-white/20 bg-zinc-900/40'
+                : 'border-black/10 hover:border-black/20 bg-white'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-lg border border-emerald-500/40 flex items-center justify-center bg-emerald-500/10">
+                <Gauge className="w-4 h-4 text-emerald-500" />
+              </div>
+              <div className="text-left">
+                <div className="text-xs font-bold flex items-center gap-1.5">
+                  <span>30 FPS 节能低耗</span>
+                  <span className="text-[9px] px-1 py-0.2 bg-emerald-500/20 text-emerald-400 rounded">省电</span>
+                </div>
+                <div className="text-[10px] opacity-60">降低刷新步长与动效时长，延长续航</div>
+              </div>
+            </div>
+            {fpsMode === 'economy' && <Check className="w-4 h-4 text-blue-500" />}
+          </button>
+
+          {/* Off 0fps */}
+          <button
+            type="button"
+            onClick={() => onFpsModeChange('off')}
+            className={`p-3.5 border flex items-center justify-between transition-all rounded-xl ${
+              fpsMode === 'off'
+                ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/30'
+                : isDark
+                ? 'border-white/10 hover:border-white/20 bg-zinc-900/40'
+                : 'border-black/10 hover:border-black/20 bg-white'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-lg border border-zinc-500/40 flex items-center justify-center bg-zinc-500/10">
+                <ZapOff className="w-4 h-4 text-zinc-400" />
+              </div>
+              <div className="text-left">
+                <div className="text-xs font-bold flex items-center gap-1.5">
+                  <span>极速无影 (0 FPS)</span>
+                  <span className="text-[9px] px-1 py-0.2 bg-zinc-500/20 text-zinc-400 rounded">零等待</span>
+                </div>
+                <div className="text-[10px] opacity-60">彻底关闭补间动画，窗口与节点瞬移就位</div>
+              </div>
+            </div>
+            {fpsMode === 'off' && <Check className="w-4 h-4 text-blue-500" />}
           </button>
         </div>
       </div>

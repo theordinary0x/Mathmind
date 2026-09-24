@@ -150,7 +150,30 @@
 
 ---
 
-## 3. 待办需求与未来演进路线图 (Future Backlog)
+## 3. 视觉体系与动效能效架构 (Visual System & Animation Architecture)
+
+### 3.1 独立双层视觉正交解耦
+- **几何圆角层 (Corner Geometry)**：
+  - **优雅圆角 (`rounded`)**：卡片、弹窗、输入框、项目列表、胶囊按钮全方位采用精致圆角（`var(--mm-radius-*)`），视觉柔和温润。
+  - **严谨直角 (`sharp`)**：全站卡片、弹窗与表单统一收敛为几何 90° 直角，呈现欧几里得公理般的学术严谨。
+- **表面材质层 (Surface Material)**：
+  - **磨砂毛玻璃 (`glass`)**：采用 `backdrop-filter: blur(16px) saturate(180%)` 与高透明度亚克力质感，透出底层拓扑画布。
+  - **纯平不透明 (`solid`)**：高对比度纯色背景，消除所有虚化消耗，满足强光阅读或高能效要求。
+
+### 3.2 动画与目标帧率控制体系 (Animation & FPS Target Profile)
+- **120Hz+ 满血高刷 (`high`)**：Cytoscape 迭代步进细化（`refresh: 10`），弹性动效时长 650ms，补间丝滑，适配 ProMotion / 高刷电竞屏。
+- **60 FPS 标准流体 (`standard`)**：默认模式，`refresh: 20`，动效时长 450ms，平衡流畅感与电池功耗。
+- **30 FPS 节能低耗 (`economy`)**：迭代减半（`refresh: 40`），动效时长压缩至 200ms，适配低配设备或移动端长续航。
+- **0 FPS 极速关闭 (`off`)**：关闭图布局物理模拟动画（`animate: false`），CSS 全局禁用过渡（`transition: none !important; animation: none !important`），布局毫秒级瞬间定格。
+
+### 3.3 移动端极简全屏沉浸架构 (Mobile Procreate-Style Immersion)
+- **全屏穿透底图 (Border-to-Border Canvas)**：移动端取消传统挤压式顶部与底部硬边框，Cytoscape 画布 100% 满屏渲染。
+- **悬浮胶囊顶岛 (Floating Capsule Island)**：顶部采用 `pointer-events-none` 穿透容器，左右悬浮微型毛玻璃药丸（MathMind 品牌、快捷菜单），中央为**公理体系呼吸胶囊**（带翠绿色状态呼吸灯、体系名称与命题计数），手势触摸未遮挡区域直接穿透至画布。
+- **单手人体工学悬浮底岛 (Floating Action Dock)**：底部居中轻量胶囊，整合“搜索”、“新建命题（主操作高亮蓝色药丸）”与“AI 导师”，上方悬浮弹出式快速检索栏，左侧缩放岛自适应上移防重叠。
+
+---
+
+## 4. 待办需求与未来演进路线图 (Future Backlog)
 
 以下为已确认在后续版本中演进的高价值能力，现阶段优先保障架构健壮性与代码整洁度：
 
@@ -159,3 +182,4 @@
 - [ ] **环路实时检测与视觉警告 (Cycle Detection & Visual Warning)**：连线时不仅阻止成环，同时为意外产生的逻辑死循环（$A \implies B \implies A$）提供显眼的红色呼吸光效与告警面板。
 - [ ] **推导链最短路径寻径 (Shortest Proof Path Finder)**：用户指定起始已知公理与目标待证定理，自动高亮两者之间的最短逻辑推导链。
 - [ ] **命题标签与分支学科过滤 (Tagging & Discipline Filtering)**：支持按代数、分析、几何等学科标签进行视图过滤。
+

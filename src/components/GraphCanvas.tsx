@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import cytoscape, { Core, EventObject } from 'cytoscape';
 import dagre from 'cytoscape-dagre';
-import { PropositionNode, NODE_TYPES, AppTheme, PropositionType, CanvasSettings, PropositionStatus, PROPOSITION_STATUSES, CornerStyle } from '../types';
+import { PropositionNode, NODE_TYPES, AppTheme, PropositionType, CanvasSettings, PropositionStatus, PROPOSITION_STATUSES, CornerStyle, AnimationFpsMode } from '../types';
 import { ContextMenu, ContextMenuState } from './ContextMenu';
 import { MiniMap } from './MiniMap';
 import { getSavedCanvasSettings, saveCanvasSettings } from '../utils/storage';
@@ -58,6 +58,7 @@ interface GraphCanvasProps {
   canvasSettings?: CanvasSettings;
   onUpdateCanvasSettings?: (settings: CanvasSettings) => void;
   cornerStyle?: CornerStyle;
+  fpsMode?: AnimationFpsMode;
 }
 
 export function formatCanvasTitle(title: string, status?: PropositionStatus): string {
@@ -110,6 +111,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
   canvasSettings: canvasSettingsProp,
   onUpdateCanvasSettings: onUpdateCanvasSettingsProp,
   cornerStyle = 'rounded',
+  fpsMode = 'standard',
 }) => {
   const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -370,26 +372,31 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
     const cy = cyRef.current;
     if (!cy || cy.elements().length === 0) return;
 
-    const layoutConfig = getGraphLayoutConfig(type);
+    const layoutConfig = getGraphLayoutConfig(type, fpsMode);
 
     const layout = cy.layout(layoutConfig);
 
     // Smoothly frame all elements in view upon layout completion
     layout.one('layoutstop', () => {
       cy.resize();
-      cy.animate({
-        fit: {
-          eles: cy.elements(),
-          padding: 60
-        },
-        duration: 400,
-        easing: 'ease-out-cubic'
-      });
+      const fitDuration = fpsMode === 'off' ? 0 : fpsMode === 'economy' ? 180 : fpsMode === 'high' ? 550 : 350;
+      if (fitDuration > 0) {
+        cy.animate({
+          fit: {
+            eles: cy.elements(),
+            padding: 60
+          },
+          duration: fitDuration,
+          easing: 'ease-out-cubic'
+        });
+      } else {
+        cy.fit(cy.elements(), 60);
+      }
       setCurrentZoomPercent(Math.round(cy.zoom() * 100));
     });
 
     layout.run();
-  }, []);
+  }, [fpsMode]);
 
   // Incremental elements synchronization & layout
   useCanvasElementsSync({
@@ -413,19 +420,27 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
 
   const handleResetZoom = () => {
     if (cyRef.current) {
-      cyRef.current.animate({
-        fit: { eles: cyRef.current.elements(), padding: 60 },
-        duration: 250
-      });
+      if (fpsMode === 'off') {
+        cyRef.current.fit(cyRef.current.elements(), 60);
+      } else {
+        cyRef.current.animate({
+          fit: { eles: cyRef.current.elements(), padding: 60 },
+          duration: fpsMode === 'economy' ? 150 : 250
+        });
+      }
     }
   };
 
   const setZoomLevel = (scale: number) => {
     if (cyRef.current) {
-      cyRef.current.animate({
-        zoom: scale,
-        duration: 200
-      });
+      if (fpsMode === 'off') {
+        cyRef.current.zoom(scale);
+      } else {
+        cyRef.current.animate({
+          zoom: scale,
+          duration: fpsMode === 'economy' ? 120 : 200
+        });
+      }
     }
   };
 

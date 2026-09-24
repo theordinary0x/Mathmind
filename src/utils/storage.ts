@@ -1,4 +1,4 @@
-import { GraphDataset, Project, PropositionNode, AppTheme, CanvasSettings, DEFAULT_CANVAS_SETTINGS, AutoSaveMode, CornerStyle, SurfaceMaterial } from '../types';
+import { GraphDataset, Project, PropositionNode, AppTheme, CanvasSettings, DEFAULT_CANVAS_SETTINGS, AutoSaveMode, CornerStyle, SurfaceMaterial, AnimationFpsMode } from '../types';
 import { DEFAULT_PROJECTS, PEANO_DATASET, EUCLID_DATASET } from '../data/seedData';
 import { DEFAULT_PROJECTS_EN, PEANO_DATASET_EN, EUCLID_DATASET_EN } from '../data/seedDataEn';
 import { Language } from '../i18n/types';
@@ -14,6 +14,27 @@ const CANVAS_SETTINGS_KEY = 'mathmind_canvas_settings_v2';
 const AUTOSAVE_MODE_KEY = 'mathmind_autosave_mode_v1';
 const CORNER_STYLE_KEY = 'mathmind_corner_style_v1';
 const SURFACE_MATERIAL_KEY = 'mathmind_surface_material_v1';
+const FPS_MODE_KEY = 'mathmind_animation_fps_mode_v1';
+
+export function getSavedFpsMode(): AnimationFpsMode {
+  try {
+    const saved = localStorage.getItem(FPS_MODE_KEY);
+    if (saved === 'high' || saved === 'standard' || saved === 'economy' || saved === 'off') {
+      return saved;
+    }
+    return 'standard';
+  } catch {
+    return 'standard';
+  }
+}
+
+export function saveFpsMode(mode: AnimationFpsMode): void {
+  try {
+    localStorage.setItem(FPS_MODE_KEY, mode);
+  } catch (err) {
+    console.error('Failed to save fps mode:', err);
+  }
+}
 
 export function getSavedCornerStyle(): CornerStyle {
   try {

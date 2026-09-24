@@ -188,5 +188,31 @@ html.corner-rounded kbd {
   }
 }
 
+/* ========================================================
+   FPS Profile & Animation Control Overrides
+   ======================================================== */
+/* Off: 0 FPS Instant Transition (Prefe-reduced-motion) */
+html.fps-off *,
+html.fps-off *::before,
+html.fps-off *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* Economy: 30 FPS Low Power mode */
+html.fps-economy .animate-spin {
+  animation-duration: 3s !important;
+}
+html.fps-economy .animate-pulse {
+  animation-duration: 4s !important;
+}
+
+/* High: 120Hz+ fluid rendering */
+html.fps-high * {
+  backface-visibility: hidden;
+}
+
+
 
 

@@ -30,7 +30,7 @@ export const CanvasControlsIsland: React.FC<CanvasControlsIslandProps> = ({
 
   return (
     <div
-      className={`absolute bottom-4 sm:bottom-6 left-3 sm:left-6 flex items-center border shadow-lg text-xs z-10 p-1 backdrop-blur-md transition-all rounded-xl glass-panel ${
+      className={`absolute bottom-16 sm:bottom-6 left-3 sm:left-6 flex items-center border shadow-lg text-xs z-10 p-1 backdrop-blur-md transition-all rounded-xl glass-panel ${
         isDark
           ? 'border-white/10 text-zinc-300'
           : 'border-black/10 text-stone-700'

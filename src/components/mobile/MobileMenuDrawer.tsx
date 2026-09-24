@@ -15,9 +15,10 @@ import {
   Redo2,
   BookOpen,
   Sparkles,
-  Square
+  Square,
+  Zap
 } from 'lucide-react';
-import { AppTheme, CornerStyle, SurfaceMaterial } from '../../types';
+import { AppTheme, CornerStyle, SurfaceMaterial, AnimationFpsMode } from '../../types';
 
 interface MobileMenuDrawerProps {
   isOpen: boolean;
@@ -29,6 +30,8 @@ interface MobileMenuDrawerProps {
   onToggleCornerStyle: () => void;
   surfaceMaterial: SurfaceMaterial;
   onToggleSurfaceMaterial: () => void;
+  fpsMode: AnimationFpsMode;
+  onCycleFpsMode: () => void;
   layoutType: 'dagre' | 'cose';
   onChangeLayout: (type: 'dagre' | 'cose') => void;
   isFocusMode: boolean;
@@ -53,6 +56,8 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
   onToggleCornerStyle,
   surfaceMaterial,
   onToggleSurfaceMaterial,
+  fpsMode,
+  onCycleFpsMode,
   layoutType,
   onChangeLayout,
   isFocusMode,
@@ -149,6 +154,24 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
           >
             <Sparkles className="w-4 h-4 text-amber-400" />
             <span>{surfaceMaterial === 'glass' ? '材质：毛玻璃' : '材质：纯色'}</span>
+          </button>
+
+          {/* 动画与帧率切换 */}
+          <button
+            type="button"
+            onClick={() => {
+              onCycleFpsMode();
+            }}
+            className={`flex items-center space-x-2 p-2.5 border transition-all cursor-pointer rounded-xl ${
+              isDark
+                ? 'bg-white/5 border-white/10 hover:border-blue-500'
+                : 'bg-black/5 border-black/10 hover:border-blue-600'
+            }`}
+          >
+            <Zap className="w-4 h-4 text-emerald-400" />
+            <span>
+              {fpsMode === 'high' ? '帧率：120Hz 高刷' : fpsMode === 'standard' ? '帧率：60 FPS' : fpsMode === 'economy' ? '帧率：30 FPS 节能' : '帧率：0 FPS 无影'}
+            </span>
           </button>
 
           {/* 布局切换 */}

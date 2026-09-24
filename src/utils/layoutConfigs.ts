@@ -1,6 +1,15 @@
 import type { LayoutOptions } from 'cytoscape';
+import type { AnimationFpsMode } from '../types';
 
-export function getDagreLayoutConfig(): LayoutOptions {
+export function getDagreLayoutConfig(fpsMode: AnimationFpsMode = 'standard'): LayoutOptions {
+  const isOff = fpsMode === 'off';
+  const durationMap = {
+    high: 650,
+    standard: 450,
+    economy: 200,
+    off: 0
+  };
+
   return {
     name: 'dagre',
     rankDir: 'LR',
@@ -8,21 +17,35 @@ export function getDagreLayoutConfig(): LayoutOptions {
     nodeSep: 80,
     rankSep: 140,
     edgeSep: 40,
-    animate: true,
-    animationDuration: 550,
+    animate: !isOff,
+    animationDuration: durationMap[fpsMode] ?? 450,
     animationEasing: 'ease-out-cubic',
     fit: false,
     padding: 60
   } as LayoutOptions;
 }
 
-export function getCoseLayoutConfig(): LayoutOptions {
+export function getCoseLayoutConfig(fpsMode: AnimationFpsMode = 'standard'): LayoutOptions {
+  const isOff = fpsMode === 'off';
+  const durationMap = {
+    high: 700,
+    standard: 500,
+    economy: 200,
+    off: 0
+  };
+  const refreshMap = {
+    high: 10,
+    standard: 20,
+    economy: 40,
+    off: 0
+  };
+
   return {
     name: 'cose',
-    animate: true,
-    animationDuration: 600,
+    animate: !isOff,
+    animationDuration: durationMap[fpsMode] ?? 500,
     animationEasing: 'ease-out-cubic',
-    refresh: 20,
+    refresh: refreshMap[fpsMode] ?? 20,
     fit: false,
     padding: 60,
     randomize: false,
@@ -33,12 +56,12 @@ export function getCoseLayoutConfig(): LayoutOptions {
     edgeElasticity: () => 100,
     nestingFactor: 1.2,
     gravity: 0.25,
-    numIter: 1000,
+    numIter: isOff ? 500 : 1000,
     initialTemp: 200,
     coolingFactor: 0.95
   } as LayoutOptions;
 }
 
-export function getGraphLayoutConfig(type: 'dagre' | 'cose'): LayoutOptions {
-  return type === 'dagre' ? getDagreLayoutConfig() : getCoseLayoutConfig();
+export function getGraphLayoutConfig(type: 'dagre' | 'cose', fpsMode: AnimationFpsMode = 'standard'): LayoutOptions {
+  return type === 'dagre' ? getDagreLayoutConfig(fpsMode) : getCoseLayoutConfig(fpsMode);
 }

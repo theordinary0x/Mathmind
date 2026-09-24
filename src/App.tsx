@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { PropositionNode, Project, AppTheme, ThemeMode, PropositionType, AutoSaveMode, CanvasSettings, PropositionStatus, PROPOSITION_STATUSES, CornerStyle, SurfaceMaterial } from './types';
+import { PropositionNode, Project, AppTheme, ThemeMode, PropositionType, AutoSaveMode, CanvasSettings, PropositionStatus, PROPOSITION_STATUSES, CornerStyle, SurfaceMaterial, AnimationFpsMode } from './types';
 import { useAutoSave } from './hooks/useAutoSave';
 import { useAppKeyboardShortcuts } from './hooks/useAppKeyboardShortcuts';
 import { 
@@ -21,7 +21,9 @@ import {
   getSavedCornerStyle,
   saveCornerStyle,
   getSavedSurfaceMaterial,
-  saveSurfaceMaterial
+  saveSurfaceMaterial,
+  getSavedFpsMode,
+  saveFpsMode
 } from './utils/storage';
 import { SplashScreen } from './components/SplashScreen';
 import { Header } from './components/Header';
@@ -71,9 +73,10 @@ export const App: React.FC = () => {
     return themeMode;
   }, [themeMode, systemPrefersDark]);
 
-  // Visual Layers State: Corner Geometry & Surface Material
+  // Visual Layers State: Corner Geometry & Surface Material & Animation Profile
   const [cornerStyle, setCornerStyle] = useState<CornerStyle>(() => getSavedCornerStyle());
   const [surfaceMaterial, setSurfaceMaterial] = useState<SurfaceMaterial>(() => getSavedSurfaceMaterial());
+  const [fpsMode, setFpsMode] = useState<AnimationFpsMode>(() => getSavedFpsMode());
 
   // Synchronize documentElement class for Tailwind dark: variants and visual layers
   useEffect(() => {
@@ -104,7 +107,11 @@ export const App: React.FC = () => {
       root.classList.add('material-solid');
       root.classList.remove('material-glass');
     }
-  }, [effectiveTheme, cornerStyle, surfaceMaterial]);
+
+    // 4. Animation & Target FPS Profile
+    root.classList.remove('fps-high', 'fps-standard', 'fps-economy', 'fps-off');
+    root.classList.add(`fps-${fpsMode}`);
+  }, [effectiveTheme, cornerStyle, surfaceMaterial, fpsMode]);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const showToast = useCallback((msg: string) => {
@@ -125,6 +132,25 @@ export const App: React.FC = () => {
     saveSurfaceMaterial(mat);
     showToast(mat === 'glass' ? '已开启磨砂毛玻璃材质' : '已切换为纯平不透明材质');
   }, [showToast]);
+
+  const handleFpsModeChange = useCallback((mode: AnimationFpsMode) => {
+    setFpsMode(mode);
+    saveFpsMode(mode);
+    const labels: Record<AnimationFpsMode, string> = {
+      high: '已开启极速高刷 (120Hz+ 满血)',
+      standard: '已切换至平衡流畅 (60 FPS 标准)',
+      economy: '已开启省电低耗 (30 FPS 节能)',
+      off: '已关闭动效 (0 FPS 极速响应)'
+    };
+    showToast(labels[mode]);
+  }, [showToast]);
+
+  const handleCycleFpsMode = useCallback(() => {
+    const modes: AnimationFpsMode[] = ['high', 'standard', 'economy', 'off'];
+    const currentIndex = modes.indexOf(fpsMode);
+    const nextMode = modes[(currentIndex + 1) % modes.length];
+    handleFpsModeChange(nextMode);
+  }, [fpsMode, handleFpsModeChange]);
 
   const cycleTheme = () => {
     const next: ThemeMode = effectiveTheme === 'dark' ? 'paper' : 'dark';
@@ -760,7 +786,7 @@ export const App: React.FC = () => {
       )}
 
       {/* Main Canvas Area */}
-      <main className={`flex-1 relative overflow-hidden ${isMobile ? 'pb-13' : ''}`}>
+      <main className="flex-1 relative overflow-hidden">
         <GraphCanvas
           key={currentProject.id}
           nodes={dataset.nodes}
@@ -796,6 +822,7 @@ export const App: React.FC = () => {
           canvasSettings={canvasSettings}
           onUpdateCanvasSettings={handleUpdateCanvasSettings}
           cornerStyle={cornerStyle}
+          fpsMode={fpsMode}
         />
 
         {/* AI Copilot Sidebar */}
@@ -835,6 +862,8 @@ export const App: React.FC = () => {
             onToggleCornerStyle={() => handleCornerStyleChange(cornerStyle === 'rounded' ? 'sharp' : 'rounded')}
             surfaceMaterial={surfaceMaterial}
             onToggleSurfaceMaterial={() => handleSurfaceMaterialChange(surfaceMaterial === 'glass' ? 'solid' : 'glass')}
+            fpsMode={fpsMode}
+            onCycleFpsMode={handleCycleFpsMode}
             layoutType={layoutType}
             onChangeLayout={setLayoutType}
             isFocusMode={isFocusMode}
@@ -937,6 +966,8 @@ export const App: React.FC = () => {
           onCornerStyleChange={handleCornerStyleChange}
           surfaceMaterial={surfaceMaterial}
           onSurfaceMaterialChange={handleSurfaceMaterialChange}
+          fpsMode={fpsMode}
+          onFpsModeChange={handleFpsModeChange}
           canvasSettings={canvasSettings}
           onUpdateCanvasSettings={handleUpdateCanvasSettings}
           autoSaveMode={autoSaveMode}

@@ -16,7 +16,8 @@ import {
   AutoSaveMode,
   Project,
   CornerStyle,
-  SurfaceMaterial
+  SurfaceMaterial,
+  AnimationFpsMode
 } from '../types';
 import { calculateStorageUsage } from '../utils/storage';
 import { AiProvider, AiSettings } from '../types/ai';
@@ -45,6 +46,8 @@ export interface SettingsModalProps {
   onCornerStyleChange: (style: CornerStyle) => void;
   surfaceMaterial: SurfaceMaterial;
   onSurfaceMaterialChange: (material: SurfaceMaterial) => void;
+  fpsMode: AnimationFpsMode;
+  onFpsModeChange: (mode: AnimationFpsMode) => void;
   canvasSettings: CanvasSettings;
   onUpdateCanvasSettings: (newSettings: CanvasSettings) => void;
   autoSaveMode: AutoSaveMode;
@@ -70,6 +73,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onCornerStyleChange,
   surfaceMaterial,
   onSurfaceMaterialChange,
+  fpsMode,
+  onFpsModeChange,
   canvasSettings,
   onUpdateCanvasSettings,
   autoSaveMode,
@@ -291,6 +296,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 onCornerStyleChange={onCornerStyleChange}
                 surfaceMaterial={surfaceMaterial}
                 onSurfaceMaterialChange={onSurfaceMaterialChange}
+                fpsMode={fpsMode}
+                onFpsModeChange={onFpsModeChange}
                 isDark={isDark}
               />
             )}
