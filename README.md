@@ -7,7 +7,8 @@
 面向数学与理论计算机科学学习者，将概念网络建模为**有向无环拓扑图 (DAG)**。<br />
 从公理与定义出发，步步追踪严谨推演，理清概念因果脉络。
 
-[![npm version](https://img.shields.io/badge/npm-v1.1.1-blue.svg?style=flat-square)](https://www.npmjs.com/package/mathmind)
+[![npm version](https://img.shields.io/badge/npm-v1.3.0-blue.svg?style=flat-square)](https://www.npmjs.com/package/mathmind)
+[![release](https://img.shields.io/badge/Release-v1.3.0-emerald.svg?style=flat-square)](https://github.com/theordinary0x/Mathmind/releases)
 [![license](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
 [![node](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg?style=flat-square)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
@@ -20,13 +21,25 @@
 
 <p><em>▲ MathMind 工作台：有向拓扑逻辑图谱与右侧上下文感知 AI Copilot 侧边栏</em></p>
 
-[⚡ 快速使用](#-快速使用) • [📊 工具横向对比](#-解决的问题与横向对比) • [✨ 主要功能](#-主要功能) • [⌨️ 快捷键](#️-常用快捷键) • [🥤 赞助支持](#-赞助)
+[📦 客户端下载](#-客户端安装包下载) • [⚡ 快速使用](#-快速使用) • [📊 工具横向对比](#-解决的问题与横向对比) • [✨ 主要功能](#-主要功能) • [⌨️ 快捷键](#️-常用快捷键) • [🥤 赞助支持](#-赞助)
 
 </div>
 
 ---
 
-## ⚡ 快速使用
+## 📦 客户端安装包下载 (Windows / Android)
+
+MathMind 提供桌面端独立客户端与 Android 移动端安装包，无需配置 Node.js 即可离线开箱即用：
+
+| 平台 | 安装包格式 | 下载直达 | 说明 |
+| :--- | :---: | :---: | :--- |
+| **Windows 桌面端** | `.exe` (安装包 / 便携版) | **[⬇️ 下载 Windows 安装包 (.exe)](https://github.com/theordinary0x/Mathmind/releases/latest)** | 独立桌面窗口、100% 本地离线、支持全键盘快捷键 |
+| **Android 手机端** | `.apk` (直装包) | **[⬇️ 下载 Android 安装包 (.apk)](https://github.com/theordinary0x/Mathmind/releases/latest)** | 极简全屏沉浸（Procreate 模式）、单手操作胶囊底岛 |
+| **GitHub Releases** | 所有历史附件 | **[🔗 前往 Releases 页面](https://github.com/theordinary0x/Mathmind/releases)** | 包含各版本详细更新日志与完整构件清单 |
+
+---
+
+## ⚡ 快速使用 (网页免安装 / 开发者命令行)
 
 本地安装了 Node.js (>= 18) 即可直接运行，无需克隆源码或配置环境：
 
@@ -41,7 +54,7 @@ npm install -g mathmind
 mathmind
 ```
 
-> 💡 **国内网络或未安装 Node.js？** 请参阅 **[📖 常见系统 Node.js 安装与国内镜像换源指南](docs/INSTALL.md)**（包含 Windows / macOS / Linux 国内镜像下载直达与 npmmirror 加速设置）。
+> 💡 **国内网络或未安装 Node.js？** 请直接下载上方提供的 **Windows .exe 或 Android .apk 安装包**，或参阅 **[📖 常见系统 Node.js 安装与国内镜像换源指南](docs/INSTALL.md)**。
 
 ---
 
@@ -82,11 +95,14 @@ flowchart LR
 ## ✨ 主要功能
 
 - 📐 **图谱画布**：支持公理、定义、命题、定理、推论、注记 6 种分类。支持分层排版（看推导先后流向）和力导向排版（看知识聚类），支持矩形框选与自由套索圈选批量操作。
+- 🎨 **双层正交视觉架构**：独立正交控制「几何形态（优雅圆角 / 严谨直角）」与「表面材质（磨砂毛玻璃 / 纯平高对比）」，内置深色、浅色纸张与跟随系统主题，核心节点圆角联动。
+- ⚡ **动画与目标帧率控制**：支持 120Hz+ 满血高刷、60 FPS 标准流体、30 FPS 节能低耗与 0 FPS 极速关闭，兼顾高刷显示屏的极速丝滑与移动设备长续航。
+- 📱 **移动端全屏沉浸（Procreate 模式）**：画布 100% 满屏呈现，触摸手势穿透未遮挡区域，配合悬浮胶囊顶岛与单手人体工学操作底岛。
 - 💡 **算例与反例系统**：每个命题除了陈述、证明思路和详细证明外，还可以挂载多个具体的算例或特例反例，支持 LaTeX 公式。
 - 🤖 **AI 辅助录入与推演**：支持粘贴文本、截图（`Ctrl+V`）或上传 PDF，调用大模型（Gemini、DeepSeek、Qwen、GLM 等）自动提取定理并尝试连线；也可唤起 Copilot 侧边栏辅助补充分步严密证明。
 - 🏷️ **学习状态标记**：节点可标记为“存疑 ❓”、“重点 ★”、“需复习 🔄”、“已证毕 ✔”，方便备考复习与逻辑复盘。
 - ⌨️ **全键盘操作**：常用动作均支持快捷键（`N` 新建、`E` 编辑、`L` 连线、`0` 全览等），聚焦输入框时自动挂起快捷键防冲突。
-- 🎨 **工程矩形美学**：全局采用无多余装饰圆角的纯正矩形设计，内置白底、深灰、古典羊皮纸与教学黑板 4 种视觉材质。
+- 🔄 **检查更新与跨端发布**：设置内置云端 Release 检测器，支持一键对比版本与获取 Windows (.exe) 和 Android (.apk) 安装包。
 - 🔒 **纯本地与隐私保护**：数据保存在浏览器本地（LocalStorage），无需注册登录，不上传数据。支持一键导出/导入 JSON 备份，以及导出高清 PNG 图片。
 
 <div align="center">

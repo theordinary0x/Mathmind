@@ -2,6 +2,7 @@ import React from 'react';
 import { Sun, Moon, Laptop, Check, Sparkles, Square, Layers, CircleDot, Zap, ZapOff, Activity, Gauge } from 'lucide-react';
 import { ThemeMode, CornerStyle, SurfaceMaterial, AnimationFpsMode } from '../../types';
 import { useTranslation } from '../../i18n/LanguageContext';
+import { UpdateCheckerCard } from './UpdateCheckerCard';
 
 interface GeneralTabProps {
   themeMode: ThemeMode;
@@ -412,7 +413,12 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
 
       <hr className={isDark ? 'border-[#2E2E33]' : 'border-[#D4CDC0]'} />
 
-      {/* 5. 排版引擎信息 */}
+      {/* 5. 检查更新与版本信息 */}
+      <UpdateCheckerCard isDark={isDark} />
+
+      <hr className={isDark ? 'border-[#2E2E33]' : 'border-[#D4CDC0]'} />
+
+      {/* 6. 排版引擎信息 */}
       <div>
         <h3 className="text-sm font-bold uppercase tracking-wider mb-1 opacity-70">
           排版与数学排版引擎
