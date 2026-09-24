@@ -17,7 +17,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "prepublishOnly": "npm run build",
-    "electron:build": "electron-builder --win"
+    "electron:build": "electron-builder --win --publish never"
   },
   "keywords": [
     "math",
