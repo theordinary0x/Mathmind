@@ -25,6 +25,22 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Enable Developer Mode & Symlinks
+        shell: pwsh
+        run: |
+          reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
+          git config --system core.symlinks true
+
+      - name: Pre-cache winCodeSign without darwin symlinks
+        shell: pwsh
+        run: |
+          $cacheDir = "$env:LOCALAPPDATA\electron-builder\Cache\winCodeSign\winCodeSign-2.6.0"
+          New-Item -ItemType Directory -Force -Path $cacheDir
+          $zipPath = "$env:TEMP\winCodeSign-2.6.0.7z"
+          Invoke-WebRequest -Uri "https://github.com/electron-userland/electron-builder-binaries/releases/download/winCodeSign-2.6.0/winCodeSign-2.6.0.7z" -OutFile $zipPath
+          $sevenZip = if (Get-Command 7z -ErrorAction SilentlyContinue) { "7z" } else { "node_modules\7zip-bin\win\x64\7za.exe" }
+          & $sevenZip x -bd -xr!darwin $zipPath "-o$cacheDir"
+
       - name: Build Web Dist
         run: npm run build
 
@@ -96,17 +112,11 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Download Windows Artifact
+      - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: windows-installer
           path: release_assets/
-
-      - name: Download Android Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: android-apk
-          path: release_assets/
+          merge-multiple: true
 
       - name: Display Downloaded Assets
         run: ls -la release_assets/
