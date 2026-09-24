@@ -78,7 +78,7 @@ const KbdBadge: React.FC<{
 
   return (
     <kbd
-      className={`inline-flex items-center justify-center px-1 py-0.5 text-[9px] font-mono leading-none select-none ${colorStyles} ${className}`}
+      className={`inline-flex items-center justify-center px-1 py-0.5 text-[9px] font-mono leading-none select-none rounded ${colorStyles} ${className}`}
     >
       {children}
     </kbd>
@@ -138,7 +138,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Project Switcher Trigger */}
         <button
           onClick={onOpenProjectManager}
-          className={`flex items-center space-x-1 sm:space-x-1.5 px-2 py-1 text-xs transition-colors group shrink-0 ${
+          className={`flex items-center space-x-1 sm:space-x-1.5 px-2 py-1 text-xs transition-colors group shrink-0 rounded-lg ${
             isDark
               ? 'hover:bg-white/5 text-zinc-200'
               : 'hover:bg-black/5 text-stone-800'
@@ -155,7 +155,7 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         {/* Undo / Redo Buttons */}
-        <div className={`hidden md:flex items-center p-0.5 shrink-0 ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
+        <div className={`hidden md:flex items-center p-0.5 shrink-0 rounded-lg overflow-hidden ${isDark ? 'bg-white/5' : 'bg-black/5'}`}>
           <button
             onClick={onUndo}
             disabled={!canUndo}
@@ -196,7 +196,7 @@ export const Header: React.FC<HeaderProps> = ({
           value={searchQuery}
           onChange={e => onSearchChange(e.target.value)}
           placeholder={t('header.searchPlaceholder')}
-          className={`w-full pl-7 pr-4 py-1 text-xs border focus:outline-none transition-all font-serif ${
+          className={`w-full pl-7 pr-4 py-1 text-xs border focus:outline-none transition-all font-serif rounded-full ${
             isDark
               ? 'bg-[#121214] border-[#2E2E33] text-white placeholder-zinc-500 focus:border-blue-500'
               : 'bg-white border-[#D4CDC0] text-stone-900 placeholder-stone-400 focus:border-blue-500'
@@ -215,7 +215,7 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Right Controls */}
       <div className="flex items-center space-x-1 sm:space-x-1.5 shrink-0">
         {/* Canvas Tools Cluster */}
-        <div className={`hidden sm:flex items-center p-0.5 border ${isDark ? 'bg-[#121214] border-[#2E2E33]' : 'bg-[#F2EFE9] border-[#D4CDC0]'}`}>
+        <div className={`hidden sm:flex items-center p-0.5 border rounded-lg overflow-hidden ${isDark ? 'bg-[#121214] border-[#2E2E33]' : 'bg-[#F2EFE9] border-[#D4CDC0]'}`}>
           {/* Layout Switcher */}
           <button
             onClick={() => onChangeLayout('dagre')}
@@ -286,7 +286,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Primary Action: New Proposition */}
         <button
           onClick={onOpenCreateModal}
-          className={`flex items-center space-x-1 px-2 sm:px-2.5 py-1 text-xs font-medium transition-all shadow-xs whitespace-nowrap ${
+          className={`flex items-center space-x-1 px-2 sm:px-2.5 py-1 text-xs font-medium transition-all shadow-xs whitespace-nowrap rounded-lg ${
             isDark
               ? 'bg-blue-600 hover:bg-blue-500 text-white'
               : 'bg-[#2C2B29] hover:bg-[#3F3E3A] text-white'
@@ -303,7 +303,7 @@ export const Header: React.FC<HeaderProps> = ({
         {onToggleCopilot && (
           <button
             onClick={onToggleCopilot}
-            className={`flex items-center space-x-1 px-2.5 sm:px-3 py-1 text-xs font-medium transition-all shadow-xs whitespace-nowrap border ${
+            className={`flex items-center space-x-1 px-2.5 sm:px-3 py-1 text-xs font-medium transition-all shadow-xs whitespace-nowrap border rounded-lg ${
               isCopilotOpen
                 ? 'bg-blue-600 text-white border-blue-500 font-semibold'
                 : isDark
@@ -329,7 +329,7 @@ export const Header: React.FC<HeaderProps> = ({
               e.preventDefault();
               onSaveAs();
             }}
-            className={`p-1.5 transition-colors ${
+            className={`p-1.5 transition-colors rounded-lg ${
               isDark ? 'hover:bg-white/5 text-zinc-300' : 'hover:bg-black/5 text-stone-700'
             }`}
             title={language === 'zh' ? '立即保存 (Ctrl+S) · 右键另存为 (Ctrl+Shift+S)' : 'Save (Ctrl+S) · Right-click to Save As (Ctrl+Shift+S)'}
@@ -340,7 +340,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Import JSON */}
           <button
             onClick={() => fileInputRef.current?.click()}
-            className={`p-1.5 transition-colors ${
+            className={`p-1.5 transition-colors rounded-lg ${
               isDark ? 'hover:bg-white/5 text-zinc-300' : 'hover:bg-black/5 text-stone-700'
             }`}
             title={`${t('common.import')} JSON`}
@@ -359,7 +359,7 @@ export const Header: React.FC<HeaderProps> = ({
           {onOpenShortcutsModal && (
             <button
               onClick={onOpenShortcutsModal}
-              className={`p-1.5 transition-colors ${
+              className={`p-1.5 transition-colors rounded-lg ${
                 isDark ? 'hover:bg-white/5 text-zinc-300' : 'hover:bg-black/5 text-stone-700'
               }`}
               title={`${t('header.shortcuts')} (?)`}
@@ -371,7 +371,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Theme Toggle (Dark / Light) */}
           <button
             onClick={onToggleTheme}
-            className={`p-1.5 transition-colors text-amber-500 ${
+            className={`p-1.5 transition-colors text-amber-500 rounded-lg ${
               isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'
             }`}
             title={isDark ? (language === 'zh' ? '切换浅色模式 (T)' : 'Switch to Light (T)') : (language === 'zh' ? '切换深色模式 (T)' : 'Switch to Dark (T)')}
@@ -383,7 +383,7 @@ export const Header: React.FC<HeaderProps> = ({
           {onOpenSponsor && (
             <button
               onClick={onOpenSponsor}
-              className={`p-1.5 transition-colors ${
+              className={`p-1.5 transition-colors rounded-lg ${
                 isDark ? 'hover:bg-white/5 text-amber-400 hover:text-amber-300' : 'hover:bg-black/5 text-amber-600 hover:text-amber-700'
               }`}
               title={`${t('header.sponsor')}`}
@@ -396,7 +396,7 @@ export const Header: React.FC<HeaderProps> = ({
           {onOpenSettings && (
             <button
               onClick={onOpenSettings}
-              className={`p-1.5 transition-colors ${
+              className={`p-1.5 transition-colors rounded-lg ${
                 isDark ? 'hover:bg-white/5 text-zinc-300 hover:text-white' : 'hover:bg-black/5 text-stone-700 hover:text-black'
               }`}
               title={`${t('header.settings')} (Ctrl+,)`}

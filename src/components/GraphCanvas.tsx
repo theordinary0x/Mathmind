@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import cytoscape, { Core, EventObject } from 'cytoscape';
 import dagre from 'cytoscape-dagre';
-import { PropositionNode, NODE_TYPES, AppTheme, PropositionType, CanvasSettings, PropositionStatus, PROPOSITION_STATUSES } from '../types';
+import { PropositionNode, NODE_TYPES, AppTheme, PropositionType, CanvasSettings, PropositionStatus, PROPOSITION_STATUSES, CornerStyle } from '../types';
 import { ContextMenu, ContextMenuState } from './ContextMenu';
 import { MiniMap } from './MiniMap';
 import { getSavedCanvasSettings, saveCanvasSettings } from '../utils/storage';
@@ -57,6 +57,7 @@ interface GraphCanvasProps {
   projectId?: string;
   canvasSettings?: CanvasSettings;
   onUpdateCanvasSettings?: (settings: CanvasSettings) => void;
+  cornerStyle?: CornerStyle;
 }
 
 export function formatCanvasTitle(title: string, status?: PropositionStatus): string {
@@ -108,6 +109,7 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
   projectId,
   canvasSettings: canvasSettingsProp,
   onUpdateCanvasSettings: onUpdateCanvasSettingsProp,
+  cornerStyle = 'rounded',
 }) => {
   const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -347,12 +349,12 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
     };
   }, []);
 
-  // Update Cytoscape styles when theme changes
+  // Update Cytoscape styles when theme or cornerStyle changes
   useEffect(() => {
     const cy = cyRef.current;
     if (!cy) return;
-    cy.style(getCytoscapeStyles(isCanvasDark)).update();
-  }, [isCanvasDark]);
+    cy.style(getCytoscapeStyles(isCanvasDark, cornerStyle)).update();
+  }, [isCanvasDark, cornerStyle]);
 
   // Sync external mode cancel
   useEffect(() => {

@@ -1,4 +1,5 @@
 import type { StylesheetStyle } from 'cytoscape';
+import type { CornerStyle } from '../types';
 
 export const darkStyles: StylesheetStyle[] = [
   {
@@ -375,6 +376,21 @@ export const lightStyles: StylesheetStyle[] = [
   }
 ];
 
-export function getCytoscapeStyles(isDark: boolean): StylesheetStyle[] {
-  return isDark ? darkStyles : lightStyles;
+export function getCytoscapeStyles(isDark: boolean, cornerStyle: CornerStyle = 'rounded'): StylesheetStyle[] {
+  const baseStyles = isDark ? darkStyles : lightStyles;
+  const nodeShape = cornerStyle === 'sharp' ? 'rectangle' : 'round-rectangle';
+
+  return baseStyles.map(item => {
+    if (item.selector === 'node') {
+      return {
+        ...item,
+        style: {
+          ...item.style,
+          'shape': nodeShape,
+          'corner-radius': cornerStyle === 'sharp' ? '0px' : '8px'
+        }
+      };
+    }
+    return item;
+  });
 }

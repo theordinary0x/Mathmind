@@ -136,4 +136,57 @@ html.material-glass:not(.dark) .glass-panel {
   -webkit-backdrop-filter: blur(16px) saturate(180%);
 }
 
+/* Global Rounded Theme Rules: Automatically round inputs, buttons, selects, and textareas */
+html.corner-rounded button:not(.no-round):not([class*="rounded-"]),
+html.corner-rounded input:not(.no-round):not([class*="rounded-"]),
+html.corner-rounded select:not(.no-round):not([class*="rounded-"]),
+html.corner-rounded textarea:not(.no-round):not([class*="rounded-"]) {
+  border-radius: var(--mm-radius-sm);
+}
+
+html.corner-rounded kbd {
+  border-radius: 4px;
+}
+
+/* ========================================================
+   GPU-Accelerated Keyframes for Ultra-High FPS Splash Screen
+   (Strictly uses transform & opacity on compositor thread)
+   ======================================================== */
+@keyframes mm-shimmer {
+  0% {
+    transform: translate3d(-100%, 0, 0);
+  }
+  50% {
+    transform: translate3d(60%, 0, 0);
+  }
+  100% {
+    transform: translate3d(220%, 0, 0);
+  }
+}
+
+@keyframes mm-pulse-ring {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.92);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate3d(0, 0, 0) scale(1.18);
+    opacity: 0.18;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.92);
+    opacity: 0.7;
+  }
+}
+
+@keyframes mm-spin-slow {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(360deg);
+  }
+}
+
+
 

@@ -137,7 +137,7 @@ export const MiniMap: React.FC<MiniMapProps> = ({ cy, theme }) => {
 
   return (
     <div
-      className={`absolute bottom-6 right-6 border shadow-xl select-none z-10 font-serif transition-colors ${
+      className={`absolute bottom-6 right-6 border shadow-xl select-none z-10 font-serif transition-colors rounded-xl overflow-hidden glass-panel ${
         isDark ? 'bg-[#18181B] border-[#2E2E33]' : 'bg-white border-[#D4CDC0]'
       }`}
     >

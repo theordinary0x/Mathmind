@@ -10,7 +10,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ isDark, onFinished }
   const [phase, setPhase] = useState<'visible' | 'fading' | 'hidden'>('visible');
 
   useEffect(() => {
-    // 850ms 保持展示，等待底层 Cytoscape 节点布局完成与 KaTeX 字体解析稳定
+    // 850ms 保持展示，等待底层 Cytoscape 节点布局与 KaTeX 字体就绪
     const timer = setTimeout(() => {
       setPhase('fading');
     }, 850);
@@ -31,7 +31,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ isDark, onFinished }
 
   return (
     <div
-      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center select-none transition-all duration-700 ease-out ${
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center select-none transition-all duration-700 ease-out transform-gpu will-change-[opacity,transform] ${
         phase === 'fading'
           ? 'opacity-0 scale-105 pointer-events-none'
           : 'opacity-100 scale-100'
@@ -40,33 +40,38 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ isDark, onFinished }
           ? 'bg-[#121214] text-[#EDECE8]'
           : 'bg-[#FAF8F5] text-[#2C2B29]'
       }`}
-      style={{
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)'
-      }}
     >
-      {/* 居中动态徽标与拓扑波纹 */}
+      {/* 居中动态徽标与拓扑波纹 (纯 GPU 合成加速) */}
       <div className="relative flex items-center justify-center mb-6">
-        {/* 背景脉冲光晕 */}
-        <div className="absolute w-24 h-24 rounded-full bg-blue-500/20 animate-ping duration-1000" />
-        <div className="absolute w-32 h-32 rounded-full bg-blue-500/10 blur-xl animate-pulse" />
+        {/* 背景同心脉冲光环 - 独立 GPU 合成层，不占用主线程 */}
+        <div
+          className="absolute w-28 h-28 rounded-full border border-blue-500/30 will-change-transform transform-gpu pointer-events-none"
+          style={{ animation: 'mm-pulse-ring 2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite' }}
+        />
+        <div
+          className="absolute w-36 h-36 rounded-full border border-blue-400/20 will-change-transform transform-gpu pointer-events-none"
+          style={{ animation: 'mm-pulse-ring 2.6s cubic-bezier(0.2, 0.8, 0.2, 1) infinite', animationDelay: '0.4s' }}
+        />
 
         {/* 核心几何徽标 */}
         <div
-          className={`relative z-10 w-16 h-16 rounded-2xl flex items-center justify-center shadow-2xl border transition-all ${
+          className={`relative z-10 w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl border transform-gpu will-change-transform transition-colors ${
             isDark
               ? 'bg-[#18181B] border-blue-500/30 text-blue-400 shadow-blue-500/10'
-              : 'bg-white border-blue-500/20 text-blue-600 shadow-blue-500/10'
+              : 'bg-white border-blue-500/25 text-blue-600 shadow-blue-500/10'
           }`}
         >
-          <BookOpen className="w-8 h-8 animate-pulse" />
+          <BookOpen className="w-8 h-8" />
         </div>
       </div>
 
       {/* 品牌名称 */}
       <h1 className="text-2xl sm:text-3xl font-serif font-bold tracking-tight mb-2 flex items-center gap-2">
         <span>MathMind</span>
-        <Sparkles className="w-4 h-4 text-amber-400 animate-spin" style={{ animationDuration: '4s' }} />
+        <Sparkles
+          className="w-4 h-4 text-amber-400 will-change-transform transform-gpu"
+          style={{ animation: 'mm-spin-slow 6s linear infinite' }}
+        />
       </h1>
 
       {/* 标语 */}
@@ -74,12 +79,12 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ isDark, onFinished }
         让数理逻辑如星系般清晰可见
       </p>
 
-      {/* 优雅进度微光条 */}
-      <div className="w-48 sm:w-56 h-1 rounded-full bg-black/10 dark:bg-white/10 overflow-hidden relative">
-        <div className="absolute top-0 bottom-0 left-0 bg-blue-500 rounded-full animate-[progress_1.2s_ease-in-out_infinite]"
+      {/* 硬件加速极速流光条 (60~120 FPS 满帧独立渲染) */}
+      <div className="w-52 sm:w-60 h-1 rounded-full bg-black/10 dark:bg-white/10 overflow-hidden relative">
+        <div
+          className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-blue-500 to-transparent rounded-full will-change-transform transform-gpu"
           style={{
-            width: '60%',
-            animation: 'shimmer 1.4s ease-in-out infinite'
+            animation: 'mm-shimmer 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite'
           }}
         />
       </div>

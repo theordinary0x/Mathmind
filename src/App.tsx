@@ -795,6 +795,7 @@ export const App: React.FC = () => {
           projectId={currentProject.id}
           canvasSettings={canvasSettings}
           onUpdateCanvasSettings={handleUpdateCanvasSettings}
+          cornerStyle={cornerStyle}
         />
 
         {/* AI Copilot Sidebar */}
