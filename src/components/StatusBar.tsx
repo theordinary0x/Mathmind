@@ -93,7 +93,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
       {isMenuOpen && (
         <div
           ref={menuRef}
-          className={`absolute bottom-7 left-3 w-72 shadow-2xl border p-3 z-50 animate-in fade-in zoom-in-95 duration-150 ${
+          className={`absolute bottom-7 left-3 w-72 shadow-2xl border p-3 z-50 rounded-2xl animate-in fade-in zoom-in-95 duration-150 ${
             isDark
               ? 'bg-[#18181B] border-[#2E2E33] text-zinc-200'
               : 'bg-[#FAF8F5] border-[#D4CDC0] text-stone-800'
@@ -107,7 +107,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
             </div>
             <button
               onClick={() => setIsMenuOpen(false)}
-              className="p-1 opacity-60 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+              className="p-1 rounded-lg opacity-60 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
             >
               <X className="w-3 h-3" />
             </button>
@@ -124,7 +124,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
                     onChangeAutoSaveMode(opt.mode);
                     setIsMenuOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 text-xs transition-all text-left group ${
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs transition-all text-left group ${
                     isActive
                       ? isDark
                         ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30 font-medium'
@@ -162,7 +162,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
                 onManualSave();
               }}
               disabled={isSaving}
-              className={`flex items-center space-x-1 px-2.5 py-1 text-xs font-medium transition-colors shadow-xs ${
+              className={`flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors shadow-xs ${
                 isDark
                   ? 'bg-blue-600 hover:bg-blue-500 text-white'
                   : 'bg-stone-800 hover:bg-stone-900 text-white'
@@ -190,7 +190,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({
         <button
           ref={triggerRef}
           onClick={() => setIsMenuOpen(prev => !prev)}
-          className={`flex items-center space-x-1 px-1.5 py-0.5 transition-colors font-medium shrink-0 group cursor-pointer ${
+          className={`flex items-center space-x-1 px-1.5 py-0.5 rounded-md transition-colors font-medium shrink-0 group cursor-pointer ${
             isSaving
               ? 'text-blue-400 bg-blue-500/10'
               : isDirty

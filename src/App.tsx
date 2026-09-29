@@ -185,6 +185,7 @@ export const App: React.FC = () => {
   const [copilotExternalTrigger, setCopilotExternalTrigger] = useState<CopilotExternalTrigger | null>(null);
 
   const isMobile = useIsMobile();
+  const [isGraphReady, setIsGraphReady] = useState<boolean>(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [isHandwritingOpen, setIsHandwritingOpen] = useState<boolean>(false);
   const [handwritingInsertCallback, setHandwritingInsertCallback] = useState<((latex: string) => void) | null>(null);
@@ -755,8 +756,8 @@ export const App: React.FC = () => {
         isDark ? 'bg-[#121214] text-[#EDECE8]' : 'bg-[#FAF8F5] text-[#2C2B29]'
       }`}
     >
-      {/* App Opening Animation (Masks initial layout and formula calculation jumps) */}
-      <SplashScreen isDark={isDark} />
+      {/* App Opening Curtain (Waits until initial graph layout & fit finishes rendering) */}
+      <SplashScreen isDark={isDark} isReady={isGraphReady} />
 
       {/* Top Header */}
       {isMobile ? (
@@ -843,6 +844,7 @@ export const App: React.FC = () => {
           onUpdateCanvasSettings={handleUpdateCanvasSettings}
           cornerStyle={cornerStyle}
           fpsMode={fpsMode}
+          onGraphReady={() => setIsGraphReady(true)}
         />
 
         {/* AI Copilot Sidebar */}

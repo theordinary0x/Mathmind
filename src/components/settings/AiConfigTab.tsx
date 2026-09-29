@@ -27,7 +27,7 @@ export const AiConfigTab: React.FC<AiConfigTabProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-bold uppercase tracking-wider mb-1 opacity-70 flex items-center space-x-1.5">
-            <Sparkles className="w-4 h-4 text-amber-500" />
+            <Sparkles className="w-4 h-4 text-blue-500" />
             <span>{t('settings.tabAi')}</span>
           </h3>
           <p className="text-xs opacity-60">
@@ -54,7 +54,7 @@ export const AiConfigTab: React.FC<AiConfigTabProps> = ({
                 key={pKey}
                 type="button"
                 onClick={() => onProviderChange(pKey)}
-                className={`p-3 border text-left transition-all ${
+                className={`p-3 border rounded-xl text-left transition-all ${
                   isSelected
                     ? 'border-blue-500 bg-blue-500/10 shadow-xs'
                     : isDark
@@ -77,7 +77,7 @@ export const AiConfigTab: React.FC<AiConfigTabProps> = ({
 
       {/* Provider Detailed Form */}
       <div
-        className={`p-4 border space-y-4 ${
+        className={`p-4 border rounded-xl space-y-4 ${
           isDark ? 'border-white/10 bg-zinc-900/30' : 'border-black/10 bg-white'
         }`}
       >
@@ -92,7 +92,7 @@ export const AiConfigTab: React.FC<AiConfigTabProps> = ({
                   key={m}
                   type="button"
                   onClick={() => onUpdateAiSettings({ model: m })}
-                  className={`px-1.5 py-0.5 font-mono transition-colors ${
+                  className={`px-1.5 py-0.5 rounded-md font-mono transition-colors ${
                     aiSettings.model === m
                       ? 'bg-blue-600 text-white'
                       : isDark ? 'bg-white/10 text-zinc-300 hover:bg-white/20' : 'bg-black/5 text-stone-700 hover:bg-black/10'
@@ -107,7 +107,7 @@ export const AiConfigTab: React.FC<AiConfigTabProps> = ({
             type="text"
             value={aiSettings.model}
             onChange={e => onUpdateAiSettings({ model: e.target.value })}
-            className={`w-full p-2.5 border text-xs font-mono outline-hidden ${
+            className={`w-full p-2.5 border rounded-lg text-xs font-mono outline-hidden ${
               isDark ? 'bg-[#18181B] border-white/15 text-white' : 'bg-[#FAF8F5] border-black/15 text-stone-900'
             }`}
             placeholder="模型代号"
@@ -135,14 +135,14 @@ export const AiConfigTab: React.FC<AiConfigTabProps> = ({
               value={aiSettings.apiKey}
               onChange={e => onUpdateAiSettings({ apiKey: e.target.value })}
               placeholder={`请输入 ${PROVIDER_CONFIGS[aiSettings.provider].name} 的 API Key`}
-              className={`w-full p-2.5 pr-10 border text-xs font-mono outline-hidden ${
+              className={`w-full p-2.5 pr-10 border rounded-lg text-xs font-mono outline-hidden ${
                 isDark ? 'bg-[#18181B] border-white/15 text-white' : 'bg-[#FAF8F5] border-black/15 text-stone-900'
               }`}
             />
             <button
               type="button"
               onClick={() => setShowAiKey(!showAiKey)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100"
+              className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100 rounded-md p-0.5"
               title={showAiKey ? '隐藏密钥' : '显示密钥'}
             >
               {showAiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -157,7 +157,7 @@ export const AiConfigTab: React.FC<AiConfigTabProps> = ({
             type="text"
             value={aiSettings.baseUrl}
             onChange={e => onUpdateAiSettings({ baseUrl: e.target.value })}
-            className={`w-full p-2.5 border text-xs font-mono outline-hidden ${
+            className={`w-full p-2.5 border rounded-lg text-xs font-mono outline-hidden ${
               isDark ? 'bg-[#18181B] border-white/15 text-white' : 'bg-[#FAF8F5] border-black/15 text-stone-900'
             }`}
             placeholder={PROVIDER_CONFIGS[aiSettings.provider].defaultBaseUrl}
@@ -168,7 +168,7 @@ export const AiConfigTab: React.FC<AiConfigTabProps> = ({
         </div>
       </div>
 
-      <div className={`p-3 border text-xs leading-relaxed opacity-75 ${
+      <div className={`p-3 border rounded-xl text-xs leading-relaxed opacity-75 ${
         isDark ? 'bg-white/5 border-white/10' : 'bg-stone-50 border-black/10'
       }`}>
         <p className="font-bold mb-1">关于多模态与 PDF 支持提示：</p>

@@ -268,7 +268,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   : 'text-stone-700 hover:bg-black/5'
               }`}
             >
-              <Sparkles className="w-4 h-4 shrink-0 text-amber-400" />
+              <Sparkles className={`w-4 h-4 shrink-0 ${activeTab === 'ai' ? 'text-white' : 'text-blue-500'}`} />
               <span>{t('settings.tabAi')}</span>
             </button>
 

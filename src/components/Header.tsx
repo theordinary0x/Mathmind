@@ -164,7 +164,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onUndo}
             disabled={!canUndo}
-            className={`p-1 transition-colors ${
+            className={`p-1 rounded-md transition-colors ${
               canUndo
                 ? isDark
                   ? 'hover:bg-white/10 text-white'
@@ -178,7 +178,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onRedo}
             disabled={!canRedo}
-            className={`p-1 transition-colors ${
+            className={`p-1 rounded-md transition-colors ${
               canRedo
                 ? isDark
                   ? 'hover:bg-white/10 text-white'
@@ -210,7 +210,7 @@ export const Header: React.FC<HeaderProps> = ({
         {searchQuery && (
           <button
             onClick={() => onSearchChange('')}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-xs opacity-50 hover:opacity-100"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-xs opacity-50 hover:opacity-100 rounded-full"
           >
             ×
           </button>
@@ -224,7 +224,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Layout Switcher */}
           <button
             onClick={() => onChangeLayout('dagre')}
-            className={`flex items-center space-x-1 px-1.5 py-0.5 text-xs transition-all whitespace-nowrap ${
+            className={`flex items-center space-x-1 px-1.5 py-0.5 rounded-md text-xs transition-all whitespace-nowrap ${
               layoutType === 'dagre'
                 ? isDark
                   ? 'bg-[#27272A] text-white shadow-xs font-semibold'
@@ -239,7 +239,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
           <button
             onClick={() => onChangeLayout('cose')}
-            className={`flex items-center space-x-1 px-1.5 py-0.5 text-xs transition-all whitespace-nowrap ${
+            className={`flex items-center space-x-1 px-1.5 py-0.5 rounded-md text-xs transition-all whitespace-nowrap ${
               layoutType === 'cose'
                 ? isDark
                   ? 'bg-[#27272A] text-white shadow-xs font-semibold'
@@ -258,7 +258,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Focus Mode */}
           <button
             onClick={onToggleFocusMode}
-            className={`flex items-center space-x-1 px-1.5 py-0.5 text-xs transition-colors whitespace-nowrap ${
+            className={`flex items-center space-x-1 px-1.5 py-0.5 rounded-md text-xs transition-colors whitespace-nowrap ${
               isFocusMode
                 ? 'bg-blue-600 text-white font-medium shadow-xs'
                 : isDark
@@ -274,7 +274,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Connect Mode */}
           <button
             onClick={onToggleConnectingMode}
-            className={`flex items-center space-x-1 px-1.5 py-0.5 text-xs transition-colors whitespace-nowrap ${
+            className={`flex items-center space-x-1 px-1.5 py-0.5 rounded-md text-xs transition-colors whitespace-nowrap ${
               isConnectingMode
                 ? 'bg-blue-600 text-white font-medium shadow-xs'
                 : isDark
@@ -310,12 +310,12 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onOpenHandwriting}
             className={`flex items-center space-x-1 px-2 py-1 text-xs font-medium transition-all shadow-xs whitespace-nowrap border rounded-lg ${
               isDark
-                ? 'bg-[#202024] hover:bg-[#27272A] text-indigo-300 border-[#2E2E33]'
-                : 'bg-white hover:bg-stone-100 text-indigo-700 border-[#D4CDC0]'
+                ? 'bg-[#202024] hover:bg-[#27272A] text-zinc-200 border-[#2E2E33]'
+                : 'bg-white hover:bg-stone-100 text-stone-800 border-[#D4CDC0]'
             }`}
             title="手写数学演算板（支持压感笔与 AI 公式转译）"
           >
-            <StylusPenVectorIcon className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+            <StylusPenVectorIcon className="w-3.5 h-3.5 text-blue-500 shrink-0" />
             <span className="hidden lg:inline">{language === 'zh' ? '手写板' : 'Ink Pad'}</span>
           </button>
         )}
@@ -325,12 +325,12 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onOpenPdfWorkspace}
             className={`flex items-center space-x-1 px-2 py-1 text-xs font-medium transition-all shadow-xs whitespace-nowrap border rounded-lg ${
               isDark
-                ? 'bg-[#202024] hover:bg-[#27272A] text-amber-300 border-[#2E2E33]'
-                : 'bg-white hover:bg-stone-100 text-amber-700 border-[#D4CDC0]'
+                ? 'bg-[#202024] hover:bg-[#27272A] text-zinc-200 border-[#2E2E33]'
+                : 'bg-white hover:bg-stone-100 text-stone-800 border-[#D4CDC0]'
             }`}
             title="分屏 PDF 讲义批注与框选提取工作台"
           >
-            <PdfNoteVectorIcon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <PdfNoteVectorIcon className="w-3.5 h-3.5 text-blue-500 shrink-0" />
             <span className="hidden lg:inline">{language === 'zh' ? 'PDF 笔记' : 'PDF Note'}</span>
           </button>
         )}
@@ -348,7 +348,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
             title="Math Copilot 智能结对助手 (I)"
           >
-            <SparkleAiVectorIcon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <SparkleAiVectorIcon className={`w-3.5 h-3.5 shrink-0 ${isCopilotOpen ? 'text-white' : 'text-blue-500'}`} />
             <span className="hidden sm:inline">{language === 'zh' ? 'AI 助手' : 'AI Copilot'}</span>
             <KbdBadge isDark={isDark} variant="solid" className="hidden lg:inline-flex">I</KbdBadge>
           </button>

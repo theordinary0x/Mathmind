@@ -119,14 +119,14 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
                 onClose();
                 onOpenHandwriting();
               }}
-              className={`flex items-center space-x-2 p-3 border transition-all cursor-pointer rounded-xl ${
+              className={`flex items-center space-x-2 p-2.5 border transition-all cursor-pointer rounded-xl ${
                 isDark
-                  ? 'bg-blue-500/10 border-blue-500/30 text-blue-300 hover:border-blue-400'
-                  : 'bg-blue-50 border-blue-200 text-blue-800 hover:border-blue-500'
+                  ? 'bg-white/5 border-white/10 hover:border-blue-500'
+                  : 'bg-black/5 border-black/10 hover:border-blue-600'
               }`}
             >
               <StylusPenVectorIcon size={16} className="text-blue-500 shrink-0" />
-              <span className="font-medium">压感手写演算</span>
+              <span>压感手写演算</span>
             </button>
           )}
 
@@ -138,14 +138,14 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
                 onClose();
                 onOpenPdfWorkspace();
               }}
-              className={`flex items-center space-x-2 p-3 border transition-all cursor-pointer rounded-xl ${
+              className={`flex items-center space-x-2 p-2.5 border transition-all cursor-pointer rounded-xl ${
                 isDark
-                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:border-emerald-400'
-                  : 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:border-emerald-500'
+                  ? 'bg-white/5 border-white/10 hover:border-blue-500'
+                  : 'bg-black/5 border-black/10 hover:border-blue-600'
               }`}
             >
-              <PdfNoteVectorIcon size={16} className="text-emerald-500 shrink-0" />
-              <span className="font-medium">PDF 讲义批注</span>
+              <PdfNoteVectorIcon size={16} className="text-blue-500 shrink-0" />
+              <span>PDF 讲义批注</span>
             </button>
           )}
 
@@ -164,12 +164,12 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
           >
             {layoutType === 'dagre' ? (
               <>
-                <Network className="w-4 h-4 text-purple-400" />
+                <Network className="w-4 h-4 text-blue-500" />
                 <span>切力导向布局</span>
               </>
             ) : (
               <>
-                <GitFork className="w-4 h-4 text-emerald-400" />
+                <GitFork className="w-4 h-4 text-blue-500" />
                 <span>切分层布局</span>
               </>
             )}
@@ -188,7 +188,7 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
                 : 'bg-black/5 border-black/10 hover:border-blue-600'
             }`}
           >
-            {isFocusMode ? <EyeOff className="w-4 h-4 text-amber-500" /> : <Eye className="w-4 h-4 text-blue-500" />}
+            {isFocusMode ? <EyeOff className="w-4 h-4 text-blue-500" /> : <Eye className="w-4 h-4 text-blue-500" />}
             <span>{isFocusMode ? '退出聚焦' : '开启聚焦'}</span>
           </button>
 
@@ -205,7 +205,7 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
                 : 'bg-black/5 border-black/10 hover:border-blue-600'
             }`}
           >
-            {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-blue-500" />}
+            {isDark ? <Sun className="w-4 h-4 text-blue-500" /> : <Moon className="w-4 h-4 text-blue-500" />}
             <span>{isDark ? '切浅色纸张' : '切深色黑曜'}</span>
           </button>
 
@@ -222,7 +222,7 @@ export const MobileMenuDrawer: React.FC<MobileMenuDrawerProps> = ({
                 : 'bg-black/5 border-black/10 hover:border-blue-600'
             }`}
           >
-            <Settings className="w-4 h-4 text-blue-400" />
+            <Settings className="w-4 h-4 text-blue-500" />
             <span>全局系统设置</span>
           </button>
 

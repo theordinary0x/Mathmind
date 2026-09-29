@@ -60,6 +60,7 @@ interface GraphCanvasProps {
   onUpdateCanvasSettings?: (settings: CanvasSettings) => void;
   cornerStyle?: CornerStyle;
   fpsMode?: AnimationFpsMode;
+  onGraphReady?: () => void;
 }
 
 export function formatCanvasTitle(title: string, status?: PropositionStatus): string {
@@ -113,10 +114,13 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
   onUpdateCanvasSettings: onUpdateCanvasSettingsProp,
   cornerStyle = 'rounded',
   fpsMode = 'standard',
+  onGraphReady,
 }) => {
   const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<Core | null>(null);
+  const onGraphReadyRef = useRef(onGraphReady);
+  onGraphReadyRef.current = onGraphReady;
   const [cyInstance, setCyInstance] = useState<Core | null>(null);
   const [connectSourceId, setConnectSourceId] = useState<string | null>(null);
   const [currentZoomPercent, setCurrentZoomPercent] = useState<number>(100);
@@ -371,10 +375,15 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
   // Layout runner with smooth animation & anti-overlap parameters
   const runLayout = useCallback((type: 'dagre' | 'cose', isSwitch: boolean = false) => {
     const cy = cyRef.current;
-    if (!cy || cy.elements().length === 0) return;
+    if (!cy || cy.elements().length === 0) {
+      requestAnimationFrame(() => {
+        onGraphReadyRef.current?.();
+      });
+      return;
+    }
 
     if (isSwitch) {
-      // 1. Initial full-load or project switch: compute target topology coordinates
+      // 1. 首屏与换工程：在幕后一次性完成排版与视口定焦，杜绝揭幕时出现突兀缩放跳变
       const layoutConfig = {
         ...getGraphLayoutConfig(type, 'off'),
         animate: false,
@@ -382,13 +391,26 @@ export const GraphCanvas: React.FC<GraphCanvasProps> = ({
       };
       const layout = cy.layout(layoutConfig);
       layout.one('layoutstop', () => {
-        // Delay slightly (320ms) so constellation blooming unfolds in sync as splash curtain parts
-        setTimeout(() => {
-          if (!cyRef.current) return;
-          animateConstellationEntrance(cyRef.current, fpsMode, () => {
-            setCurrentZoomPercent(Math.round(cyRef.current?.zoom() ? cyRef.current.zoom() * 100 : 100));
+        if (!cyRef.current) return;
+        const instance = cyRef.current;
+        instance.resize();
+        instance.nodes().style('opacity', 1);
+        instance.fit(instance.elements(), 60);
+        setCurrentZoomPercent(Math.round(instance.zoom() * 100));
+
+        let notified = false;
+        const notifyReady = () => {
+          if (notified) return;
+          notified = true;
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              onGraphReadyRef.current?.();
+            });
           });
-        }, 320);
+        };
+
+        instance.one('render', notifyReady);
+        setTimeout(notifyReady, 60);
       });
       layout.run();
       return;

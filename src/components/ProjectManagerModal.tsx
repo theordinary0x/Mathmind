@@ -83,7 +83,7 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1 opacity-60 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+            className="p-1 rounded-lg opacity-60 hover:opacity-100 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>

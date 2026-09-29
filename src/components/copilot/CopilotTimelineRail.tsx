@@ -137,7 +137,7 @@ export const CopilotTimelineRail: React.FC<CopilotTimelineRailProps> = ({
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-3 h-3 text-amber-500" />
+                  <Sparkles className="w-3 h-3 text-blue-400" />
                   <span>Copilot 推导 #{hoveredMsg.idx + 1}</span>
                 </>
               )}

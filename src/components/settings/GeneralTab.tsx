@@ -53,7 +53,9 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
             }`}
           >
             <div className="flex items-center space-x-3">
-              <span className="text-2xl">🇨🇳</span>
+              <div className="w-8 h-8 rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-500 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                ZH
+              </div>
               <div className="text-left">
                 <div className="text-xs font-bold">{t('settings.langZh')}</div>
                 <div className="text-[10px] opacity-60">Simplified Chinese</div>
@@ -75,7 +77,9 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
             }`}
           >
             <div className="flex items-center space-x-3">
-              <span className="text-2xl">🇬🇧</span>
+              <div className="w-8 h-8 rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-500 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                EN
+              </div>
               <div className="text-left">
                 <div className="text-xs font-bold">{t('settings.langEn')}</div>
                 <div className="text-[10px] opacity-60">English</div>
@@ -201,7 +205,7 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
           <button
             type="button"
             onClick={() => onCornerStyleChange('sharp')}
-            className={`p-3.5 border flex items-center justify-between transition-all rounded-none ${
+            className={`p-3.5 border flex items-center justify-between transition-all rounded-xl ${
               cornerStyle === 'sharp'
                 ? 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/30'
                 : isDark
@@ -427,11 +431,11 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({
           isDark ? 'border-white/10 bg-[#121214]' : 'border-black/10 bg-white'
         }`}>
           <div className="flex items-center space-x-2 text-xs font-medium">
-            <Sparkles className="w-4 h-4 text-amber-500" />
+            <Sparkles className="w-4 h-4 text-blue-500" />
             <span>KaTeX 极速数学渲染引擎 · 行内与块级公式支持</span>
           </div>
           <p className="text-xs opacity-70 leading-relaxed">
-            MathMind 内置高性能 KaTeX 数学公式渲染器，使用单美元符号 <code className="font-mono bg-black/5 dark:bg-white/10 px-1 py-0.5 text-[11px]">$...$</code> 进行行内渲染，使用双美元符号 <code className="font-mono bg-black/5 dark:bg-white/10 px-1 py-0.5 text-[11px]">$$...$$</code> 进行居中大公式展示。
+            MathMind 内置高性能 KaTeX 数学公式渲染器，使用单美元符号 <code className="font-mono bg-black/5 dark:bg-white/10 px-1 py-0.5 rounded text-[11px]">$...$</code> 进行行内渲染，使用双美元符号 <code className="font-mono bg-black/5 dark:bg-white/10 px-1 py-0.5 rounded text-[11px]">$$...$$</code> 进行居中大公式展示。
           </p>
         </div>
       </div>

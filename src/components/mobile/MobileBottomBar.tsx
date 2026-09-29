@@ -108,7 +108,7 @@ export const MobileBottomBar: React.FC<MobileBottomBarProps> = ({
               isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'
             }`}
           >
-            <div className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-500">
+            <div className="p-1.5 rounded-lg bg-blue-500/15 text-blue-500">
               <PdfNoteVectorIcon size={15} />
             </div>
             <div>
@@ -185,11 +185,11 @@ export const MobileBottomBar: React.FC<MobileBottomBarProps> = ({
           }}
           className={`flex flex-col items-center justify-center px-2.5 py-1 rounded-xl text-[11px] font-serif transition-all cursor-pointer active:scale-95 ${
             isCopilotOpen
-              ? 'bg-amber-500/20 text-amber-400 font-semibold'
+              ? 'bg-blue-500/20 text-blue-500 font-semibold'
               : 'opacity-75 hover:opacity-100'
           }`}
         >
-          <SparkleAiVectorIcon size={16} className="text-amber-400 mb-0.5" />
+          <SparkleAiVectorIcon size={16} className="mb-0.5" />
           <span>AI 导师</span>
         </button>
 

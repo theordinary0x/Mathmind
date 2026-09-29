@@ -134,7 +134,7 @@ export const CopilotMessageItem: React.FC<CopilotMessageItemProps> = ({
           {isUser ? (
             <span className="font-sans font-semibold text-blue-500">我的提问</span>
           ) : (
-            <span className="font-sans font-semibold text-amber-500">Math Copilot</span>
+            <span className="font-sans font-semibold text-blue-400">Math Copilot</span>
           )}
           {message.timestamp && (
             <span>{formatMessageTime(message.timestamp)}</span>

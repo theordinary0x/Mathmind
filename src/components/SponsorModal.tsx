@@ -92,7 +92,7 @@ export const SponsorModal: React.FC<SponsorModalProps> = ({
         >
           <button
             onClick={onClose}
-            className={`px-4 py-1.5 text-xs font-medium transition-colors ${
+            className={`px-4 py-1.5 rounded-xl text-xs font-medium transition-colors ${
               isDark
                 ? 'bg-white/10 hover:bg-white/20 text-white'
                 : 'bg-black/5 hover:bg-black/10 text-stone-800'
