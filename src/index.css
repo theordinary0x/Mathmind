@@ -124,28 +124,103 @@ html.material-solid:not(.dark) .glass-panel {
   background-color: #FAF8F5 !important;
 }
 
-/* Glass Material (Frosted Acrylic) */
+/* Glass Material (Frosted Acrylic — strictly for outer backdrops & peripheral floating bars) */
 html.material-glass.dark .glass-panel {
-  background-color: rgba(24, 24, 27, 0.82) !important;
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(24, 24, 27, 0.78) !important;
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
 }
 html.material-glass:not(.dark) .glass-panel {
-  background-color: rgba(250, 248, 245, 0.86) !important;
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background-color: rgba(250, 248, 245, 0.82) !important;
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
 }
 
-/* Global Rounded Theme Rules: Automatically round inputs, buttons, selects, and textareas */
+/* Modal Surface — Unified crisp interior container (no inner backdrop-blur patchiness) */
+.dark .modal-surface {
+  background-color: #18181B !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+:not(.dark) .modal-surface {
+  background-color: #FAF8F5 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 24px 64px -12px rgba(28, 25, 23, 0.22), 0 0 0 1px rgba(28, 25, 23, 0.08);
+}
+
+/* Outer Frosted Backdrop for Modals */
+html.material-glass.dark .modal-backdrop-glass {
+  background-color: rgba(9, 9, 11, 0.55);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+}
+html.material-glass:not(.dark) .modal-backdrop-glass {
+  background-color: rgba(28, 25, 23, 0.32);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+}
+html.material-solid.dark .modal-backdrop-glass {
+  background-color: rgba(9, 9, 11, 0.78);
+}
+html.material-solid:not(.dark) .modal-backdrop-glass {
+  background-color: rgba(28, 25, 23, 0.55);
+}
+
+/* Global Rounded Theme Rules: Automatically round inputs, buttons, selects, textareas, and code blocks */
 html.corner-rounded button:not(.no-round):not([class*="rounded-"]),
 html.corner-rounded input:not(.no-round):not([class*="rounded-"]),
 html.corner-rounded select:not(.no-round):not([class*="rounded-"]),
 html.corner-rounded textarea:not(.no-round):not([class*="rounded-"]) {
-  border-radius: var(--mm-radius-sm);
+  border-radius: var(--mm-radius-md);
+}
+
+html.corner-rounded .math-markdown code:not(pre code) {
+  border-radius: 6px;
+}
+
+html.corner-rounded .math-markdown blockquote {
+  border-radius: 0 8px 8px 0;
 }
 
 html.corner-rounded kbd {
-  border-radius: 4px;
+  border-radius: 6px;
+}
+
+/* ========================================================
+   GPU-Accelerated Modal & Drawer Transition System
+   ======================================================== */
+.mm-backdrop-transition {
+  transition: opacity 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity;
+}
+
+.mm-modal-transition {
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), opacity 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.mm-drawer-transition {
+  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+@keyframes mm-view-enter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0) scale(0.992);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.mm-view-fade {
+  animation: mm-view-enter 220ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 /* ========================================================
@@ -191,7 +266,7 @@ html.corner-rounded kbd {
 /* ========================================================
    FPS Profile & Animation Control Overrides
    ======================================================== */
-/* Off: 0 FPS Instant Transition (Prefe-reduced-motion) */
+/* Off: 0 FPS Instant Transition (Prefers-reduced-motion) */
 html.fps-off *,
 html.fps-off *::before,
 html.fps-off *::after {
@@ -212,7 +287,3 @@ html.fps-economy .animate-pulse {
 html.fps-high * {
   backface-visibility: hidden;
 }
-
-
-
-

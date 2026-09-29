@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { 
-  X, Check, Trash2, Sparkles, BookOpen, Edit3 
+import {
+  X, Check, Trash2, BookOpen, Edit3
 } from 'lucide-react';
 import { PropositionNode, PropositionType, NODE_TYPES, AppTheme, PropositionStatus, PROPOSITION_STATUSES } from '../types';
 import { MathSymbolToolbar } from './MathSymbolToolbar';
@@ -9,6 +9,8 @@ import { NodeEditView } from './drawer/NodeEditView';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useBackdropClose } from '../hooks/useBackdropClose';
 import { UnsavedChangesModal } from './UnsavedChangesModal';
+import { useAnimatedVisibility } from '../hooks/useAnimatedVisibility';
+import { StatusVectorIcon, SparkleAiVectorIcon } from './icons/CustomIcons';
 
 interface NodeDetailModalProps {
   isOpen: boolean;
@@ -20,6 +22,7 @@ interface NodeDetailModalProps {
   onDeleteNode: (nodeId: string) => void;
   onNavigateToNode: (nodeId: string) => void;
   onTriggerCopilot?: (prompt: string) => void;
+  onOpenHandwriting?: (onInsert: (latex: string) => void) => void;
   theme: AppTheme;
 }
 
@@ -33,10 +36,12 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
   onDeleteNode,
   onNavigateToNode,
   onTriggerCopilot,
+  onOpenHandwriting,
   theme
 }) => {
   const [mode, setMode] = useState<'read' | 'edit'>('read');
   const [formData, setFormData] = useState<PropositionNode | null>(null);
+  const [cachedNode, setCachedNode] = useState<PropositionNode | null>(node);
   const [activeField, setActiveField] = useState<string>('title');
   const [isFullProofExpanded, setIsFullProofExpanded] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -46,42 +51,41 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
   const activeElementRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const { t } = useTranslation();
   const isDark = theme === 'dark';
+  const { shouldRender, isVisible } = useAnimatedVisibility(isOpen, 240);
 
-  // 点击外部蒙版：在编辑页面任何情况下无法退出
   const handleBackdropClick = () => {
-    if (mode === 'edit') {
-      return;
-    }
+    if (mode === 'edit') return;
     onClose();
   };
   const backdropProps = useBackdropClose(handleBackdropClick);
 
-  // Synchronize formData with incoming node prop and reset to Read mode
   useEffect(() => {
     if (node) {
+      setCachedNode(node);
       setFormData({ ...node });
       setIsFullProofExpanded(Boolean(node.full_proof));
       setErrorMessage(null);
-      setMode('read'); // Always open in read mode by default
+      setMode('read');
       setShowUnsavedPrompt(false);
     }
   }, [node?.id, isOpen]);
 
-  // 计算编辑表单是否被修改
+  const activeNode = node || cachedNode;
+
   const isDirty = useMemo(() => {
-    if (!node || !formData || mode !== 'edit') return false;
+    if (!activeNode || !formData || mode !== 'edit') return false;
     return (
-      formData.title !== node.title ||
-      formData.type !== node.type ||
-      formData.status !== node.status ||
-      formData.statement !== node.statement ||
-      formData.proof_sketch !== node.proof_sketch ||
-      (formData.full_proof || '') !== (node.full_proof || '') ||
-      (formData.note || '') !== (node.note || '') ||
-      JSON.stringify(formData.depends_on || []) !== JSON.stringify(node.depends_on || []) ||
-      JSON.stringify(formData.examples || []) !== JSON.stringify(node.examples || [])
+      formData.title !== activeNode.title ||
+      formData.type !== activeNode.type ||
+      formData.status !== activeNode.status ||
+      formData.statement !== activeNode.statement ||
+      formData.proof_sketch !== activeNode.proof_sketch ||
+      (formData.full_proof || '') !== (activeNode.full_proof || '') ||
+      (formData.note || '') !== (activeNode.note || '') ||
+      JSON.stringify(formData.depends_on || []) !== JSON.stringify(activeNode.depends_on || []) ||
+      JSON.stringify(formData.examples || []) !== JSON.stringify(activeNode.examples || [])
     );
-  }, [node, formData, mode]);
+  }, [activeNode, formData, mode]);
 
   const recordCursor = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement> | React.SyntheticEvent) => {
     activeElementRef.current = e.currentTarget as HTMLInputElement | HTMLTextAreaElement;
@@ -91,7 +95,6 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
     if (!formData) return;
     const el = activeElementRef.current;
 
-    // Handle insertion for dynamic example fields (e.g. 'example_0')
     if (activeField.startsWith('example_')) {
       const idx = parseInt(activeField.replace('example_', ''), 10);
       const examples = [...(formData.examples || [])];
@@ -122,7 +125,6 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
       return;
     }
 
-    // Handle insertion for standard node fields
     const targetKey = activeField as 'title' | 'statement' | 'proof_sketch' | 'full_proof' | 'note';
     const currentVal = (formData[targetKey] as string) || '';
 
@@ -140,11 +142,8 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
     }) : null);
 
     let cursorOffset = symbol.length;
-    if (symbol === '$ $') {
-      cursorOffset = 1;
-    } else if (symbol === '$$\n\n$$') {
-      cursorOffset = 3;
-    }
+    if (symbol === '$ $') cursorOffset = 1;
+    else if (symbol === '$$\n\n$$') cursorOffset = 3;
 
     requestAnimationFrame(() => {
       if (el && document.body.contains(el)) {
@@ -193,8 +192,9 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
 
     onUpdateNode(updated);
     setFormData(updated);
+    setCachedNode(updated);
     setErrorMessage(null);
-    setMode('read'); // Switch back to read mode after saving
+    setMode('read');
   };
 
   const requestCancelEdit = () => {
@@ -202,8 +202,8 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
       setPendingCloseAction('cancel_edit');
       setShowUnsavedPrompt(true);
     } else {
-      if (node) {
-        setFormData({ ...node });
+      if (activeNode) {
+        setFormData({ ...activeNode });
         setErrorMessage(null);
       }
       setMode('read');
@@ -221,8 +221,8 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
 
   const handleConfirmDiscard = () => {
     setShowUnsavedPrompt(false);
-    if (node) {
-      setFormData({ ...node });
+    if (activeNode) {
+      setFormData({ ...activeNode });
       setErrorMessage(null);
     }
     if (pendingCloseAction === 'close_modal') {
@@ -236,7 +236,6 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
     setShowUnsavedPrompt(false);
   };
 
-  // Keyboard shortcut routing inside NodeDetailModal
   useEffect(() => {
     if (!isOpen) return;
 
@@ -245,8 +244,8 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
 
       const activeEl = document.activeElement as HTMLElement | null;
       const isInputActive = activeEl && (
-        activeEl.tagName === 'INPUT' || 
-        activeEl.tagName === 'TEXTAREA' || 
+        activeEl.tagName === 'INPUT' ||
+        activeEl.tagName === 'TEXTAREA' ||
         activeEl.isContentEditable
       );
 
@@ -259,7 +258,6 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
           onClose();
         }
       } else if (!isInputActive && (e.key === 'e' || e.key === 'E')) {
-        // Toggle Read / Edit mode via 'E' when not typing
         e.preventDefault();
         e.stopPropagation();
         if (mode === 'edit') {
@@ -278,9 +276,9 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, mode, formData, node, isDirty, showUnsavedPrompt, pendingCloseAction]);
+  }, [isOpen, mode, formData, activeNode, isDirty, showUnsavedPrompt, pendingCloseAction]);
 
-  if (!isOpen || !node || !formData) return null;
+  if (!shouldRender || !activeNode || !formData) return null;
 
   const typeConfig = NODE_TYPES[formData.type] || NODE_TYPES.theorem;
 
@@ -288,7 +286,7 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
     .map(id => allNodes.find(n => n.id === id))
     .filter((n): n is PropositionNode => !!n);
 
-  const downstreamIds = downstreamMap[node.id] || [];
+  const downstreamIds = downstreamMap[activeNode.id] || [];
   const downstreamNodes = downstreamIds
     .map(id => allNodes.find(n => n.id === id))
     .filter((n): n is PropositionNode => !!n);
@@ -296,14 +294,22 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
   return (
     <div
       {...backdropProps}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-100 select-none"
+      className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 select-none modal-backdrop-glass mm-backdrop-transition ${
+        isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      }`}
     >
       <div
-        className={`border shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden font-sans select-text rounded-2xl glass-panel transition-all ${
+        className={`border w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden font-sans select-text rounded-2xl modal-surface mm-modal-transition ${
           isDark
-            ? 'bg-[#18181B] border-white/10 text-[#EDECE8]'
-            : 'bg-[#FAF8F5] border-black/10 text-[#2C2B29]'
+            ? 'border-white/10 text-[#EDECE8]'
+            : 'border-black/10 text-[#2C2B29]'
         }`}
+        style={{
+          transform: isVisible
+            ? 'translate3d(0, 0, 0) scale(1)'
+            : 'translate3d(0, 14px, 0) scale(0.95)',
+          opacity: isVisible ? 1 : 0,
+        }}
       >
         {/* Header */}
         <div
@@ -317,7 +323,7 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
               <select
                 value={formData.type}
                 onChange={e => setFormData({ ...formData, type: e.target.value as PropositionType })}
-                className={`text-xs px-2 py-1 border font-serif focus:outline-none cursor-pointer ${
+                className={`text-xs px-2.5 py-1 rounded-lg border font-serif focus:outline-none cursor-pointer ${
                   isDark ? 'bg-[#121214] border-[#2E2E33] text-white' : 'bg-white border-[#D4CDC0] text-[#2C2B29]'
                 }`}
               >
@@ -330,7 +336,7 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
               </select>
             ) : (
               <span
-                className="px-2 py-0.5 text-xs font-serif font-semibold border inline-flex items-center"
+                className="px-2.5 py-0.5 text-xs font-serif font-semibold rounded-lg border inline-flex items-center"
                 style={{
                   borderColor: isDark ? typeConfig.darkBorderColor : typeConfig.borderColor,
                   color: isDark ? typeConfig.darkBorderColor : typeConfig.borderColor,
@@ -346,38 +352,38 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
               <select
                 value={formData.status || ''}
                 onChange={e => setFormData({ ...formData, status: (e.target.value as PropositionStatus) || undefined })}
-                className={`text-xs px-2 py-1 border font-serif focus:outline-none cursor-pointer ${
+                className={`text-xs px-2.5 py-1 rounded-lg border font-serif focus:outline-none cursor-pointer ${
                   isDark ? 'bg-[#121214] border-[#2E2E33] text-white' : 'bg-white border-[#D4CDC0] text-[#2C2B29]'
                 }`}
                 title="研读标记状态"
               >
                 <option value="">无标记</option>
-                <option value="doubt">❓ 存疑</option>
-                <option value="core">★ 重点</option>
-                <option value="review">🔄 需复习</option>
-                <option value="verified">✔ 已证毕</option>
+                <option value="doubt">[?] 存疑</option>
+                <option value="core">[*] 重点</option>
+                <option value="review">[~] 需复习</option>
+                <option value="verified">[v] 已证毕</option>
               </select>
             ) : formData.status && PROPOSITION_STATUSES[formData.status] ? (
               <span
-                className="px-2 py-0.5 text-xs font-serif font-semibold border inline-flex items-center space-x-1"
+                className="px-2.5 py-0.5 text-xs font-serif font-semibold rounded-lg border inline-flex items-center space-x-1.5"
                 style={{
                   borderColor: isDark ? PROPOSITION_STATUSES[formData.status].darkColor : PROPOSITION_STATUSES[formData.status].color,
                   color: isDark ? PROPOSITION_STATUSES[formData.status].darkColor : PROPOSITION_STATUSES[formData.status].color,
                   backgroundColor: isDark ? `${PROPOSITION_STATUSES[formData.status].darkBadgeBg}80` : PROPOSITION_STATUSES[formData.status].badgeBg
                 }}
               >
-                <span>{PROPOSITION_STATUSES[formData.status].icon}</span>
+                <StatusVectorIcon status={formData.status} size={13} />
                 <span>{PROPOSITION_STATUSES[formData.status].label}</span>
               </span>
             ) : null}
 
-            <span className="text-[11px] font-mono opacity-40 truncate hidden sm:inline">#{node.id}</span>
+            <span className="text-[11px] font-mono opacity-40 truncate hidden sm:inline">#{activeNode.id}</span>
           </div>
 
           {/* Center / Right: Read / Edit Mode Switch & Actions */}
           <div className="flex items-center space-x-2 shrink-0">
             {/* Segmented Control Switch */}
-            <div className={`flex items-center border p-0.5 select-none ${
+            <div className={`flex items-center rounded-xl border p-0.5 select-none ${
               isDark ? 'border-[#2E2E33] bg-[#121214]' : 'border-[#D4CDC0] bg-white'
             }`}>
               <button
@@ -387,7 +393,7 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
                     requestCancelEdit();
                   }
                 }}
-                className={`flex items-center space-x-1 px-2.5 py-1 text-xs transition-colors cursor-pointer ${
+                className={`flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer ${
                   mode === 'read'
                     ? isDark ? 'bg-[#27272A] text-white font-medium shadow-xs' : 'bg-[#E5E0D8] text-stone-900 font-medium shadow-xs'
                     : isDark ? 'text-zinc-400 hover:text-zinc-200' : 'text-stone-600 hover:text-stone-900'
@@ -400,7 +406,7 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
               <button
                 type="button"
                 onClick={() => setMode('edit')}
-                className={`flex items-center space-x-1 px-2.5 py-1 text-xs transition-colors cursor-pointer ${
+                className={`flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer ${
                   mode === 'edit'
                     ? isDark ? 'bg-[#27272A] text-white font-medium shadow-xs' : 'bg-[#E5E0D8] text-stone-900 font-medium shadow-xs'
                     : isDark ? 'text-zinc-400 hover:text-zinc-200' : 'text-stone-600 hover:text-stone-900'
@@ -417,16 +423,16 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  onTriggerCopilot(`请结合命题【${node.title}】的陈述与上下文，补充严谨的分步数学证明。`);
+                  onTriggerCopilot(`请结合命题【${activeNode.title}】的陈述与上下文，补充严谨的分步数学证明。`);
                 }}
-                className={`flex items-center space-x-1 px-2 py-1 text-xs border transition-colors cursor-pointer ${
+                className={`flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs border transition-colors cursor-pointer ${
                   isDark
                     ? 'border-[#2E2E33] hover:border-blue-500 text-zinc-300 hover:text-white bg-[#121214]'
                     : 'border-[#D4CDC0] hover:border-blue-600 text-stone-700 hover:text-blue-600 bg-white'
                 }`}
                 title="呼叫 Copilot 助手生成或完善推导"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <SparkleAiVectorIcon size={14} className="text-amber-400" />
                 <span className="hidden md:inline">AI 辅助</span>
               </button>
             )}
@@ -435,12 +441,12 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
             <button
               type="button"
               onClick={() => {
-                if (window.confirm(t('drawer.deleteConfirm', { title: node.title }))) {
-                  onDeleteNode(node.id);
+                if (window.confirm(t('drawer.deleteConfirm', { title: activeNode.title }))) {
+                  onDeleteNode(activeNode.id);
                   onClose();
                 }
               }}
-              className="p-1.5 opacity-60 hover:opacity-100 hover:text-red-500 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg opacity-60 hover:opacity-100 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
               title="删除命题"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -450,7 +456,7 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
             <button
               type="button"
               onClick={requestCloseModal}
-              className="p-1.5 opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+              className="p-1.5 rounded-lg opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer"
               title="关闭 (Esc)"
             >
               <X className="w-4 h-4" />
@@ -459,7 +465,17 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
         </div>
 
         {/* LaTeX Symbols Quick Insert Toolbar (Only visible in Edit Mode) */}
-        {mode === 'edit' && <MathSymbolToolbar onInsert={handleInsertSymbol} theme={theme} />}
+        {mode === 'edit' && (
+          <MathSymbolToolbar
+            onInsert={handleInsertSymbol}
+            theme={theme}
+            onOpenHandwriting={
+              onOpenHandwriting
+                ? () => onOpenHandwriting(latex => handleInsertSymbol(latex))
+                : undefined
+            }
+          />
+        )}
 
         {/* Modal Body: Read Mode vs Edit Mode */}
         {mode === 'read' ? (
@@ -510,7 +526,7 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className={`px-3 py-1.5 text-xs border transition-colors cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs border transition-colors cursor-pointer ${
                   isDark
                     ? 'border-[#2E2E33] hover:bg-white/5 text-zinc-300'
                     : 'border-[#D4CDC0] hover:bg-black/5 text-stone-700'
@@ -521,7 +537,7 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
               <button
                 type="button"
                 onClick={() => setMode('edit')}
-                className="flex items-center space-x-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                className="flex items-center space-x-1.5 px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
               >
                 <Edit3 className="w-3.5 h-3.5" />
                 <span>编辑命题 (E)</span>
@@ -541,7 +557,7 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
               <button
                 type="button"
                 onClick={requestCancelEdit}
-                className={`px-3 py-1.5 text-xs border transition-colors cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs border transition-colors cursor-pointer ${
                   isDark
                     ? 'border-[#2E2E33] hover:bg-white/5 text-zinc-300'
                     : 'border-[#D4CDC0] hover:bg-black/5 text-stone-700'
@@ -552,7 +568,7 @@ export const NodeDetailModal: React.FC<NodeDetailModalProps> = ({
               <button
                 type="button"
                 onClick={handleSave}
-                className="flex items-center space-x-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                className="flex items-center space-x-1.5 px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>保存修改 (Ctrl+Enter)</span>

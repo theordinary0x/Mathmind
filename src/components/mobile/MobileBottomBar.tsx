@@ -1,35 +1,46 @@
 import React, { useState } from 'react';
-import { Sparkles, Plus, Search, X } from 'lucide-react';
+import { Plus, Search, X, Settings } from 'lucide-react';
+import {
+  StylusPenVectorIcon,
+  PdfNoteVectorIcon,
+  SparkleAiVectorIcon,
+} from '../icons/CustomIcons';
 
 interface MobileBottomBarProps {
   isDark: boolean;
   isCopilotOpen: boolean;
   onToggleCopilot: () => void;
   onOpenCreateModal: () => void;
+  onOpenHandwriting: () => void;
+  onOpenPdfWorkspace: () => void;
+  onOpenSettings: () => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
 }
 
 /**
- * 方案 B：极简全屏沉浸（Procreate 模式）悬浮底栏
- * 采用悬浮胶囊底岛设计，不遮挡大面积画布，便于拇指单手触控。
+ * 移动端底部五宫格悬浮导航坞（零遮挡冲突、包含手写/PDF与直达设置）
  */
 export const MobileBottomBar: React.FC<MobileBottomBarProps> = ({
   isDark,
   isCopilotOpen,
   onToggleCopilot,
   onOpenCreateModal,
+  onOpenHandwriting,
+  onOpenPdfWorkspace,
+  onOpenSettings,
   searchQuery,
   onSearchChange
 }) => {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isNoteMenuOpen, setIsNoteMenuOpen] = useState(false);
 
   return (
     <>
       {/* 搜索弹出浮层 */}
       {isSearchExpanded && (
         <div
-          className={`fixed bottom-18 left-4 right-4 max-w-sm mx-auto p-2 border shadow-2xl z-40 animate-in fade-in slide-in-from-bottom-2 duration-150 rounded-2xl glass-panel ${
+          className={`fixed bottom-20 left-4 right-4 max-w-sm mx-auto p-2 border shadow-2xl z-40 mm-view-fade rounded-2xl glass-panel ${
             isDark ? 'border-white/15 text-white' : 'border-black/15 text-stone-900'
           }`}
         >
@@ -61,59 +72,139 @@ export const MobileBottomBar: React.FC<MobileBottomBarProps> = ({
         </div>
       )}
 
-      {/* 底部悬浮胶囊操作岛 */}
+      {/* 手写演算 / PDF 讲义批注上拉小浮层 */}
+      {isNoteMenuOpen && (
+        <div
+          className={`fixed bottom-20 left-1/2 -translate-x-1/2 w-64 p-2 border shadow-2xl z-40 mm-view-fade rounded-2xl glass-panel flex flex-col space-y-1.5 ${
+            isDark ? 'border-white/15 text-white' : 'border-black/15 text-stone-900'
+          }`}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              setIsNoteMenuOpen(false);
+              onOpenHandwriting();
+            }}
+            className={`w-full flex items-center space-x-2.5 p-2.5 rounded-xl text-xs font-serif text-left transition-colors cursor-pointer ${
+              isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'
+            }`}
+          >
+            <div className="p-1.5 rounded-lg bg-blue-500/15 text-blue-500">
+              <StylusPenVectorIcon size={15} />
+            </div>
+            <div>
+              <div className="font-bold">压感手写演算板</div>
+              <div className="text-[10px] opacity-60">手写公式识别 LaTeX / 草稿推导</div>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setIsNoteMenuOpen(false);
+              onOpenPdfWorkspace();
+            }}
+            className={`w-full flex items-center space-x-2.5 p-2.5 rounded-xl text-xs font-serif text-left transition-colors cursor-pointer ${
+              isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'
+            }`}
+          >
+            <div className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-500">
+              <PdfNoteVectorIcon size={15} />
+            </div>
+            <div>
+              <div className="font-bold">PDF 讲义批注台</div>
+              <div className="text-[10px] opacity-60">打开教材原位手写 / 框选提取命题</div>
+            </div>
+          </button>
+        </div>
+      )}
+
+      {/* 底部五宫格悬浮胶囊坞 */}
       <nav
-        className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-30 pointer-events-auto flex items-center space-x-1.5 px-3 py-1.5 rounded-full border shadow-2xl transition-all select-none glass-panel ${
+        className={`fixed bottom-3.5 left-3 right-3 max-w-md mx-auto z-30 pointer-events-auto flex items-center justify-between px-2 py-1.5 rounded-2xl border shadow-2xl transition-all select-none glass-panel ${
           isDark
             ? 'border-white/10 text-[#EDECE8]'
             : 'border-black/10 text-[#2C2B29]'
         }`}
       >
-        {/* 1. 搜索触发按钮 */}
+        {/* 1. 搜索 */}
         <button
           type="button"
-          onClick={() => setIsSearchExpanded(prev => !prev)}
-          className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs font-serif transition-all cursor-pointer active:scale-95 ${
+          onClick={() => {
+            setIsNoteMenuOpen(false);
+            setIsSearchExpanded(prev => !prev);
+          }}
+          className={`flex flex-col items-center justify-center px-2.5 py-1 rounded-xl text-[11px] font-serif transition-all cursor-pointer active:scale-95 ${
             isSearchExpanded || searchQuery
-              ? 'bg-blue-500/20 text-blue-500 font-semibold border border-blue-500/30'
-              : 'opacity-75 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10'
+              ? 'bg-blue-500/20 text-blue-500 font-semibold'
+              : 'opacity-75 hover:opacity-100'
           }`}
-          title="搜索命题"
         >
-          <Search className="w-3.5 h-3.5" />
+          <Search className="w-4 h-4 mb-0.5" />
           <span>搜索</span>
         </button>
 
-        {/* 分隔符 */}
-        <div className="w-[1px] h-4 bg-black/10 dark:bg-white/10" />
-
-        {/* 2. 核心主操作：新建命题 */}
+        {/* 2. 手写 / PDF 笔记 */}
         <button
           type="button"
-          onClick={onOpenCreateModal}
-          className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-serif font-medium text-xs shadow-md shadow-blue-500/20 active:scale-95 transition-all cursor-pointer"
-          title="新建公理/定理/定义"
+          onClick={() => {
+            setIsSearchExpanded(false);
+            setIsNoteMenuOpen(prev => !prev);
+          }}
+          className={`flex flex-col items-center justify-center px-2.5 py-1 rounded-xl text-[11px] font-serif transition-all cursor-pointer active:scale-95 ${
+            isNoteMenuOpen
+              ? 'bg-blue-500/20 text-blue-500 font-semibold'
+              : 'opacity-75 hover:opacity-100'
+          }`}
         >
-          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+          <StylusPenVectorIcon size={16} className="mb-0.5" />
+          <span>手写/PDF</span>
+        </button>
+
+        {/* 3. 核心主操作：新建命题 */}
+        <button
+          type="button"
+          onClick={() => {
+            setIsNoteMenuOpen(false);
+            setIsSearchExpanded(false);
+            onOpenCreateModal();
+          }}
+          className="flex items-center space-x-1 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-serif font-semibold text-xs shadow-md shadow-blue-500/25 active:scale-95 transition-all cursor-pointer"
+        >
+          <Plus className="w-4 h-4 stroke-[2.5]" />
           <span>新建</span>
         </button>
 
-        {/* 分隔符 */}
-        <div className="w-[1px] h-4 bg-black/10 dark:bg-white/10" />
-
-        {/* 3. AI 导师 / Copilot 按钮 */}
+        {/* 4. AI 导师 / Copilot */}
         <button
           type="button"
-          onClick={onToggleCopilot}
-          className={`flex items-center space-x-1 px-3 py-1.5 rounded-full text-xs font-serif transition-all cursor-pointer active:scale-95 ${
+          onClick={() => {
+            setIsNoteMenuOpen(false);
+            setIsSearchExpanded(false);
+            onToggleCopilot();
+          }}
+          className={`flex flex-col items-center justify-center px-2.5 py-1 rounded-xl text-[11px] font-serif transition-all cursor-pointer active:scale-95 ${
             isCopilotOpen
-              ? 'bg-purple-500/20 text-purple-400 font-semibold border border-purple-500/30'
-              : 'opacity-75 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10'
+              ? 'bg-amber-500/20 text-amber-400 font-semibold'
+              : 'opacity-75 hover:opacity-100'
           }`}
-          title="AI 导师与推理助手"
         >
-          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-          <span>导师</span>
+          <SparkleAiVectorIcon size={16} className="text-amber-400 mb-0.5" />
+          <span>AI 导师</span>
+        </button>
+
+        {/* 5. 系统设置直达 */}
+        <button
+          type="button"
+          onClick={() => {
+            setIsNoteMenuOpen(false);
+            setIsSearchExpanded(false);
+            onOpenSettings();
+          }}
+          className="flex flex-col items-center justify-center px-2.5 py-1 rounded-xl text-[11px] font-serif opacity-75 hover:opacity-100 transition-all cursor-pointer active:scale-95"
+        >
+          <Settings className="w-4 h-4 mb-0.5" />
+          <span>设置</span>
         </button>
       </nav>
     </>

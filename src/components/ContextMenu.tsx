@@ -18,6 +18,7 @@ import { latexToUnicode, formatSingleLineFormulaTitle } from '../utils/latexToUn
 import { MathRenderer } from './MathRenderer';
 
 import { useTranslation } from '../i18n/LanguageContext';
+import { StatusVectorIcon } from './icons/CustomIcons';
 
 export interface ContextMenuState {
   isOpen: boolean;
@@ -128,7 +129,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
           e.preventDefault();
           e.stopPropagation();
         }}
-        className={`fixed z-50 w-56 max-h-[calc(100vh-24px)] overflow-y-auto overflow-x-hidden border shadow-2xl py-1.5 text-xs select-none backdrop-blur-md transition-all animate-in fade-in zoom-in-95 duration-100 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-black/20 dark:[&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-track]:bg-transparent ${
+        className={`fixed z-50 w-56 max-h-[calc(100vh-24px)] overflow-y-auto overflow-x-hidden rounded-2xl border shadow-2xl py-1.5 text-xs select-none glass-panel transition-all animate-in fade-in zoom-in-95 duration-100 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-black/20 dark:[&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-track]:bg-transparent ${
           isDark
             ? 'bg-[#18181B]/95 border-white/10 text-zinc-200 divide-white/10'
             : 'bg-white/95 border-black/10 text-stone-800 divide-black/5'
@@ -232,7 +233,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
                 >
                   <div className="flex items-center space-x-2">
                     <span
-                      className="w-2 h-2"
+                      className="w-2 h-2 rounded-full badge-dot"
                       style={{ backgroundColor: isDark ? conf.darkColor : conf.color }}
                     />
                     <span>{typeLabel}</span>
@@ -260,9 +261,12 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
                   }}
                   className="w-full px-3 py-1 text-left flex items-center justify-between hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-[11px]"
                 >
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs">{conf.icon}</span>
-                    <span>{conf.label}</span>
+                  <div
+                    className="flex items-center space-x-2"
+                    style={{ color: isDark ? conf.darkColor : conf.color }}
+                  >
+                    <StatusVectorIcon status={statusKey} size={13} />
+                    <span className={isDark ? 'text-zinc-200' : 'text-stone-800'}>{conf.label}</span>
                   </div>
                   {isCurrent && <Check className="w-3 h-3 text-emerald-500" />}
                 </button>

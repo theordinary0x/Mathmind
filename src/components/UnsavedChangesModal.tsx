@@ -71,19 +71,19 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 animate-in fade-in duration-100 select-none"
+      className="fixed inset-0 z-[100] flex items-center justify-center modal-backdrop-glass p-4 animate-in fade-in duration-100 select-none"
       onClick={e => e.stopPropagation()}
     >
       <div
-        className={`w-full max-w-md border shadow-2xl p-6 font-sans select-text ${
+        className={`w-full max-w-md rounded-2xl border p-6 font-sans select-text modal-surface mm-view-fade ${
           isDark
-            ? 'bg-[#18181B] border-[#3F3F46] text-[#EDECE8]'
-            : 'bg-[#FAF8F5] border-[#D4CDC0] text-[#2C2B29]'
+            ? 'border-[#3F3F46] text-[#EDECE8]'
+            : 'border-[#D4CDC0] text-[#2C2B29]'
         }`}
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-start space-x-3.5 mb-4">
-          <div className="p-2 border shrink-0 text-amber-500 border-amber-500/30 bg-amber-500/10">
+          <div className="p-2 rounded-xl border shrink-0 text-amber-500 border-amber-500/30 bg-amber-500/10">
             <AlertCircle className="w-5 h-5" />
           </div>
           <div>
@@ -100,7 +100,7 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
           <button
             type="button"
             onClick={onCancelStay}
-            className={`px-3.5 py-1.5 border font-medium transition-colors cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-xl border font-medium transition-colors cursor-pointer ${
               isDark
                 ? 'border-[#3F3F46] hover:border-blue-500 text-zinc-200 hover:text-white bg-[#202024]'
                 : 'border-[#D4CDC0] hover:border-blue-600 text-stone-700 hover:text-blue-600 bg-white'
@@ -113,7 +113,7 @@ export const UnsavedChangesModal: React.FC<UnsavedChangesModalProps> = ({
             type="button"
             disabled={isLocked}
             onClick={onConfirmDiscard}
-            className={`px-3.5 py-1.5 border font-medium transition-all ${
+            className={`px-3.5 py-1.5 rounded-xl border font-medium transition-all ${
               isLocked
                 ? 'opacity-40 cursor-not-allowed border-red-500/30 bg-red-500/10 text-red-400'
                 : 'border-red-600/80 bg-red-600/20 hover:bg-red-600 hover:text-white text-red-400 cursor-pointer shadow-xs active:scale-98'

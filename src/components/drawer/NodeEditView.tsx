@@ -1,10 +1,11 @@
 import React from 'react';
-import { Trash2, Plus, ChevronDown, ChevronRight, Sparkles, ArrowDownRight } from 'lucide-react';
+import { Trash2, Plus, ChevronDown, ChevronRight, ArrowDownRight } from 'lucide-react';
 import { PropositionNode } from '../../types';
 import { latexToUnicode, formatSingleLineFormulaTitle } from '../../utils/latexToUnicode';
 import { MathRenderer } from '../MathRenderer';
 import { FieldLatexPreview } from './FieldLatexPreview';
 import { PrerequisitePicker } from './PrerequisitePicker';
+import { SparkleAiVectorIcon } from '../icons/CustomIcons';
 
 interface NodeEditViewProps {
   formData: PropositionNode;
@@ -69,16 +70,16 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-5 space-y-4">
+    <div className="flex-1 overflow-y-auto p-5 space-y-4 mm-view-fade">
       {errorMessage && (
-        <div className="p-2.5 text-xs bg-red-500/10 border border-red-500/30 text-red-500 font-serif">
+        <div className="p-3 rounded-xl text-xs bg-red-500/10 border border-red-500/30 text-red-500 font-serif">
           {errorMessage}
         </div>
       )}
 
       {/* Title Input */}
       <div>
-        <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center justify-between mb-1.5">
           <label className="text-[11px] font-semibold opacity-70 font-serif">
             命题标题 <span className="text-red-500">*</span>
           </label>
@@ -96,10 +97,10 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
           onSelect={recordCursor}
           onChange={e => setFormData({ ...formData, title: e.target.value })}
           placeholder="如: T5: 加法消去律 ($a+c=b+c \implies a=b$)"
-          className={`w-full text-sm font-serif font-bold p-2.5 border focus:outline-none resize-none leading-relaxed ${
+          className={`w-full text-sm font-serif font-bold p-3 rounded-xl border focus:outline-none resize-none leading-relaxed transition-colors ${
             isDark
-              ? 'bg-[#121214] border-[#2E2E33] text-white'
-              : 'bg-white border-[#D4CDC0] text-[#2C2B29]'
+              ? 'bg-[#121214] border-[#2E2E33] text-white focus:border-blue-500'
+              : 'bg-white border-[#D4CDC0] text-[#2C2B29] focus:border-blue-600'
           }`}
         />
         <FieldLatexPreview
@@ -112,7 +113,7 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
 
       {/* Tags Configuration */}
       <div>
-        <div className="text-[11px] font-semibold opacity-70 mb-1 font-serif">
+        <div className="text-[11px] font-semibold opacity-70 mb-1.5 font-serif">
           自由标签 (Tags，用逗号或空格分隔)
         </div>
         <input
@@ -124,17 +125,17 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
             setFormData({ ...formData, tags: parsed });
           }}
           placeholder="如: 反例, 期末考点, 拓扑闭包"
-          className={`w-full text-xs p-2.5 border font-mono focus:outline-none ${
+          className={`w-full text-xs p-3 rounded-xl border font-mono focus:outline-none transition-colors ${
             isDark
-              ? 'bg-[#121214] border-[#2E2E33] text-white placeholder-zinc-500'
-              : 'bg-white border-[#D4CDC0] text-[#2C2B29] placeholder-stone-400'
+              ? 'bg-[#121214] border-[#2E2E33] text-white placeholder-zinc-500 focus:border-blue-500'
+              : 'bg-white border-[#D4CDC0] text-[#2C2B29] placeholder-stone-400 focus:border-blue-600'
           }`}
         />
       </div>
 
       {/* Statement Input */}
       <div>
-        <div className="text-[11px] font-semibold opacity-70 mb-1 font-serif">
+        <div className="text-[11px] font-semibold opacity-70 mb-1.5 font-serif">
           命题陈述 (Statement)
         </div>
         <textarea
@@ -149,10 +150,10 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
           onChange={e => setFormData({ ...formData, statement: e.target.value })}
           rows={3}
           placeholder="支持 LaTeX 语法，如 $x \in \mathbb{N}$ 或 $$a+b=b+a$$"
-          className={`w-full p-2.5 text-xs font-serif border focus:outline-none leading-relaxed resize-none ${
+          className={`w-full p-3 text-xs font-serif rounded-xl border focus:outline-none leading-relaxed resize-none transition-colors ${
             isDark
-              ? 'bg-[#121214] border-[#2E2E33] text-white'
-              : 'bg-white border-[#D4CDC0] text-[#2C2B29]'
+              ? 'bg-[#121214] border-[#2E2E33] text-white focus:border-blue-500'
+              : 'bg-white border-[#D4CDC0] text-[#2C2B29] focus:border-blue-600'
           }`}
         />
         <FieldLatexPreview
@@ -165,7 +166,7 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
 
       {/* Proof Sketch Input */}
       <div>
-        <div className="text-[11px] font-semibold opacity-70 mb-1 font-serif">
+        <div className="text-[11px] font-semibold opacity-70 mb-1.5 font-serif">
           证明思路概括 (Proof Sketch)
         </div>
         <textarea
@@ -180,10 +181,10 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
           onChange={e => setFormData({ ...formData, proof_sketch: e.target.value })}
           rows={2}
           placeholder="一两句话概述推导核心思路..."
-          className={`w-full p-2.5 text-xs border focus:outline-none resize-none ${
+          className={`w-full p-3 text-xs rounded-xl border focus:outline-none resize-none transition-colors ${
             isDark
-              ? 'bg-[#121214] border-[#2E2E33] text-white'
-              : 'bg-white border-[#D4CDC0] text-[#2C2B29]'
+              ? 'bg-[#121214] border-[#2E2E33] text-white focus:border-blue-500'
+              : 'bg-white border-[#D4CDC0] text-[#2C2B29] focus:border-blue-600'
           }`}
         />
         <FieldLatexPreview
@@ -211,21 +212,21 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
             <button
               type="button"
               onClick={() => onTriggerCopilot(`请为命题【${formData.title}】补充完整严谨的分步数学推导证明，并更新其完整证明。`)}
-              className={`inline-flex items-center space-x-1 px-2 py-0.5 text-[11px] font-serif border transition-all cursor-pointer ${
+              className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-[11px] font-serif border transition-all cursor-pointer ${
                 isDark
                   ? 'border-[#E07A5F]/40 bg-[#E07A5F]/10 hover:bg-[#E07A5F]/20 text-[#F28482]'
                   : 'border-[#E07A5F]/40 bg-[#FFF5F2] hover:bg-[#FFEAE5] text-[#C45D40]'
               }`}
               title="唤起 Copilot 为该命题生成完整数学证明"
             >
-              <Sparkles className="w-3 h-3" />
+              <SparkleAiVectorIcon size={12} />
               <span>AI 补充证明</span>
             </button>
           )}
         </div>
 
         {isFullProofExpanded && (
-          <div className="mt-2 space-y-1.5 animate-in fade-in duration-150">
+          <div className="mt-2 space-y-1.5 mm-view-fade">
             <textarea
               value={formData.full_proof || ''}
               onFocus={e => {
@@ -238,10 +239,10 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
               onChange={e => setFormData({ ...formData, full_proof: e.target.value })}
               rows={5}
               placeholder="严格分步推导与证明细节..."
-              className={`w-full p-2.5 text-xs font-serif border focus:outline-none resize-none leading-relaxed ${
+              className={`w-full p-3 text-xs font-serif rounded-xl border focus:outline-none resize-none leading-relaxed transition-colors ${
                 isDark
-                  ? 'bg-[#121214] border-[#2E2E33] text-white'
-                  : 'bg-white border-[#D4CDC0] text-[#2C2B29]'
+                  ? 'bg-[#121214] border-[#2E2E33] text-white focus:border-blue-500'
+                  : 'bg-white border-[#D4CDC0] text-[#2C2B29] focus:border-blue-600'
               }`}
             />
             <FieldLatexPreview
@@ -269,7 +270,7 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
           <button
             type="button"
             onClick={handleAddExample}
-            className={`inline-flex items-center space-x-1 px-2 py-0.5 text-xs border transition-colors cursor-pointer ${
+            className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-xs border transition-colors cursor-pointer ${
               isDark
                 ? 'border-[#2E2E33] hover:border-blue-500 bg-[#121214] text-zinc-300 hover:text-white'
                 : 'border-[#D4CDC0] hover:border-blue-600 bg-white text-stone-700 hover:text-blue-600'
@@ -285,7 +286,7 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
             {formData.examples.map((ex, idx) => (
               <div
                 key={idx}
-                className={`p-3 border space-y-2 ${
+                className={`p-3 rounded-xl border space-y-2 ${
                   isDark ? 'bg-[#121214] border-[#2E2E33]' : 'bg-white border-[#D4CDC0]'
                 }`}
               >
@@ -296,7 +297,7 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
                   <button
                     type="button"
                     onClick={() => handleRemoveExample(idx)}
-                    className="p-1 text-red-500/70 hover:text-red-500 transition-colors cursor-pointer"
+                    className="p-1 rounded-lg text-red-500/70 hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
                     title="删除此实例"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -314,10 +315,10 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
                   onSelect={recordCursor}
                   onChange={e => handleUpdateExample(idx, e.target.value)}
                   placeholder="输入具体算例、应用示范或特例反例，支持 LaTeX..."
-                  className={`w-full p-2 text-xs font-serif border focus:outline-none resize-none leading-relaxed ${
+                  className={`w-full p-2.5 text-xs font-serif rounded-lg border focus:outline-none resize-none leading-relaxed transition-colors ${
                     isDark
-                      ? 'bg-[#18181B] border-[#2E2E33] text-white'
-                      : 'bg-[#FAF8F5] border-[#D4CDC0] text-[#2C2B29]'
+                      ? 'bg-[#18181B] border-[#2E2E33] text-white focus:border-blue-500'
+                      : 'bg-[#FAF8F5] border-[#D4CDC0] text-[#2C2B29] focus:border-blue-600'
                   }`}
                 />
                 <FieldLatexPreview
@@ -350,13 +351,13 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
           <div className="text-[11px] uppercase tracking-wider font-semibold opacity-60 font-serif mb-2">
             下游推论应用 ({downstreamNodes.length})
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             {downstreamNodes.map(down => (
               <button
                 key={down.id}
                 type="button"
                 onClick={() => onNavigateToNode(down.id)}
-                className={`w-full text-left p-2 border flex items-center justify-between text-xs group transition-colors cursor-pointer ${
+                className={`w-full text-left p-2.5 rounded-xl border flex items-center justify-between text-xs group transition-colors cursor-pointer ${
                   isDark
                     ? 'bg-[#121214] hover:bg-[#202024] border-[#2E2E33] hover:border-blue-500'
                     : 'bg-white hover:bg-[#F2EFE9] border-[#D4CDC0] hover:border-blue-600'
@@ -377,7 +378,7 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
 
       {/* Personal Note Input */}
       <div className="border-t border-inherit pt-3">
-        <div className="text-[11px] font-semibold opacity-70 mb-1 font-serif">
+        <div className="text-[11px] font-semibold opacity-70 mb-1.5 font-serif">
           个人批注 (Personal Note)
         </div>
         <textarea
@@ -392,10 +393,10 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
           onChange={e => setFormData({ ...formData, note: e.target.value })}
           rows={2}
           placeholder="添加学习心得、疑问或关联想法..."
-          className={`w-full p-2.5 text-xs border focus:outline-none resize-none ${
+          className={`w-full p-3 text-xs rounded-xl border focus:outline-none resize-none transition-colors ${
             isDark
-              ? 'bg-[#121214] border-[#2E2E33] text-white'
-              : 'bg-white border-[#D4CDC0] text-[#2C2B29]'
+              ? 'bg-[#121214] border-[#2E2E33] text-white focus:border-blue-500'
+              : 'bg-white border-[#D4CDC0] text-[#2C2B29] focus:border-blue-600'
           }`}
         />
       </div>

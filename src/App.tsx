@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, Suspense, lazy } from 'react';
 import { PropositionNode, Project, AppTheme, ThemeMode, PropositionType, AutoSaveMode, CanvasSettings, PropositionStatus, PROPOSITION_STATUSES, CornerStyle, SurfaceMaterial, AnimationFpsMode } from './types';
 import { useAutoSave } from './hooks/useAutoSave';
 import { useAppKeyboardShortcuts } from './hooks/useAppKeyboardShortcuts';
@@ -13,8 +13,6 @@ import {
   parseImportedJson, 
   computeDownstreamMap,
   wouldCreateCycle,
-  getSavedAutoSaveMode,
-  saveAutoSaveMode,
   getSavedCanvasSettings,
   saveCanvasSettings,
   exportAllProjectsBackup,
@@ -44,6 +42,13 @@ import { useIsMobile } from './hooks/useIsMobile';
 import { MobileHeader } from './components/mobile/MobileHeader';
 import { MobileBottomBar } from './components/mobile/MobileBottomBar';
 import { MobileMenuDrawer } from './components/mobile/MobileMenuDrawer';
+
+const HandwritingModal = lazy(() =>
+  import('./components/handwriting/HandwritingModal').then(m => ({ default: m.HandwritingModal }))
+);
+const PdfNoteWorkspace = lazy(() =>
+  import('./components/pdf/PdfNoteWorkspace').then(m => ({ default: m.PdfNoteWorkspace }))
+);
 
 export const App: React.FC = () => {
   const { t, language } = useTranslation();
@@ -181,11 +186,19 @@ export const App: React.FC = () => {
 
   const isMobile = useIsMobile();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+  const [isHandwritingOpen, setIsHandwritingOpen] = useState<boolean>(false);
+  const [handwritingInsertCallback, setHandwritingInsertCallback] = useState<((latex: string) => void) | null>(null);
+  const [isPdfWorkspaceOpen, setIsPdfWorkspaceOpen] = useState<boolean>(false);
 
-  const handleCapturePhoto = useCallback((file: File) => {
+  const handleOpenHandwriting = useCallback((insertCallback?: (latex: string) => void) => {
+    setHandwritingInsertCallback(() => insertCallback || null);
+    setIsHandwritingOpen(true);
+  }, []);
+
+  const handleCapturePhoto = useCallback((file: File, promptText?: string) => {
     setIsCopilotOpen(true);
     setCopilotExternalTrigger({
-      text: '请识别并提取这张笔记/教材截图中的所有数学定义、公理、定理与推论，并理清它们之间的前置推导依赖关系，生成可合入当前知识体系的命题图谱变更集。',
+      text: promptText || '请识别并提取这张笔记/教材截图中的所有数学定义、公理、定理与推论，并理清它们之间的前置推导依赖关系，生成可合入当前知识体系的命题图谱变更集。',
       autoSend: true,
       timestamp: Date.now(),
       file
@@ -752,6 +765,11 @@ export const App: React.FC = () => {
           nodeCount={dataset.nodes.length}
           onOpenProjectManager={() => setIsProjectManagerOpen(true)}
           onOpenMenu={() => setIsMobileMenuOpen(true)}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          canUndo={historyIndex > 0}
+          canRedo={historyIndex < history.length - 1}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
           isDark={isDark}
         />
       ) : (
@@ -769,6 +787,8 @@ export const App: React.FC = () => {
           onOpenCreateModal={() => handleOpenCreateModal()}
           isCopilotOpen={isCopilotOpen}
           onToggleCopilot={() => setIsCopilotOpen(prev => !prev)}
+          onOpenHandwriting={() => handleOpenHandwriting()}
+          onOpenPdfWorkspace={() => setIsPdfWorkspaceOpen(true)}
           onSaveAs={handleSaveAs}
           onManualSave={() => doSaveNow(true)}
           onImport={handleImportJson}
@@ -834,6 +854,7 @@ export const App: React.FC = () => {
           onApplyMutation={handleApplyCopilotMutation}
           onNavigateToNode={handleOpenEditNode}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenHandwriting={() => handleOpenHandwriting()}
           theme={effectiveTheme}
           externalTrigger={copilotExternalTrigger}
           onClearExternalTrigger={() => setCopilotExternalTrigger(null)}
@@ -849,6 +870,9 @@ export const App: React.FC = () => {
             isCopilotOpen={isCopilotOpen}
             onToggleCopilot={() => setIsCopilotOpen(prev => !prev)}
             onOpenCreateModal={() => handleOpenCreateModal()}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenHandwriting={() => handleOpenHandwriting()}
+            onOpenPdfWorkspace={() => setIsPdfWorkspaceOpen(true)}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
           />
@@ -876,6 +900,8 @@ export const App: React.FC = () => {
             onImport={handleImportJson}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenSponsor={() => setIsSponsorOpen(true)}
+            onOpenHandwriting={() => handleOpenHandwriting()}
+            onOpenPdfWorkspace={() => setIsPdfWorkspaceOpen(true)}
           />
         </>
       ) : (
@@ -907,6 +933,7 @@ export const App: React.FC = () => {
         allNodes={dataset.nodes}
         onCreateNode={handleCreateNode}
         onTriggerCopilot={handleTriggerCopilot}
+        onOpenHandwriting={handleOpenHandwriting}
         theme={effectiveTheme}
         initialPosition={createNodeTargetPos}
         initialNodeData={initialCreateNodeData}
@@ -923,8 +950,57 @@ export const App: React.FC = () => {
         onDeleteNode={handleDeleteNode}
         onNavigateToNode={handleOpenEditNode}
         onTriggerCopilot={handleTriggerCopilot}
+        onOpenHandwriting={handleOpenHandwriting}
         theme={effectiveTheme}
       />
+
+      {/* Lazy-Loaded Stylus Handwriting Pad & PDF Note Workspace */}
+      <Suspense fallback={null}>
+        <HandwritingModal
+          isOpen={isHandwritingOpen}
+          onClose={() => {
+            setIsHandwritingOpen(false);
+            setHandwritingInsertCallback(null);
+          }}
+          theme={effectiveTheme}
+          onInsertLatex={
+            handwritingInsertCallback
+              ? latex => {
+                  handwritingInsertCallback(latex);
+                  showToast('已将手写公式插入当前输入框');
+                }
+              : null
+          }
+          onCreateNodeFromLatex={latex => {
+            setInitialCreateNodeData({
+              title: '手写推导命题',
+              statement: latex.includes('$') ? latex : `$$${latex}$$`
+            });
+            setIsCreateModalOpen(true);
+            showToast('已识图转译 LaTeX 并带入新建命题');
+          }}
+          onSendToCopilot={(file, promptText) => {
+            handleCapturePhoto(file, promptText);
+          }}
+        />
+
+        <PdfNoteWorkspace
+          isOpen={isPdfWorkspaceOpen}
+          onClose={() => setIsPdfWorkspaceOpen(false)}
+          theme={effectiveTheme}
+          onSendCropToCopilot={(file, promptText) => {
+            handleCapturePhoto(file, promptText);
+          }}
+          onCreateNodeFromLatex={latex => {
+            setInitialCreateNodeData({
+              title: 'PDF 讲义摘录命题',
+              statement: latex
+            });
+            setIsCreateModalOpen(true);
+            showToast('已从 PDF 框选识别公式并填入新建命题');
+          }}
+        />
+      </Suspense>
 
       {/* Modals */}
       {/* Project Manager Modal */}
@@ -994,7 +1070,7 @@ export const App: React.FC = () => {
       {/* Toast Notification */}
       {toastMessage && (
         <div
-          className={`fixed bottom-9 left-1/2 -translate-x-1/2 z-50 text-xs px-4 py-2 border shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-150 font-serif ${
+          className={`fixed bottom-20 sm:bottom-9 left-1/2 -translate-x-1/2 z-50 text-xs px-4 py-2 border rounded-xl shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-150 font-serif ${
             isDark
               ? 'bg-[#27272A] border-[#3F3F46] text-white shadow-black/80'
               : 'bg-[#1A1A1A] border-[#333333] text-white'

@@ -16,7 +16,7 @@ export const PROPOSITION_STATUSES: Record<PropositionStatus, StatusConfig> = {
   doubt: {
     id: 'doubt',
     label: '存疑',
-    icon: '❓',
+    icon: '?',
     color: '#D97706',
     darkColor: '#FBBF24',
     badgeBg: '#FEF3C7',
@@ -25,7 +25,7 @@ export const PROPOSITION_STATUSES: Record<PropositionStatus, StatusConfig> = {
   review: {
     id: 'review',
     label: '需复习',
-    icon: '🔄',
+    icon: '↻',
     color: '#2563EB',
     darkColor: '#60A5FA',
     badgeBg: '#DBEAFE',
@@ -43,10 +43,10 @@ export const PROPOSITION_STATUSES: Record<PropositionStatus, StatusConfig> = {
   verified: {
     id: 'verified',
     label: '已证毕',
-    icon: '✔',
+    icon: '✓',
     color: '#059669',
     darkColor: '#34D399',
-    badgeBg: '#D1FAE5',
+    badgeBg: '#DBEAFE',
     darkBadgeBg: '#022C22'
   }
 };

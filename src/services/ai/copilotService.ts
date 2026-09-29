@@ -291,3 +291,36 @@ export async function sendCopilotRequest(params: {
 
   return parseCopilotResponse(rawText);
 }
+
+/**
+ * 将手写演算板 PNG Base64 图像识别为规范的 LaTeX 数学公式或推导文本
+ */
+export async function recognizeHandwritingToLatex(
+  base64Png: string,
+  settings: AiSettings,
+  signal?: AbortSignal
+): Promise<string> {
+  const ocrSystemPrompt =
+    '你是一个高精度的数学手写公式与推导识别引擎（LaTeX OCR）。请直接将用户手写图片中的数学公式、符号或推导过程转换为标准、可直接由 KaTeX 渲染的 LaTeX 源码。若只有单行或单个公式，请用 $...$ 或 $$...$$ 包裹；若包含多步推导，请使用规范的 Markdown + LaTeX 格式输出。不要输出多余的寒暄或解释。';
+  const ocrUserPrompt = '请将这张手写数学笔记/公式图片准确识别为 LaTeX 源码（只输出识别结果本身）：';
+
+  const attachment = {
+    mimeType: 'image/png',
+    data: base64Png,
+    name: 'handwriting.png',
+  };
+
+  let raw = '';
+  if (settings.provider === 'gemini') {
+    raw = await callGeminiCopilot(ocrSystemPrompt, [], ocrUserPrompt, attachment, settings, signal);
+  } else {
+    raw = await callOpenAiCopilot(ocrSystemPrompt, [], ocrUserPrompt, attachment, settings, signal);
+  }
+
+  return raw
+    .trim()
+    .replace(/^```(?:latex|tex|markdown)?\s*/i, '')
+    .replace(/\s*```$/, '')
+    .trim();
+}
+

@@ -3,29 +3,32 @@ import { PropositionNode, AppTheme } from '../../types';
 import { GraphMutationDiff } from '../../types/copilot';
 import { ContextPill } from './ContextPill';
 import { CopilotMessageItem } from './CopilotMessageItem';
+import { CopilotTimelineRail } from './CopilotTimelineRail';
 import { AttachmentCard } from './AttachmentCard';
 import { AttachmentPreviewModal, AttachmentPreviewData } from './AttachmentPreviewModal';
 import { CopilotSessionDrawer } from './CopilotSessionDrawer';
 import { QuoteReplyButton } from './QuoteReplyButton';
 import { useCopilotChat } from '../../hooks/useCopilotChat';
+import { useAnimatedVisibility } from '../../hooks/useAnimatedVisibility';
 import { exportChatToMarkdown, copyChatToClipboard } from '../../utils/chatExport';
-import { 
-  Sparkles, 
-  X, 
-  Trash2, 
-  Settings, 
-  Send, 
-  Square, 
-  Paperclip, 
-  Camera, 
-  ArrowLeft, 
-  UploadCloud, 
-  MessageSquare, 
-  Download, 
-  Share2, 
-  Copy, 
-  Check, 
-  ChevronDown 
+import { StylusPenVectorIcon } from '../icons/CustomIcons';
+import {
+  X,
+  Trash2,
+  Settings,
+  Send,
+  Square,
+  Paperclip,
+  Camera,
+  ArrowLeft,
+  ArrowDown,
+  UploadCloud,
+  MessageSquare,
+  Download,
+  Share2,
+  Copy,
+  Check,
+  ChevronDown
 } from 'lucide-react';
 
 export interface CopilotExternalTrigger {
@@ -43,6 +46,7 @@ interface CopilotSidebarProps {
   onApplyMutation: (diff: GraphMutationDiff, enabledActionIds?: Set<string>) => void;
   onNavigateToNode?: (nodeId: string) => void;
   onOpenSettings: () => void;
+  onOpenHandwriting?: () => void;
   theme: AppTheme;
   externalTrigger?: CopilotExternalTrigger | null;
   onClearExternalTrigger?: () => void;
@@ -57,18 +61,21 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
   onApplyMutation,
   onNavigateToNode,
   onOpenSettings,
+  onOpenHandwriting,
   theme,
   externalTrigger,
   onClearExternalTrigger,
   isMobile = false
 }) => {
   const isDark = theme === 'dark';
+  const { shouldRender, isVisible } = useAnimatedVisibility(isOpen, 260);
   const [previewingAttachment, setPreviewingAttachment] = useState<AttachmentPreviewData | null>(null);
   const [isSessionDrawerOpen, setIsSessionDrawerOpen] = useState(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
   const [chatCopied, setChatCopied] = useState(false);
+  const [showScrollBottomBtn, setShowScrollBottomBtn] = useState(false);
+  const [activeTimelineMsgId, setActiveTimelineMsgId] = useState<string | null>(null);
 
-  // 侧边栏宽度可调节状态 (默认 380px，范围 300px~800px，支持 localStorage 持久化)
   const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
     try {
       const saved = localStorage.getItem('mathmind_copilot_sidebar_width');
@@ -81,12 +88,12 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     } catch {
       // ignore
     }
-    return 380;
+    return 390;
   });
 
   const [isResizing, setIsResizing] = useState(false);
   const resizeStartXRef = useRef(0);
-  const resizeStartWidthRef = useRef(380);
+  const resizeStartWidthRef = useRef(390);
 
   const handleResizeMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -139,7 +146,6 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const exportMenuRef = useRef<HTMLDivElement>(null);
 
-
   const {
     sessions,
     activeSessionId,
@@ -147,7 +153,6 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     messages,
     inputPrompt,
     setInputPrompt,
-    isLoading,
     isGenerating,
     attachment,
     setAttachment,
@@ -178,7 +183,6 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
   const lastHandledTriggerRef = useRef<number>(0);
   const dragCounterRef = useRef<number>(0);
 
-  // 全局拖拽结束清理（防止用户在浏览器外释放或取消拖拽导致遮罩常驻）
   useEffect(() => {
     const handleGlobalDragEnd = () => {
       dragCounterRef.current = 0;
@@ -192,7 +196,6 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     };
   }, [setIsDraggingFile]);
 
-  // 当侧边栏关闭时重置拖拽计数与状态
   useEffect(() => {
     if (!isOpen) {
       dragCounterRef.current = 0;
@@ -200,13 +203,11 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     }
   }, [isOpen, setIsDraggingFile]);
 
-  // 侧边栏及内部弹层专属 Escape 键分层关闭逻辑
   useEffect(() => {
     if (!isOpen) return;
 
     const handleSidebarKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        // 1. 如果处于文件拖拽释放蒙层，优先关闭蒙层
         if (isDraggingFile) {
           e.preventDefault();
           e.stopPropagation();
@@ -214,35 +215,30 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
           setIsDraggingFile(false);
           return;
         }
-        // 2. 如果附件大图预览打开，关闭大图预览
         if (previewingAttachment) {
           e.preventDefault();
           e.stopPropagation();
           setPreviewingAttachment(null);
           return;
         }
-        // 3. 如果导出菜单打开，关闭导出菜单
         if (isExportMenuOpen) {
           e.preventDefault();
           e.stopPropagation();
           setIsExportMenuOpen(false);
           return;
         }
-        // 4. 如果会话历史抽屉打开，关闭抽屉
         if (isSessionDrawerOpen) {
           e.preventDefault();
           e.stopPropagation();
           setIsSessionDrawerOpen(false);
           return;
         }
-        // 5. 如果焦点在输入框且有内容，先失焦
         if (document.activeElement === textareaRef.current && inputPrompt.trim()) {
           e.preventDefault();
           e.stopPropagation();
           textareaRef.current?.blur();
           return;
         }
-        // 6. 其它情况直接关闭侧边栏
         e.preventDefault();
         e.stopPropagation();
         onClose();
@@ -253,7 +249,6 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     return () => window.removeEventListener('keydown', handleSidebarKeyDown, true);
   }, [isOpen, isDraggingFile, previewingAttachment, isExportMenuOpen, isSessionDrawerOpen, inputPrompt, onClose, setIsDraggingFile]);
 
-  // 响应来自外部组件（如命题详情抽屉或移动端拍照）的 Copilot 触发
   useEffect(() => {
     if (externalTrigger && (externalTrigger.text || externalTrigger.file) && externalTrigger.timestamp !== lastHandledTriggerRef.current) {
       lastHandledTriggerRef.current = externalTrigger.timestamp;
@@ -280,18 +275,66 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     }
   }, [externalTrigger, handleProcessFile, handleSendMessage, setInputPrompt, onClearExternalTrigger]);
 
-  // 自动滚底
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // 立即滚底函数（用于打开 Copilot 或切换会话时 100% 锚定最底部）
+  const scrollToBottomInstant = useCallback(() => {
+    const el = messagesContainerRef.current;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+    }
   }, []);
 
+  const scrollToBottomSmooth = useCallback(() => {
+    const el = messagesContainerRef.current;
+    if (el) {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+    }
+  }, []);
+
+  const scrollToTopSmooth = useCallback(() => {
+    const el = messagesContainerRef.current;
+    if (el) {
+      el.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, []);
+
+  const handleSelectTimelineMessage = useCallback((msgId: string) => {
+    setActiveTimelineMsgId(msgId);
+    const target = document.getElementById(`copilot-msg-${msgId}`);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, []);
+
+  // 打开 Copilot 或切换会话时，确保自动锚定在最下面
+  useEffect(() => {
+    if (isOpen && shouldRender) {
+      const raf = requestAnimationFrame(() => {
+        scrollToBottomInstant();
+      });
+      const timer = setTimeout(() => {
+        scrollToBottomInstant();
+      }, 80);
+      return () => {
+        cancelAnimationFrame(raf);
+        clearTimeout(timer);
+      };
+    }
+  }, [isOpen, shouldRender, activeSessionId, scrollToBottomInstant]);
+
+  // 新消息到达时自动滚底
   useEffect(() => {
     if (isOpen) {
-      scrollToBottom();
+      scrollToBottomSmooth();
     }
-  }, [isOpen, messages.length, scrollToBottom]);
+  }, [messages.length, isOpen, scrollToBottomSmooth]);
 
-  // 输入框高度自动伸缩 (1 到 6 行，约 28px - 140px)
+  const handleMessagesScroll = useCallback(() => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    setShowScrollBottomBtn(distFromBottom > 150);
+  }, []);
+
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -300,7 +343,6 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     }
   }, [inputPrompt]);
 
-  // 点击外部关闭导出菜单
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
@@ -313,7 +355,6 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     return () => window.removeEventListener('mousedown', handleClickOutside);
   }, [isExportMenuOpen]);
 
-  // 稳健文件拖拽交互事件
   const handleDragEnter = useCallback((e: React.DragEvent) => {
     const isFiles = e.dataTransfer.types && Array.from(e.dataTransfer.types).includes('Files');
     if (!isFiles) return;
@@ -349,7 +390,6 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     }
   }, [handleProcessFile, setIsDraggingFile]);
 
-  // 快捷 Prompt 标签
   const quickPrompts = selectedNodes.length > 0 ? [
     '分析选区命题的严密性与逻辑过渡',
     '检查选区内是否存在循环论证或悬空推论',
@@ -362,24 +402,24 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     '提取教材定理并构建关联图谱'
   ];
 
-  if (!isOpen) return null;
+  if (!shouldRender) return null;
 
   return (
     <aside
       onPaste={handlePaste}
       style={{
-        width: isMobile || (typeof window !== 'undefined' && window.innerWidth < 640) ? '100%' : `${sidebarWidth}px`
+        width: isMobile || (typeof window !== 'undefined' && window.innerWidth < 640) ? '100%' : `${sidebarWidth}px`,
+        transform: isVisible ? 'translate3d(0, 0, 0)' : 'translate3d(104%, 0, 0)',
+        opacity: isVisible ? 1 : 0,
       }}
       className={`fixed ${
-        isMobile 
-          ? 'inset-0 z-50' 
-          : 'right-0 top-13 sm:top-14 bottom-6 z-30 border-l'
-      } max-w-full flex flex-col select-text ${
-        isResizing ? '' : 'transition-[width] duration-200'
-      } ${
+        isMobile
+          ? 'inset-0 z-50'
+          : 'right-0 top-14 bottom-6 z-30 border-l rounded-l-2xl shadow-2xl overflow-hidden'
+      } max-w-full flex flex-col select-text mm-drawer-transition modal-surface ${
         isDark
-          ? 'bg-[#18181B] border-[#2E2E33] text-[#EDECE8]'
-          : 'bg-[#FAF8F5] border-[#D4CDC0] text-[#2C2B29]'
+          ? 'border-[#2E2E33] text-[#EDECE8]'
+          : 'border-[#D4CDC0] text-[#2C2B29]'
       }`}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
@@ -394,16 +434,15 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
           title="拖拽调节侧边栏宽度"
         >
           <div className={`w-0.5 h-8 rounded-full transition-colors ${
-            isResizing 
-              ? 'bg-blue-500' 
+            isResizing
+              ? 'bg-blue-500'
               : 'bg-transparent group-hover:bg-blue-500/60'
           }`} />
         </div>
       )}
 
-      {/* 拖拽全域释放蒙层（仅覆盖内容区域，不遮盖顶部标题栏与关闭按钮） */}
+      {/* 拖拽全域释放蒙层 */}
       {isDraggingFile && (
-
         <div
           onClick={() => {
             dragCounterRef.current = 0;
@@ -411,7 +450,6 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
           }}
           className="absolute top-12 inset-x-0 bottom-0 bg-blue-500/15 backdrop-blur-xs border-2 border-dashed border-blue-500 z-40 flex flex-col items-center justify-center select-none cursor-pointer p-4 text-center"
         >
-          {/* 取消按钮 */}
           <button
             type="button"
             onClick={(e) => {
@@ -419,7 +457,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
               dragCounterRef.current = 0;
               setIsDraggingFile(false);
             }}
-            className={`absolute top-3 right-3 px-2 py-1 text-xs border cursor-pointer flex items-center space-x-1 transition-colors ${
+            className={`absolute top-3 right-3 px-2.5 py-1 rounded-lg text-xs border cursor-pointer flex items-center space-x-1 transition-colors ${
               isDark
                 ? 'bg-[#18181B] border-[#2E2E33] hover:border-red-500 text-zinc-300 hover:text-red-400'
                 : 'bg-white border-[#D4CDC0] hover:border-red-600 text-stone-700 hover:text-red-600'
@@ -445,30 +483,28 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
 
       {/* 头部标题栏与功能控制 */}
       <div className={`h-12 px-3 sm:px-4 border-b border-inherit flex items-center justify-between shrink-0 select-none relative z-50 ${
-        isDark ? 'bg-[#18181B]' : 'bg-[#FAF8F5]'
+        isDark ? 'bg-[#202024]' : 'bg-[#F2EFE9]'
       }`}>
         <div className="flex items-center space-x-2 min-w-0 pr-2">
-          {/* 移动端专属返回画布大按钮 */}
           {isMobile && (
             <button
               type="button"
               onClick={onClose}
-              className="flex items-center space-x-1 px-2.5 py-1 text-xs border border-blue-500/40 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 font-serif shrink-0 cursor-pointer active:scale-95 transition-transform"
+              className="flex items-center space-x-1 px-2.5 py-1 rounded-xl text-xs border border-blue-500/40 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 font-serif shrink-0 cursor-pointer active:scale-95 transition-transform"
               title="返回图谱画布"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>返回画布</span>
+              <span>返回</span>
             </button>
           )}
 
-          {/* 会话抽屉切换按钮 */}
           <button
             type="button"
             onClick={() => setIsSessionDrawerOpen(true)}
-            className="flex items-center space-x-1 p-1 hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer group"
+            className="flex items-center space-x-1.5 p-1 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer group"
             title="查看所有对话历史与切换会话"
           >
-            <div className="p-1 bg-blue-600 text-white shadow-xs group-hover:bg-blue-500">
+            <div className="p-1.5 rounded-lg bg-blue-600 text-white shadow-xs group-hover:bg-blue-500">
               <MessageSquare className="w-3.5 h-3.5" />
             </div>
             <div className="text-left min-w-0">
@@ -479,19 +515,18 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
                 <ChevronDown className="w-3 h-3 opacity-60 shrink-0" />
               </div>
               <div className="text-[9px] opacity-60 font-sans">
-                {sessions.length} 个对话 • 点击切换
+                {sessions.length} 个对话 • {messages.length} 条记录
               </div>
             </div>
           </button>
         </div>
 
         <div className="flex items-center space-x-1 shrink-0">
-          {/* 讨论记录导出与分享菜单 */}
           <div className="relative" ref={exportMenuRef}>
             <button
               type="button"
               onClick={() => setIsExportMenuOpen(prev => !prev)}
-              className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 opacity-70 hover:opacity-100 hover:text-blue-500 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-70 hover:opacity-100 hover:text-blue-500 transition-colors cursor-pointer"
               title="导出或复制整场讨论记录"
             >
               <Share2 className="w-3.5 h-3.5" />
@@ -499,10 +534,10 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
 
             {isExportMenuOpen && (
               <div
-                className={`absolute right-0 top-full mt-1 w-44 border shadow-xl z-50 p-1 text-xs animate-in fade-in zoom-in-95 duration-150 ${
+                className={`absolute right-0 top-full mt-1 w-44 rounded-xl border shadow-xl z-50 p-1 text-xs mm-view-fade ${
                   isDark
-                    ? 'bg-[#18181B] border-[#2E2E33] text-zinc-100'
-                    : 'bg-[#FAF8F5] border-[#D4CDC0] text-stone-900'
+                    ? 'bg-[#202024] border-[#2E2E33] text-zinc-100'
+                    : 'bg-white border-[#D4CDC0] text-stone-900'
                 }`}
               >
                 <button
@@ -511,7 +546,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
                     exportChatToMarkdown(activeSession.title, messages);
                     setIsExportMenuOpen(false);
                   }}
-                  className="w-full flex items-center space-x-2 px-2.5 py-1.5 hover:bg-blue-600 hover:text-white text-left transition-colors cursor-pointer"
+                  className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white text-left transition-colors cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5 shrink-0" />
                   <span>导出为 .md 文件</span>
@@ -527,7 +562,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
                       setIsExportMenuOpen(false);
                     }
                   }}
-                  className="w-full flex items-center space-x-2 px-2.5 py-1.5 hover:bg-blue-600 hover:text-white text-left transition-colors cursor-pointer"
+                  className="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white text-left transition-colors cursor-pointer"
                 >
                   {chatCopied ? (
                     <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
@@ -542,7 +577,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
 
           <button
             onClick={handleClearHistory}
-            className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 opacity-60 hover:opacity-100 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-60 hover:opacity-100 transition-colors cursor-pointer"
             title="清空当前会话消息"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -550,7 +585,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
 
           <button
             onClick={onOpenSettings}
-            className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 opacity-60 hover:opacity-100 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 opacity-60 hover:opacity-100 transition-colors cursor-pointer"
             title="AI 模型与密钥设置"
           >
             <Settings className="w-3.5 h-3.5" />
@@ -563,7 +598,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
               setIsDraggingFile(false);
               onClose();
             }}
-            className={`p-1.5 border transition-colors ml-1 cursor-pointer flex items-center justify-center ${
+            className={`p-1.5 rounded-lg border transition-colors ml-1 cursor-pointer flex items-center justify-center ${
               isDark
                 ? 'border-[#2E2E33] hover:border-red-500 hover:bg-red-500/10 text-zinc-400 hover:text-red-400'
                 : 'border-[#D4CDC0] hover:border-red-600 hover:bg-red-50 text-stone-600 hover:text-red-600'
@@ -576,32 +611,63 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
         </div>
       </div>
 
-      {/* 选区上下文胶囊 (去除了底部重复的附件药丸) */}
+      {/* 选区上下文胶囊 */}
       <ContextPill
         selectedNodes={selectedNodes}
         isDark={isDark}
       />
 
-      {/* 消息滚动列表区 */}
-      <div
-        ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-2 select-text relative"
-      >
-        {messages.map(msg => (
-          <CopilotMessageItem
-            key={msg.id}
-            message={msg}
-            onApplyDiff={handleApplyDiff}
-            onUpdateDiff={handleUpdateProposalDiff}
-            onRegenerate={handleRegenerate}
-            onEditAndResend={handleEditAndResend}
-            allNodes={allNodes}
-            onNavigateToNode={onNavigateToNode}
-            onStopGeneration={handleStopGeneration}
-            isDark={isDark}
-          />
-        ))}
-        <div ref={messagesEndRef} />
+      {/* 消息列表与右侧交互式时间轴导航轨 */}
+      <div className="flex-1 min-h-0 relative flex overflow-hidden">
+        <div
+          ref={messagesContainerRef}
+          onScroll={handleMessagesScroll}
+          className="flex-1 overflow-y-auto pl-3 pr-7 py-3 space-y-1 select-text relative"
+        >
+          {messages.map((msg, idx) => (
+            <CopilotMessageItem
+              key={msg.id}
+              message={msg}
+              turnIndex={idx}
+              isLast={idx === messages.length - 1}
+              onApplyDiff={handleApplyDiff}
+              onUpdateDiff={handleUpdateProposalDiff}
+              onRegenerate={handleRegenerate}
+              onEditAndResend={handleEditAndResend}
+              allNodes={allNodes}
+              onNavigateToNode={onNavigateToNode}
+              onStopGeneration={handleStopGeneration}
+              isDark={isDark}
+            />
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* 右侧双向时间轴导航刻度尺 */}
+        <CopilotTimelineRail
+          messages={messages}
+          activeMsgId={activeTimelineMsgId}
+          onSelectMessage={handleSelectTimelineMessage}
+          onScrollToTop={scrollToTopSmooth}
+          onScrollToBottom={scrollToBottomSmooth}
+          isDark={isDark}
+        />
+
+        {/* 悬浮“回到底部”按钮 */}
+        {showScrollBottomBtn && (
+          <button
+            type="button"
+            onClick={scrollToBottomSmooth}
+            className={`absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-medium border shadow-lg transition-all cursor-pointer mm-view-fade ${
+              isDark
+                ? 'bg-[#27272A]/95 border-blue-500/40 text-blue-400 hover:bg-blue-600 hover:text-white'
+                : 'bg-white/95 border-blue-500/40 text-blue-600 hover:bg-blue-600 hover:text-white'
+            }`}
+          >
+            <ArrowDown className="w-3.5 h-3.5" />
+            <span>回到底部</span>
+          </button>
+        )}
       </div>
 
       {/* 划词浮动引用回复按钮 */}
@@ -612,13 +678,13 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
       />
 
       {/* 快捷推荐指令药丸 */}
-      <div className="px-3 py-1.5 border-t border-inherit flex items-center space-x-1.5 overflow-x-auto no-scrollbar select-none">
+      <div className="px-3 py-2 border-t border-inherit flex items-center space-x-1.5 overflow-x-auto no-scrollbar select-none">
         {quickPrompts.map((q, idx) => (
           <button
             key={idx}
             onClick={() => handleSendMessage(q)}
             disabled={isGenerating}
-            className={`text-[10px] px-2.5 py-1 border whitespace-nowrap transition-colors shrink-0 font-serif cursor-pointer ${
+            className={`text-[11px] px-2.5 py-1 rounded-xl border whitespace-nowrap transition-colors shrink-0 font-serif cursor-pointer ${
               isDark
                 ? 'bg-[#202024] border-[#2E2E33] hover:border-blue-500 hover:text-blue-400 text-zinc-300'
                 : 'bg-white border-[#D4CDC0] hover:border-blue-600 hover:text-blue-600 text-stone-700'
@@ -633,7 +699,6 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
       <div className={`p-3 border-t border-inherit shrink-0 select-none ${
         isDark ? 'bg-[#18181B]' : 'bg-[#FAF8F5]'
       }`}>
-        {/* 附件信息卡片 (带 Office 与代码高保真图标) */}
         {attachment && (
           <AttachmentCard
             attachment={attachment}
@@ -644,13 +709,12 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
         )}
 
         <div
-          className={`flex flex-col border p-2 transition-colors ${
+          className={`flex flex-col rounded-2xl border p-2.5 transition-colors ${
             isDark
               ? 'bg-[#121214] border-[#2E2E33] focus-within:border-blue-500'
               : 'bg-white border-[#D4CDC0] focus-within:border-blue-600'
           }`}
         >
-          {/* 上半部分：自动伸缩输入框 (1-6行自适应，独占整行宽度) */}
           <textarea
             ref={textareaRef}
             value={inputPrompt}
@@ -671,17 +735,26 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
             style={{ minHeight: '36px', maxHeight: '140px' }}
           />
 
-          {/* 下半部分：操作按钮栏 (左侧上传附件与拍照，右侧发送) */}
           <div className="flex items-center justify-between pt-1.5 mt-1 border-t border-black/5 dark:border-white/5">
-            {/* 上传附件与拍照 */}
             <div className="flex items-center space-x-1">
+              {onOpenHandwriting && (
+                <button
+                  type="button"
+                  onClick={onOpenHandwriting}
+                  className="p-1.5 rounded-lg opacity-80 hover:opacity-100 hover:bg-blue-500/10 text-blue-500 transition-colors cursor-pointer"
+                  title="打开手写板演算并发送至对话"
+                >
+                  <StylusPenVectorIcon size={15} />
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={() => cameraInputRef.current?.click()}
-                className="p-1 opacity-70 hover:opacity-100 hover:text-blue-500 transition-colors cursor-pointer rounded-xs"
+                className="p-1.5 rounded-lg opacity-70 hover:opacity-100 hover:bg-blue-500/10 text-blue-500 transition-colors cursor-pointer"
                 title="手机拍照录入笔记 (直连相机)"
               >
-                <Camera className="w-3.5 h-3.5 text-blue-500" />
+                <Camera className="w-3.5 h-3.5" />
               </button>
               <input
                 type="file"
@@ -695,7 +768,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-1 opacity-60 hover:opacity-100 hover:text-blue-500 transition-colors cursor-pointer rounded-xs"
+                className="p-1.5 rounded-lg opacity-60 hover:opacity-100 hover:bg-blue-500/10 hover:text-blue-500 transition-colors cursor-pointer"
                 title="上传图片、PDF、Word、PPT、Excel、CSV、LaTeX 或代码文件"
               >
                 <Paperclip className="w-3.5 h-3.5" />
@@ -709,12 +782,11 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
               />
             </div>
 
-            {/* 发送 / 停止生成 切换按钮 */}
             {isGenerating ? (
               <button
                 type="button"
                 onClick={handleStopGeneration}
-                className="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white cursor-pointer transition-colors shadow-xs animate-pulse flex items-center space-x-1 text-[11px]"
+                className="px-3 py-1 rounded-xl bg-rose-600 hover:bg-rose-500 text-white cursor-pointer transition-colors shadow-xs animate-pulse flex items-center space-x-1 text-[11px]"
                 title="停止生成 (Esc)"
               >
                 <Square className="w-3 h-3 fill-current" />
@@ -725,7 +797,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
                 type="button"
                 onClick={() => handleSendMessage()}
                 disabled={!inputPrompt.trim() && !attachment}
-                className={`p-1.5 transition-all rounded-xs ${
+                className={`p-1.5 rounded-xl transition-all ${
                   inputPrompt.trim() || attachment
                     ? 'bg-blue-600 hover:bg-blue-500 text-white cursor-pointer active:scale-95 shadow-xs'
                     : 'opacity-40 cursor-not-allowed text-zinc-400'
@@ -737,7 +809,6 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
             )}
           </div>
         </div>
-
       </div>
 
       {/* 会话历史抽屉 */}

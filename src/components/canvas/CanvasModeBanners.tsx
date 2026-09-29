@@ -23,13 +23,13 @@ export const CanvasModeBanners: React.FC<CanvasModeBannersProps> = ({
     <>
       {/* Box / Lasso Mode Active Banner */}
       {toolMode !== 'none' && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1.5 shadow-2xl flex items-center space-x-3 text-xs z-30 animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="absolute top-16 sm:top-4 left-1/2 -translate-x-1/2 rounded-2xl bg-blue-600 text-white px-4 py-1.5 shadow-2xl flex items-center space-x-3 text-xs z-30 mm-view-fade">
           <span className="font-medium">
             {toolMode === 'box' ? t('canvas.boxModeActive') : t('canvas.lassoModeActive')}
           </span>
           <button
             onClick={onExitToolMode}
-            className="text-[11px] bg-white/20 hover:bg-white/30 px-2 py-0.5 transition-colors font-medium flex items-center space-x-1"
+            className="text-[11px] rounded-lg bg-white/20 hover:bg-white/30 px-2 py-0.5 transition-colors font-medium flex items-center space-x-1"
           >
             <span>{t('canvas.exit')}</span>
             <kbd className="px-1 text-[9px] font-mono bg-white/25">Esc</kbd>
@@ -39,9 +39,9 @@ export const CanvasModeBanners: React.FC<CanvasModeBannersProps> = ({
 
       {/* Connect Mode Banner */}
       {isConnectingMode && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-[#1E3A5F] text-white px-5 py-2.5 shadow-2xl flex items-center space-x-4 text-xs z-50 border border-white/30 animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="absolute top-16 sm:top-4 left-1/2 -translate-x-1/2 rounded-2xl bg-[#1E3A5F] text-white px-5 py-2.5 shadow-2xl flex items-center space-x-4 text-xs z-50 border border-white/30 mm-view-fade">
           <div className="flex items-center space-x-2">
-            <span className="inline-block w-2 h-2 bg-blue-300 animate-ping" />
+            <span className="inline-block w-2 h-2 rounded-full bg-blue-300 animate-ping badge-dot" />
             <span className="font-medium">
               {connectSourceTitle
                 ? t('canvas.connectPromptTarget', { title: connectSourceTitle })
@@ -50,7 +50,7 @@ export const CanvasModeBanners: React.FC<CanvasModeBannersProps> = ({
           </div>
           <button
             onClick={onExitConnectMode}
-            className="text-[11px] bg-white/20 hover:bg-white/30 px-2.5 py-0.5 border border-white/40 transition-colors font-medium flex items-center space-x-1"
+            className="text-[11px] rounded-lg bg-white/20 hover:bg-white/30 px-2.5 py-0.5 border border-white/40 transition-colors font-medium flex items-center space-x-1"
           >
             <span>{t('canvas.exitConnectMode')}</span>
             <kbd className="px-1 py-0.2 text-[9px] font-mono bg-white/25">Esc / L</kbd>

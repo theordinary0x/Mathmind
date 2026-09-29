@@ -149,14 +149,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   return (
     <div
       {...backdropProps}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 modal-backdrop-glass animate-fadeIn"
       role="dialog"
       aria-modal="true"
       aria-labelledby="settings-modal-title"
     >
 
       <div
-        className={`relative w-full max-w-3xl h-[620px] max-h-[92vh] border shadow-2xl flex flex-col overflow-hidden transition-all rounded-2xl glass-panel ${
+        className={`relative w-full max-w-3xl h-[620px] max-h-[92vh] border flex flex-col overflow-hidden transition-all rounded-2xl modal-surface mm-view-fade ${
           isDark
             ? 'border-white/10 text-[#EDECE8]'
             : 'border-black/10 text-[#2C2B29]'

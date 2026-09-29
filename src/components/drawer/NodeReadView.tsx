@@ -1,8 +1,9 @@
 import React from 'react';
-import { ChevronDown, ChevronRight, Sparkles, ArrowUpRight, ArrowDownRight, Plus } from 'lucide-react';
+import { ChevronDown, ChevronRight, ArrowUpRight, ArrowDownRight, Plus } from 'lucide-react';
 import { PropositionNode, NODE_TYPES } from '../../types';
 import { latexToUnicode, formatSingleLineFormulaTitle } from '../../utils/latexToUnicode';
 import { MathRenderer } from '../MathRenderer';
+import { SparkleAiVectorIcon } from '../icons/CustomIcons';
 
 interface NodeReadViewProps {
   formData: PropositionNode;
@@ -28,20 +29,20 @@ export const NodeReadView: React.FC<NodeReadViewProps> = ({
   onSwitchToEdit
 }) => {
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+    <div className="flex-1 overflow-y-auto p-6 space-y-5 mm-view-fade">
       {/* Title & Tags */}
       <div>
         <h2 className="text-lg sm:text-xl font-serif font-bold tracking-tight leading-snug">
           <MathRenderer content={formData.title} />
         </h2>
         {formData.tags && formData.tags.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5 mt-2">
+          <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
             {formData.tags.map((tag, idx) => (
               <span
                 key={idx}
-                className={`px-2 py-0.5 text-[11px] font-mono border ${
+                className={`px-2.5 py-0.5 text-[11px] font-mono rounded-lg border ${
                   isDark
-                    ? 'bg-zinc-800/60 border-zinc-700 text-zinc-300'
+                    ? 'bg-zinc-800/70 border-zinc-700 text-zinc-300'
                     : 'bg-stone-100 border-stone-300 text-stone-700'
                 }`}
               >
@@ -54,7 +55,7 @@ export const NodeReadView: React.FC<NodeReadViewProps> = ({
 
       {/* Statement Section */}
       <div
-        className={`p-4 border ${
+        className={`p-4 rounded-xl border ${
           isDark ? 'bg-[#121214] border-[#2E2E33]' : 'bg-white border-[#D4CDC0]'
         }`}
       >
@@ -69,8 +70,8 @@ export const NodeReadView: React.FC<NodeReadViewProps> = ({
       {/* Proof Sketch (if present) */}
       {formData.proof_sketch && (
         <div
-          className={`p-4 border border-dashed ${
-            isDark ? 'bg-white/[0.02] border-white/15 text-zinc-300' : 'bg-[#FAF6F0] border-black/15 text-stone-800'
+          className={`p-4 rounded-xl border border-dashed ${
+            isDark ? 'bg-white/[0.03] border-white/15 text-zinc-300' : 'bg-[#FAF6F0] border-black/15 text-stone-800'
           }`}
         >
           <div className="text-[11px] uppercase tracking-wider font-semibold opacity-50 font-serif mb-1.5">
@@ -101,13 +102,13 @@ export const NodeReadView: React.FC<NodeReadViewProps> = ({
             <button
               type="button"
               onClick={() => onTriggerCopilot(`请为命题【${formData.title}】补充完整严谨的分步数学推导证明。`)}
-              className={`inline-flex items-center space-x-1 px-2 py-0.5 text-[11px] font-serif border transition-all cursor-pointer ${
+              className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-[11px] font-serif border transition-all cursor-pointer ${
                 isDark
                   ? 'border-[#E07A5F]/40 bg-[#E07A5F]/10 hover:bg-[#E07A5F]/20 text-[#F28482]'
                   : 'border-[#E07A5F]/40 bg-[#FFF5F2] hover:bg-[#FFEAE5] text-[#C45D40]'
               }`}
             >
-              <Sparkles className="w-3 h-3" />
+              <SparkleAiVectorIcon size={12} />
               <span>AI 补充证明</span>
             </button>
           )}
@@ -115,7 +116,7 @@ export const NodeReadView: React.FC<NodeReadViewProps> = ({
 
         {isFullProofExpanded && (
           <div
-            className={`mt-2 p-4 border animate-in fade-in duration-150 ${
+            className={`mt-2 p-4 rounded-xl border mm-view-fade ${
               isDark ? 'bg-[#121214] border-[#2E2E33]' : 'bg-white border-[#D4CDC0]'
             }`}
           >
@@ -138,7 +139,7 @@ export const NodeReadView: React.FC<NodeReadViewProps> = ({
           <div className="flex items-center space-x-2">
             <span>典型实例 / 算例 (Examples)</span>
             {formData.examples && formData.examples.length > 0 && (
-              <span className="px-1.5 py-0.2 text-[10px] font-mono border rounded-xs opacity-75">
+              <span className="px-2 py-0.5 text-[10px] font-mono border rounded-md opacity-75">
                 {formData.examples.length}
               </span>
             )}
@@ -158,7 +159,7 @@ export const NodeReadView: React.FC<NodeReadViewProps> = ({
             {formData.examples.map((example, idx) => (
               <div
                 key={idx}
-                className={`p-3.5 border transition-colors ${
+                className={`p-3.5 rounded-xl border transition-colors ${
                   isDark ? 'bg-[#121214] border-[#2E2E33]' : 'bg-white border-[#D4CDC0]'
                 }`}
               >
@@ -195,7 +196,7 @@ export const NodeReadView: React.FC<NodeReadViewProps> = ({
                   key={prereq.id}
                   type="button"
                   onClick={() => onNavigateToNode(prereq.id)}
-                  className={`p-2.5 border text-left flex items-center justify-between group transition-colors cursor-pointer ${
+                  className={`p-2.5 rounded-xl border text-left flex items-center justify-between group transition-colors cursor-pointer ${
                     isDark
                       ? 'bg-[#121214] hover:bg-[#202024] border-[#2E2E33] hover:border-blue-500'
                       : 'bg-white hover:bg-[#F2EFE9] border-[#D4CDC0] hover:border-blue-600'
@@ -204,7 +205,7 @@ export const NodeReadView: React.FC<NodeReadViewProps> = ({
                 >
                   <div className="flex items-center space-x-2 min-w-0 pr-2">
                     <span
-                      className="w-1.5 h-1.5 shrink-0"
+                      className="w-2 h-2 rounded-full shrink-0 badge-dot"
                       style={{ backgroundColor: isDark ? pType.darkBorderColor : pType.borderColor }}
                     />
                     <div
@@ -237,7 +238,7 @@ export const NodeReadView: React.FC<NodeReadViewProps> = ({
                   key={down.id}
                   type="button"
                   onClick={() => onNavigateToNode(down.id)}
-                  className={`p-2.5 border text-left flex items-center justify-between group transition-colors cursor-pointer ${
+                  className={`p-2.5 rounded-xl border text-left flex items-center justify-between group transition-colors cursor-pointer ${
                     isDark
                       ? 'bg-[#121214] hover:bg-[#202024] border-[#2E2E33] hover:border-blue-500'
                       : 'bg-white hover:bg-[#F2EFE9] border-[#D4CDC0] hover:border-blue-600'
@@ -246,7 +247,7 @@ export const NodeReadView: React.FC<NodeReadViewProps> = ({
                 >
                   <div className="flex items-center space-x-2 min-w-0 pr-2">
                     <span
-                      className="w-1.5 h-1.5 shrink-0"
+                      className="w-2 h-2 rounded-full shrink-0 badge-dot"
                       style={{ backgroundColor: isDark ? dType.darkBorderColor : dType.borderColor }}
                     />
                     <div
@@ -280,7 +281,7 @@ export const NodeReadView: React.FC<NodeReadViewProps> = ({
         </div>
         {formData.note ? (
           <div
-            className={`p-3.5 border font-serif text-xs leading-relaxed ${
+            className={`p-3.5 rounded-xl border font-serif text-xs leading-relaxed ${
               isDark
                 ? 'bg-amber-500/5 border-amber-500/20 text-amber-200/90'
                 : 'bg-amber-50/70 border-amber-200/70 text-amber-950'

@@ -7,8 +7,8 @@
 面向数学与理论计算机科学学习者，将概念网络建模为**有向无环拓扑图 (DAG)**。<br />
 从公理与定义出发，步步追踪严谨推演，理清概念因果脉络。
 
-[![npm version](https://img.shields.io/badge/npm-v1.3.0-blue.svg?style=flat-square)](https://www.npmjs.com/package/mathmind)
-[![release](https://img.shields.io/badge/Release-v1.3.0-emerald.svg?style=flat-square)](https://github.com/theordinary0x/Mathmind/releases)
+[![npm version](https://img.shields.io/badge/npm-v1.4.0-blue.svg?style=flat-square)](https://www.npmjs.com/package/mathmind)
+[![release](https://img.shields.io/badge/Release-v1.4.0-emerald.svg?style=flat-square)](https://github.com/theordinary0x/Mathmind/releases)
 [![license](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
 [![node](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg?style=flat-square)](https://nodejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue.svg?style=flat-square)](https://www.typescriptlang.org/)
@@ -33,8 +33,8 @@ MathMind 提供桌面端独立客户端与 Android 移动端安装包，无需�
 
 | 平台 | 安装包格式 | 下载直达 | 说明 |
 | :--- | :---: | :---: | :--- |
-| **Windows 桌面端** | `.exe` (安装包 / 便携版) | **[⬇️ 下载 Windows 安装包 (.exe)](https://github.com/theordinary0x/Mathmind/releases/latest)** | 独立桌面窗口、100% 本地离线、支持全键盘快捷键 |
-| **Android 手机端** | `.apk` (直装包) | **[⬇️ 下载 Android 安装包 (.apk)](https://github.com/theordinary0x/Mathmind/releases/latest)** | 极简全屏沉浸（Procreate 模式）、单手操作胶囊底岛 |
+| **Windows 桌面端** | `.exe` (安装包 / 便携版) | **[⬇️ 下载 Windows 安装包 (.exe)](https://github.com/theordinary0x/Mathmind/releases/latest)** | 独立桌面窗口、100% 本地离线、支持触控笔压感手写与 PDF 讲义批注 |
+| **Android 手机/平板端** | `.apk` (直装包) | **[⬇️ 下载 Android 安装包 (.apk)](https://github.com/theordinary0x/Mathmind/releases/latest)** | 无重叠人体工学底栏、手掌防误触手写板、平板分屏 PDF 笔记框选 |
 | **GitHub Releases** | 所有历史附件 | **[🔗 前往 Releases 页面](https://github.com/theordinary0x/Mathmind/releases)** | 包含各版本详细更新日志与完整构件清单 |
 
 ---
@@ -68,8 +68,9 @@ mathmind
 | **多对多因果依赖** | ❌ 只能靠手写跳转，易逻辑断裂 | ❌ 无法表达“一个定理依赖多个前置” | ✅ **原生支持多前提汇聚与推论流向** |
 | **数学公式排版** | ⚠️ 排版繁琐或静态渲染慢 | ❌ 绝大多数不支持 LaTeX 语法 | ✅ **KaTeX 毫秒级排版 + 实时渲染预览** |
 | **算例与反例管理** | ❌ 混在正文中易冲淡主线证明 | ❌ 节点堆砌导致画布臃肿 | ✅ **每个命题结构化挂载独立算例** |
-| **AI 上下文协同** | ❌ 脱离逻辑拓扑，盲目续写 | ❌ 缺乏网状结构感知能力 | ✅ **感知当前图谱上下文，辅助严密推导** |
-| **离线与数据隐私** | ✅ 本地文件 | ⚠️ 多数依赖云端登录与同步 | ✅ **100% 存在浏览器本地，无需账号** |
+| **手写笔与 PDF 讲义** | ❌ 需手动敲打繁琐公式 | ❌ 无手写 OCR 与讲义联动 | ✅ **压感手写板 AI 转 LaTeX + PDF 分屏批注框选** |
+| **AI 上下文协同** | ❌ 脱离逻辑拓扑，盲目续写 | ❌ 缺乏网状结构感知能力 | ✅ **感知当前图谱上下文，双轨时间轴追溯推演** |
+| **离线与数据隐私** | ✅ 本地文件 | ⚠️ 多数依赖云端登录与同步 | ✅ **100% 存在本地，无需账号** |
 
 ```mermaid
 flowchart LR
@@ -95,15 +96,17 @@ flowchart LR
 ## ✨ 主要功能
 
 - 📐 **图谱画布**：支持公理、定义、命题、定理、推论、注记 6 种分类。支持分层排版（看推导先后流向）和力导向排版（看知识聚类），支持矩形框选与自由套索圈选批量操作。
-- 🎨 **双层正交视觉架构**：独立正交控制「几何形态（优雅圆角 / 严谨直角）」与「表面材质（磨砂毛玻璃 / 纯平高对比）」，内置深色、浅色纸张与跟随系统主题，核心节点圆角联动。
-- ⚡ **动画与目标帧率控制**：支持 120Hz+ 满血高刷、60 FPS 标准流体、30 FPS 节能低耗与 0 FPS 极速关闭，兼顾高刷显示屏的极速丝滑与移动设备长续航。
-- 📱 **移动端全屏沉浸（Procreate 模式）**：画布 100% 满屏呈现，触摸手势穿透未遮挡区域，配合悬浮胶囊顶岛与单手人体工学操作底岛。
-- 💡 **算例与反例系统**：每个命题除了陈述、证明思路和详细证明外，还可以挂载多个具体的算例或特例反例，支持 LaTeX 公式。
-- 🤖 **AI 辅助录入与推演**：支持粘贴文本、截图（`Ctrl+V`）或上传 PDF，调用大模型（Gemini、DeepSeek、Qwen、GLM 等）自动提取定理并尝试连线；也可唤起 Copilot 侧边栏辅助补充分步严密证明。
-- 🏷️ **学习状态标记**：节点可标记为“存疑 ❓”、“重点 ★”、“需复习 🔄”、“已证毕 ✔”，方便备考复习与逻辑复盘。
-- ⌨️ **全键盘操作**：常用动作均支持快捷键（`N` 新建、`E` 编辑、`L` 连线、`0` 全览等），聚焦输入框时自动挂起快捷键防冲突。
+- ✍️ **手写数学演算板 & 平板 PDF 讲义工作台（按需分包懒加载）**：
+  - **手写数学演算板**：基于 PointerEvents 支持 Surface Pen / Apple Pencil / 数位板压感笔迹、**仅触控笔防手掌误触模式**、方格/横线/空白演算纸切换，一键 AI 识别手写公式插入光标处或直接带入 Copilot。
+  - **平板 PDF 笔记工作台**：内置本地 `PDF.js` 渲染引擎，支持在教材/讲义 PDF 上逐页手写批注、荧光笔高亮，以及**矩形框选讲义任意定理区域一键提取为新命题或发送给 Copilot 推导**。
+- 🤖 **AI 导师双轨时间轴 & 自动锚定底部**：打开或切换会话自动定位最新对话，左侧配备对话脉络时间轴脊线与轮次标记，右侧配备可悬停预览与一键跳转的刻度导航轨（Timeline Scrubber Rail）。
+- 🎨 **纯净外围毛玻璃与全圆角视觉架构**：外层遮罩与画布悬浮控制岛采用磨砂毛玻璃（Backdrop Blur），编辑与详情弹窗内部采用纯净统一实心表面与 100% 全圆角表单设计；全站统一采用自绘精细矢量图标（Custom SVG Vector Icons）。
+- ⚡ **硬件加速进出场过渡与帧率控制**：所有弹窗、侧边抽屉及阅读/编辑模式切换均配备 GPU 合成层阻尼过渡动画，支持 120Hz+ 满血高刷、60 FPS 标准、30 FPS 节能与 0 FPS 极速模式。
+- 📱 **移动端零重叠重构**：专为手机与平板重构顶栏、右侧紧凑缩放胶囊与底部五宫格导航栏（搜索、手写/PDF、新建、AI 导师、设置一键直达），彻底消除浮层遮挡。
+- 💡 **算例与反例系统**：每个命题除了陈述、证明思路和详细证明外，还可以挂载多个具体的算例或特例反例，支持大号圆角 LaTeX 快捷符号栏。
+- 🏷️ **学习状态矢量标记**：节点可标记为“存疑 ?”、“重点 ★”、“需复习 ↻”、“已证毕 ✓”，方便备考复习与逻辑复盘。
 - 🔄 **检查更新与跨端发布**：设置内置云端 Release 检测器，支持一键对比版本与获取 Windows (.exe) 和 Android (.apk) 安装包。
-- 🔒 **纯本地与隐私保护**：数据保存在浏览器本地（LocalStorage），无需注册登录，不上传数据。支持一键导出/导入 JSON 备份，以及导出高清 PNG 图片。
+- 🔒 **纯本地与隐私保护**：数据保存在本地，无需注册登录，不上传数据。支持一键导出/导入 JSON 备份，以及导出高清 PNG 图片。
 
 <div align="center">
   <img src="./docs/images/mathmind-lasso.png" alt="套索批量操作" width="88%" style="border: 1px solid #E5E0D8; box-shadow: 0 4px 16px rgba(0,0,0,0.06);" />

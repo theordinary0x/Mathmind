@@ -1,5 +1,5 @@
 import React from 'react';
-import { BoxSelect, Lasso, MousePointer } from 'lucide-react';
+import { BoxSelect, Lasso, MousePointer, Maximize2, RefreshCw } from 'lucide-react';
 import { SelectionToolMode } from './SelectionOverlay';
 import { useTranslation } from '../../i18n/LanguageContext';
 
@@ -29,118 +29,173 @@ export const CanvasControlsIsland: React.FC<CanvasControlsIslandProps> = ({
   const { t } = useTranslation();
 
   return (
-    <div
-      className={`absolute bottom-16 sm:bottom-6 left-3 sm:left-6 flex items-center border shadow-lg text-xs z-10 p-1 backdrop-blur-md transition-all rounded-xl glass-panel ${
-        isDark
-          ? 'border-white/10 text-zinc-300'
-          : 'border-black/10 text-stone-700'
-      }`}
-    >
-      <button
-        onClick={onResetZoom}
-        className={`px-2.5 py-1 font-medium transition-colors flex items-center gap-1 whitespace-nowrap rounded-lg ${
-          isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
-        }`}
-        title={`${t('canvas.fitView')} (0)`}
-      >
-        <span>{t('canvas.fitView')}</span>
-        <kbd className={`px-1 py-0.5 text-[9px] font-mono rounded ${
-          isDark ? 'bg-white/10 text-zinc-400' : 'bg-black/5 text-stone-500'
-        }`}>0</kbd>
-      </button>
-
-      <button
-        onClick={onRelayout}
-        className={`px-2 py-1 font-medium transition-colors whitespace-nowrap rounded-lg ${
-          isDark ? 'hover:bg-white/10 text-blue-400' : 'hover:bg-black/5 text-blue-600'
-        }`}
-        title={t('canvas.recalculateLayout')}
-      >
-        {t('canvas.recalculateLayout')}
-      </button>
-
-      <div className="w-[1px] h-3.5 bg-black/10 dark:bg-white/10 mx-0.5 hidden sm:block" />
-
-      <button
-        onClick={() => onSetZoomLevel(0.5)}
-        className={`px-1.5 py-1 font-mono text-[11px] transition-colors hidden sm:inline-block rounded-md ${
-          isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'
+    <>
+      {/* 桌面与平板端（sm 及以上）：左下角水平毛玻璃控制岛 */}
+      <div
+        className={`hidden sm:flex absolute bottom-6 left-6 items-center border shadow-lg text-xs z-10 p-1 transition-all rounded-2xl glass-panel ${
+          isDark
+            ? 'border-white/10 text-zinc-300'
+            : 'border-black/10 text-stone-700'
         }`}
       >
-        50%
-      </button>
-      <button
-        onClick={() => onSetZoomLevel(1.0)}
-        className={`px-1.5 py-1 font-mono text-[11px] font-bold transition-colors hidden sm:inline-block rounded-md ${
-          isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
+        <button
+          onClick={onResetZoom}
+          className={`px-2.5 py-1 font-medium transition-colors flex items-center gap-1 whitespace-nowrap rounded-xl ${
+            isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
+          }`}
+          title={`${t('canvas.fitView')} (0)`}
+        >
+          <span>{t('canvas.fitView')}</span>
+          <kbd className={`px-1 py-0.5 text-[9px] font-mono rounded ${
+            isDark ? 'bg-white/10 text-zinc-400' : 'bg-black/5 text-stone-500'
+          }`}>0</kbd>
+        </button>
+
+        <button
+          onClick={onRelayout}
+          className={`px-2 py-1 font-medium transition-colors whitespace-nowrap rounded-xl ${
+            isDark ? 'hover:bg-white/10 text-blue-400' : 'hover:bg-black/5 text-blue-600'
+          }`}
+          title={t('canvas.recalculateLayout')}
+        >
+          {t('canvas.recalculateLayout')}
+        </button>
+
+        <div className="w-[1px] h-3.5 bg-black/10 dark:bg-white/10 mx-0.5" />
+
+        <button
+          onClick={() => onSetZoomLevel(0.5)}
+          className={`px-1.5 py-1 font-mono text-[11px] transition-colors rounded-lg ${
+            isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'
+          }`}
+        >
+          50%
+        </button>
+        <button
+          onClick={() => onSetZoomLevel(1.0)}
+          className={`px-1.5 py-1 font-mono text-[11px] font-bold transition-colors rounded-lg ${
+            isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
+          }`}
+        >
+          100%
+        </button>
+
+        <div className="w-[1px] h-3.5 bg-black/10 dark:bg-white/10 mx-0.5" />
+
+        <button
+          onClick={onZoomIn}
+          className={`w-6 h-6 flex items-center justify-center font-bold text-sm transition-colors rounded-lg ${
+            isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
+          }`}
+          title={`${t('canvas.zoomIn')} (+)`}
+        >
+          +
+        </button>
+        <button
+          onClick={onZoomOut}
+          className={`w-6 h-6 flex items-center justify-center font-bold text-sm transition-colors rounded-lg ${
+            isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
+          }`}
+          title={`${t('canvas.zoomOut')} (-)`}
+        >
+          -
+        </button>
+
+        <span className="px-1.5 py-1 font-mono text-[10px] opacity-60">
+          {currentZoomPercent}%
+        </span>
+
+        <div className="w-[1px] h-3.5 bg-black/10 dark:bg-white/10 mx-0.5" />
+
+        <button
+          onClick={() => onChangeToolMode('none')}
+          className={`p-1.5 transition-colors rounded-xl ${
+            toolMode === 'none'
+              ? isDark ? 'bg-white/20 text-white' : 'bg-black/10 text-stone-900 font-bold'
+              : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'
+          }`}
+          title={t('canvas.defaultMode')}
+        >
+          <MousePointer className="w-3.5 h-3.5" />
+        </button>
+
+        <button
+          onClick={() => onChangeToolMode(prev => prev === 'box' ? 'none' : 'box')}
+          className={`p-1.5 transition-colors rounded-xl ${
+            toolMode === 'box'
+              ? 'bg-blue-600 text-white'
+              : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'
+          }`}
+          title={t('canvas.boxMode')}
+        >
+          <BoxSelect className="w-3.5 h-3.5" />
+        </button>
+
+        <button
+          onClick={() => onChangeToolMode(prev => prev === 'lasso' ? 'none' : 'lasso')}
+          className={`p-1.5 transition-colors rounded-xl ${
+            toolMode === 'lasso'
+              ? 'bg-blue-600 text-white'
+              : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'
+          }`}
+          title={t('canvas.lassoMode')}
+        >
+          <Lasso className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {/* 手机端（< 640px）：右侧边缘垂直悬浮胶囊，彻底消除与底栏和小地图的重叠 */}
+      <div
+        className={`flex sm:hidden flex-col items-center space-y-1 absolute right-3 top-1/2 -translate-y-1/2 border shadow-lg p-1.5 z-10 rounded-2xl glass-panel ${
+          isDark ? 'border-white/10 text-zinc-300' : 'border-black/10 text-stone-700'
         }`}
       >
-        100%
-      </button>
+        <button
+          onClick={onResetZoom}
+          className="p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all"
+          title={t('canvas.fitView')}
+        >
+          <Maximize2 className="w-4 h-4" />
+        </button>
 
-      <div className="w-[1px] h-3.5 bg-black/10 dark:bg-white/10 mx-0.5" />
+        <button
+          onClick={onRelayout}
+          className="p-1.5 rounded-xl text-blue-500 hover:bg-blue-500/10 active:scale-95 transition-all"
+          title={t('canvas.recalculateLayout')}
+        >
+          <RefreshCw className="w-4 h-4" />
+        </button>
 
-      <button
-        onClick={onZoomIn}
-        className={`w-6 h-6 flex items-center justify-center font-bold text-sm transition-colors rounded-md ${
-          isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
-        }`}
-        title={`${t('canvas.zoomIn')} (+)`}
-      >
-        +
-      </button>
-      <button
-        onClick={onZoomOut}
-        className={`w-6 h-6 flex items-center justify-center font-bold text-sm transition-colors rounded-md ${
-          isDark ? 'hover:bg-white/10 text-white' : 'hover:bg-black/5 text-stone-900'
-        }`}
-        title={`${t('canvas.zoomOut')} (-)`}
-      >
-        -
-      </button>
+        <div className="w-4 h-px bg-black/10 dark:bg-white/10 my-0.5" />
 
-      <span className="px-1.5 py-1 font-mono text-[10px] opacity-60">
-        {currentZoomPercent}%
-      </span>
+        <button
+          onClick={onZoomIn}
+          className="w-7 h-7 rounded-xl flex items-center justify-center font-bold text-sm hover:bg-black/5 dark:hover:bg-white/10"
+          title={t('canvas.zoomIn')}
+        >
+          +
+        </button>
+        <span className="text-[9px] font-mono opacity-60">{currentZoomPercent}%</span>
+        <button
+          onClick={onZoomOut}
+          className="w-7 h-7 rounded-xl flex items-center justify-center font-bold text-sm hover:bg-black/5 dark:hover:bg-white/10"
+          title={t('canvas.zoomOut')}
+        >
+          -
+        </button>
 
-      <div className="w-[1px] h-3.5 bg-black/10 dark:bg-white/10 mx-0.5" />
+        <div className="w-4 h-px bg-black/10 dark:bg-white/10 my-0.5" />
 
-      {/* Selection Tool Mode Toggles */}
-      <button
-        onClick={() => onChangeToolMode('none')}
-        className={`p-1.5 transition-colors rounded-lg ${
-          toolMode === 'none'
-            ? isDark ? 'bg-white/20 text-white' : 'bg-black/10 text-stone-900 font-bold'
-            : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'
-        }`}
-        title={t('canvas.defaultMode')}
-      >
-        <MousePointer className="w-3.5 h-3.5" />
-      </button>
-
-      <button
-        onClick={() => onChangeToolMode(prev => prev === 'box' ? 'none' : 'box')}
-        className={`p-1.5 transition-colors rounded-lg ${
-          toolMode === 'box'
-            ? 'bg-blue-600 text-white'
-            : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'
-        }`}
-        title={t('canvas.boxMode')}
-      >
-        <BoxSelect className="w-3.5 h-3.5" />
-      </button>
-
-      <button
-        onClick={() => onChangeToolMode(prev => prev === 'lasso' ? 'none' : 'lasso')}
-        className={`p-1.5 transition-colors rounded-lg ${
-          toolMode === 'lasso'
-            ? 'bg-blue-600 text-white'
-            : isDark ? 'hover:bg-white/10 text-zinc-400' : 'hover:bg-black/5 text-stone-500'
-        }`}
-        title={t('canvas.lassoMode')}
-      >
-        <Lasso className="w-3.5 h-3.5" />
-      </button>
-    </div>
+        <button
+          onClick={() => onChangeToolMode(prev => prev === 'box' ? 'none' : 'box')}
+          className={`p-1.5 rounded-xl transition-colors ${
+            toolMode === 'box' ? 'bg-blue-600 text-white' : 'opacity-70'
+          }`}
+          title={t('canvas.boxMode')}
+        >
+          <BoxSelect className="w-4 h-4" />
+        </button>
+      </div>
+    </>
   );
 };

@@ -4,7 +4,6 @@ import { PropositionNode, NODE_TYPES } from '../../types';
 import { latexToUnicode, formatSingleLineFormulaTitle } from '../../utils/latexToUnicode';
 import { MathRenderer } from '../MathRenderer';
 
-
 interface PrerequisitePickerProps {
   allNodes: PropositionNode[];
   currentNodeId: string;
@@ -42,23 +41,23 @@ export const PrerequisitePicker: React.FC<PrerequisitePickerProps> = ({
       </div>
 
       <div className="relative mb-2">
-        <Search className="w-3 h-3 opacity-50 absolute left-2.5 top-1/2 -translate-y-1/2" />
+        <Search className="w-3.5 h-3.5 opacity-50 absolute left-3 top-1/2 -translate-y-1/2" />
         <input
           type="text"
           value={prereqSearch}
           onChange={e => setPrereqSearch(e.target.value)}
           placeholder="搜索前置命题..."
-          className={`w-full pl-7 pr-3 py-1 text-xs border focus:outline-none font-serif ${
+          className={`w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border focus:outline-none font-serif transition-colors ${
             isDark
-              ? 'bg-[#27272A] border-[#3F3F46] text-white'
-              : 'bg-[#FAF8F5] border-[#D4CDC0] text-[#2C2B29]'
+              ? 'bg-[#202024] border-[#3F3F46] text-white focus:border-blue-500'
+              : 'bg-white border-[#D4CDC0] text-[#2C2B29] focus:border-blue-600'
           }`}
         />
       </div>
 
       <div
-        className={`max-h-40 overflow-y-auto space-y-1 border p-1.5 ${
-          isDark ? 'bg-[#222226] border-[#2E2E33]' : 'bg-[#FAF8F5] border-[#D4CDC0]'
+        className={`max-h-44 overflow-y-auto space-y-1 rounded-xl border p-1.5 ${
+          isDark ? 'bg-[#121214] border-[#2E2E33]' : 'bg-[#F5F2EB] border-[#D4CDC0]'
         }`}
       >
         {candidatePrereqs.map(cand => {
@@ -68,7 +67,7 @@ export const PrerequisitePicker: React.FC<PrerequisitePickerProps> = ({
           return (
             <label
               key={cand.id}
-              className={`flex items-center justify-between px-2 py-1.5 text-xs cursor-pointer select-none transition-colors ${
+              className={`flex items-center justify-between px-2.5 py-1.5 text-xs rounded-lg cursor-pointer select-none transition-colors ${
                 isChecked
                   ? isDark ? 'bg-[#3B82F6]/20 text-[#60A5FA]' : 'bg-[#EFF6FF] text-[#2563EB]'
                   : isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'
@@ -79,10 +78,10 @@ export const PrerequisitePicker: React.FC<PrerequisitePickerProps> = ({
                   type="checkbox"
                   checked={isChecked}
                   onChange={() => onTogglePrereq(cand.id)}
-                  className="border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5"
                 />
                 <span
-                  className="text-[9px] px-1 py-0.2 uppercase font-mono border"
+                  className="text-[9px] px-1.5 py-0.5 rounded-md uppercase font-mono border shrink-0"
                   style={{
                     backgroundColor: isDark ? candType.darkBgColor : candType.bgColor,
                     color: isDark ? candType.darkColor : candType.color,
@@ -98,7 +97,6 @@ export const PrerequisitePicker: React.FC<PrerequisitePickerProps> = ({
                   <MathRenderer content={formatSingleLineFormulaTitle(cand.title)} />
                 </div>
               </div>
-
             </label>
           );
         })}

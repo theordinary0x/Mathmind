@@ -61,11 +61,11 @@ export const ProjectManagerModal: React.FC<ProjectManagerModalProps> = ({
 
     <div
       {...backdropProps}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-100"
+      className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop-glass p-4 animate-in fade-in duration-100"
     >
 
       <div
-        className={`border shadow-2xl w-full max-w-lg flex flex-col overflow-hidden rounded-2xl glass-panel transition-all ${
+        className={`border w-full max-w-lg flex flex-col overflow-hidden rounded-2xl modal-surface mm-view-fade transition-all ${
           isDark
             ? 'border-white/10 text-zinc-100'
             : 'border-black/10 text-stone-800'

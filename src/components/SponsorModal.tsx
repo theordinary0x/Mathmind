@@ -35,11 +35,11 @@ export const SponsorModal: React.FC<SponsorModalProps> = ({
   return (
     <div
       {...backdropProps}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-100"
+      className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop-glass p-4 animate-in fade-in duration-100"
     >
 
       <div
-        className={`border shadow-2xl w-full max-w-sm flex flex-col overflow-hidden rounded-2xl glass-panel transition-all ${
+        className={`border w-full max-w-sm flex flex-col overflow-hidden rounded-2xl modal-surface mm-view-fade transition-all ${
           isDark
             ? 'border-white/10 text-[#EDECE8]'
             : 'border-black/10 text-[#2C2B29]'
@@ -48,7 +48,7 @@ export const SponsorModal: React.FC<SponsorModalProps> = ({
         {/* Header */}
         <div
           className={`px-5 py-3.5 border-b flex items-center justify-between ${
-            isDark ? 'bg-[#222226] border-white/10' : 'bg-[#FAF8F5] border-black/10'
+            isDark ? 'bg-[#202024] border-white/10' : 'bg-[#F2EFE9] border-black/10'
           }`}
         >
           <div className="flex items-center space-x-2">
@@ -57,7 +57,7 @@ export const SponsorModal: React.FC<SponsorModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1 opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+            className="p-1 rounded-lg opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             title="关闭 (Esc)"
           >
             <X className="w-4 h-4" />
@@ -66,11 +66,11 @@ export const SponsorModal: React.FC<SponsorModalProps> = ({
 
         {/* Content */}
         <div className="p-6 flex flex-col items-center text-center">
-          <div className="p-3 bg-white shadow-md border border-black/5 mb-4">
+          <div className="p-3 rounded-xl bg-white shadow-md border border-black/5 mb-4">
             <img
               src="/sponsor-qrcode.jpg"
               alt="支付宝赞助二维码"
-              className="w-56 h-56 object-contain"
+              className="w-56 h-56 object-contain rounded-lg"
             />
           </div>
 

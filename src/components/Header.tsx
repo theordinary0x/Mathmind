@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { Project, AppTheme } from '../types';
 import { useTranslation } from '../i18n/LanguageContext';
+import { StylusPenVectorIcon, PdfNoteVectorIcon, SparkleAiVectorIcon, TeaCupVectorIcon } from './icons/CustomIcons';
 
 interface HeaderProps {
   currentProject: Project;
@@ -39,6 +40,8 @@ interface HeaderProps {
   onOpenCreateModal: () => void;
   isCopilotOpen?: boolean;
   onToggleCopilot?: () => void;
+  onOpenHandwriting?: () => void;
+  onOpenPdfWorkspace?: () => void;
   onSaveAs: () => void;
   onManualSave?: () => void;
   onImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -99,6 +102,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCreateModal,
   isCopilotOpen,
   onToggleCopilot,
+  onOpenHandwriting,
+  onOpenPdfWorkspace,
   onSaveAs,
   onManualSave,
   onImport,
@@ -299,6 +304,37 @@ export const Header: React.FC<HeaderProps> = ({
           <KbdBadge isDark={isDark} variant="solid" className="hidden lg:inline-flex">N</KbdBadge>
         </button>
 
+        {/* Stylus Handwriting Pad & PDF Note Workspace */}
+        {onOpenHandwriting && (
+          <button
+            onClick={onOpenHandwriting}
+            className={`flex items-center space-x-1 px-2 py-1 text-xs font-medium transition-all shadow-xs whitespace-nowrap border rounded-lg ${
+              isDark
+                ? 'bg-[#202024] hover:bg-[#27272A] text-indigo-300 border-[#2E2E33]'
+                : 'bg-white hover:bg-stone-100 text-indigo-700 border-[#D4CDC0]'
+            }`}
+            title="手写数学演算板（支持压感笔与 AI 公式转译）"
+          >
+            <StylusPenVectorIcon className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+            <span className="hidden lg:inline">{language === 'zh' ? '手写板' : 'Ink Pad'}</span>
+          </button>
+        )}
+
+        {onOpenPdfWorkspace && (
+          <button
+            onClick={onOpenPdfWorkspace}
+            className={`flex items-center space-x-1 px-2 py-1 text-xs font-medium transition-all shadow-xs whitespace-nowrap border rounded-lg ${
+              isDark
+                ? 'bg-[#202024] hover:bg-[#27272A] text-amber-300 border-[#2E2E33]'
+                : 'bg-white hover:bg-stone-100 text-amber-700 border-[#D4CDC0]'
+            }`}
+            title="分屏 PDF 讲义批注与框选提取工作台"
+          >
+            <PdfNoteVectorIcon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span className="hidden lg:inline">{language === 'zh' ? 'PDF 笔记' : 'PDF Note'}</span>
+          </button>
+        )}
+
         {/* AI Copilot Sidebar Toggle Button */}
         {onToggleCopilot && (
           <button
@@ -312,7 +348,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
             title="Math Copilot 智能结对助手 (I)"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <SparkleAiVectorIcon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span className="hidden sm:inline">{language === 'zh' ? 'AI 助手' : 'AI Copilot'}</span>
             <KbdBadge isDark={isDark} variant="solid" className="hidden lg:inline-flex">I</KbdBadge>
           </button>
