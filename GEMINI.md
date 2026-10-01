@@ -12,3 +12,11 @@ See [AGENTS.md](file:///c:/Users/Rayma/.Code/mathmind/AGENTS.md) for full engine
 4. **Lightweight & Agile Verification**: No heavy headless browser scripts for trivial fixes. Rely strictly on `npx tsc --noEmit` and `npm run build`.
 5. **Code Decomposition**: Files over 500 lines must be split (styles -> `src/styles/`, layouts -> `src/utils/`, shortcuts/autosave -> `src/hooks/`).
 6. **Zero Breaking Changes**: Refactoring must strictly preserve all existing features, UI, and shortcuts.
+7. **Engineering Rigor & Defensive Rules**:
+   - Synchronize docs/CHANGELOG on new features; no dead code retained.
+   - Explain 'Why' in single-line comments for key algorithms.
+   - Strictly gate new npm dependencies (require user approval + size/alternative evaluation).
+   - Ensure backward compatibility for local storage/data migrations.
+   - Mobile vertical & desktop responsive parity for all UI changes.
+   - Full async UI state loop (Loading + Error/Fallback).
+   - Require confirmation or undo for destructive actions.
