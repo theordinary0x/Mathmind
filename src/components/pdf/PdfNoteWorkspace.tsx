@@ -425,7 +425,7 @@ export const PdfNoteWorkspace: React.FC<PdfNoteWorkspaceProps> = ({
         transform: isVisible ? 'translate3d(0, 0, 0)' : 'translate3d(-104%, 0, 0)',
         opacity: isVisible ? 1 : 0,
       }}
-      className={`fixed left-0 top-0 sm:top-14 bottom-0 sm:bottom-6 z-40 w-full sm:w-[540px] md:w-[640px] max-w-full border-r sm:rounded-r-2xl shadow-2xl flex flex-col overflow-hidden select-none mm-drawer-transition modal-surface ${
+      className={`fixed left-0 top-0 sm:top-12 bottom-0 sm:bottom-6 z-40 w-full sm:w-[540px] md:w-[640px] max-w-full border-r sm:rounded-r-2xl shadow-2xl flex flex-col overflow-hidden select-none mm-drawer-transition modal-surface ${
         isDark ? 'border-[#2E2E33] text-[#EDECE8]' : 'border-[#D4CDC0] text-[#2C2B29]'
       }`}
     >

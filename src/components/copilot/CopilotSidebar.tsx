@@ -410,7 +410,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
         transform: isVisible ? 'translate3d(0, 0, 0)' : 'translate3d(104%, 0, 0)',
         opacity: isVisible ? 1 : 0,
       }}
-      className={`fixed right-0 top-13 sm:top-14 bottom-6 z-30 border-l rounded-l-2xl shadow-2xl overflow-hidden max-w-full flex flex-col select-text mm-drawer-transition modal-surface ${
+      className={`fixed right-0 top-11 sm:top-12 bottom-6 z-30 border-l rounded-l-2xl shadow-2xl overflow-hidden max-w-full flex flex-col select-text mm-drawer-transition modal-surface ${
         isDark
           ? 'border-[#2E2E33] text-[#EDECE8]'
           : 'border-[#D4CDC0] text-[#2C2B29]'
