@@ -24,7 +24,7 @@ export const BatchSelectionBar: React.FC<BatchSelectionBarProps> = ({
 
   return (
     <div
-      className={`fixed bottom-20 sm:bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center space-x-3 px-4 py-2 rounded-2xl border shadow-2xl glass-panel text-xs select-none mm-view-fade ${
+      className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center space-x-3 px-4 py-2 rounded-2xl border shadow-2xl glass-panel text-xs select-none mm-view-fade ${
         isDark
           ? 'border-white/20 text-[#EDECE8] shadow-black/60'
           : 'border-black/15 text-[#2C2B29] shadow-slate-300/50'

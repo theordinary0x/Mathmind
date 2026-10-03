@@ -1,5 +1,5 @@
 import React from 'react';
-import { BoxSelect, Lasso, MousePointer, Maximize2, RefreshCw } from 'lucide-react';
+import { BoxSelect, Lasso, MousePointer } from 'lucide-react';
 import { SelectionToolMode } from './SelectionOverlay';
 import { useTranslation } from '../../i18n/LanguageContext';
 
@@ -29,15 +29,13 @@ export const CanvasControlsIsland: React.FC<CanvasControlsIslandProps> = ({
   const { t } = useTranslation();
 
   return (
-    <>
-      {/* 桌面与平板端（sm 及以上）：左下角水平毛玻璃控制岛 */}
-      <div
-        className={`hidden sm:flex absolute bottom-6 left-6 items-center border shadow-lg text-xs z-10 p-1 transition-all rounded-2xl glass-panel ${
-          isDark
-            ? 'border-white/10 text-zinc-300'
-            : 'border-black/10 text-stone-700'
-        }`}
-      >
+    <div
+      className={`flex absolute bottom-4 sm:bottom-6 left-4 sm:left-6 items-center border shadow-lg text-xs z-10 p-1 transition-all rounded-2xl glass-panel ${
+        isDark
+          ? 'border-white/10 text-zinc-300'
+          : 'border-black/10 text-stone-700'
+      }`}
+    >
         <button
           onClick={onResetZoom}
           className={`px-2.5 py-1 font-medium transition-colors flex items-center gap-1 whitespace-nowrap rounded-xl ${
@@ -142,60 +140,6 @@ export const CanvasControlsIsland: React.FC<CanvasControlsIslandProps> = ({
         >
           <Lasso className="w-3.5 h-3.5" />
         </button>
-      </div>
-
-      {/* 手机端（< 640px）：右侧边缘垂直悬浮胶囊，彻底消除与底栏和小地图的重叠 */}
-      <div
-        className={`flex sm:hidden flex-col items-center space-y-1 absolute right-3 top-1/2 -translate-y-1/2 border shadow-lg p-1.5 z-10 rounded-2xl glass-panel ${
-          isDark ? 'border-white/10 text-zinc-300' : 'border-black/10 text-stone-700'
-        }`}
-      >
-        <button
-          onClick={onResetZoom}
-          className="p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all"
-          title={t('canvas.fitView')}
-        >
-          <Maximize2 className="w-4 h-4" />
-        </button>
-
-        <button
-          onClick={onRelayout}
-          className="p-1.5 rounded-xl text-blue-500 hover:bg-blue-500/10 active:scale-95 transition-all"
-          title={t('canvas.recalculateLayout')}
-        >
-          <RefreshCw className="w-4 h-4" />
-        </button>
-
-        <div className="w-4 h-px bg-black/10 dark:bg-white/10 my-0.5" />
-
-        <button
-          onClick={onZoomIn}
-          className="w-7 h-7 rounded-xl flex items-center justify-center font-bold text-sm hover:bg-black/5 dark:hover:bg-white/10"
-          title={t('canvas.zoomIn')}
-        >
-          +
-        </button>
-        <span className="text-[9px] font-mono opacity-60">{currentZoomPercent}%</span>
-        <button
-          onClick={onZoomOut}
-          className="w-7 h-7 rounded-xl flex items-center justify-center font-bold text-sm hover:bg-black/5 dark:hover:bg-white/10"
-          title={t('canvas.zoomOut')}
-        >
-          -
-        </button>
-
-        <div className="w-4 h-px bg-black/10 dark:bg-white/10 my-0.5" />
-
-        <button
-          onClick={() => onChangeToolMode(prev => prev === 'box' ? 'none' : 'box')}
-          className={`p-1.5 rounded-xl transition-colors ${
-            toolMode === 'box' ? 'bg-blue-600 text-white' : 'opacity-70'
-          }`}
-          title={t('canvas.boxMode')}
-        >
-          <BoxSelect className="w-4 h-4" />
-        </button>
-      </div>
-    </>
+    </div>
   );
 };

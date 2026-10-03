@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Trash2, Plus, ChevronDown, ChevronRight, ArrowDownRight } from 'lucide-react';
 import { PropositionNode } from '../../types';
 import { latexToUnicode, formatSingleLineFormulaTitle } from '../../utils/latexToUnicode';
@@ -69,6 +69,29 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
     });
   };
 
+  // Dedicated local state for tags input to support Chinese IME composition without disruption
+  const [tagsInput, setTagsInput] = useState<string>(() => (formData.tags || []).join(', '));
+  const isComposingRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    setTagsInput((formData.tags || []).join(', '));
+  }, [formData.id]);
+
+  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    setTagsInput(raw);
+    if (!isComposingRef.current) {
+      const parsed = raw.split(/[,，\s]+/).map(t => t.trim()).filter(Boolean);
+      setFormData(prev => prev ? ({ ...prev, tags: parsed.length > 0 ? parsed : undefined }) : null);
+    }
+  };
+
+  const handleTagsBlur = () => {
+    const parsed = tagsInput.split(/[,，\s]+/).map(t => t.trim()).filter(Boolean);
+    setFormData(prev => prev ? ({ ...prev, tags: parsed.length > 0 ? parsed : undefined }) : null);
+    setTagsInput(parsed.join(', '));
+  };
+
   return (
     <div className="flex-1 overflow-y-auto p-5 space-y-4 mm-view-fade">
       {errorMessage && (
@@ -118,11 +141,21 @@ export const NodeEditView: React.FC<NodeEditViewProps> = ({
         </div>
         <input
           type="text"
-          value={(formData.tags || []).join(', ')}
-          onChange={e => {
-            const raw = e.target.value;
-            const parsed = raw.split(/[,，\s]+/).map(t => t.trim()).filter(Boolean);
-            setFormData({ ...formData, tags: parsed });
+          value={tagsInput}
+          onChange={handleTagsChange}
+          onCompositionStart={() => {
+            isComposingRef.current = true;
+          }}
+          onCompositionEnd={e => {
+            isComposingRef.current = false;
+            handleTagsChange(e as any);
+          }}
+          onBlur={handleTagsBlur}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleTagsBlur();
+            }
           }}
           placeholder="如: 反例, 期末考点, 拓扑闭包"
           className={`w-full text-xs p-3 rounded-xl border font-mono focus:outline-none transition-colors ${

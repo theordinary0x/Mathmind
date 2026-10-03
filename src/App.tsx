@@ -38,10 +38,6 @@ import { ProjectManagerModal } from './components/ProjectManagerModal';
 import { KeyboardShortcutsModal } from './components/KeyboardShortcutsModal';
 import { SettingsModal } from './components/SettingsModal';
 import { SponsorModal } from './components/SponsorModal';
-import { useIsMobile } from './hooks/useIsMobile';
-import { MobileHeader } from './components/mobile/MobileHeader';
-import { MobileBottomBar } from './components/mobile/MobileBottomBar';
-import { MobileMenuDrawer } from './components/mobile/MobileMenuDrawer';
 
 const HandwritingModal = lazy(() =>
   import('./components/handwriting/HandwritingModal').then(m => ({ default: m.HandwritingModal }))
@@ -184,9 +180,7 @@ export const App: React.FC = () => {
   const [isCopilotOpen, setIsCopilotOpen] = useState<boolean>(false);
   const [copilotExternalTrigger, setCopilotExternalTrigger] = useState<CopilotExternalTrigger | null>(null);
 
-  const isMobile = useIsMobile();
   const [isGraphReady, setIsGraphReady] = useState<boolean>(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [isHandwritingOpen, setIsHandwritingOpen] = useState<boolean>(false);
   const [handwritingInsertCallback, setHandwritingInsertCallback] = useState<((latex: string) => void) | null>(null);
   const [isPdfWorkspaceOpen, setIsPdfWorkspaceOpen] = useState<boolean>(false);
@@ -760,51 +754,36 @@ export const App: React.FC = () => {
       <SplashScreen isDark={isDark} isReady={isGraphReady} />
 
       {/* Top Header */}
-      {isMobile ? (
-        <MobileHeader
-          currentProject={currentProject}
-          nodeCount={dataset.nodes.length}
-          onOpenProjectManager={() => setIsProjectManagerOpen(true)}
-          onOpenMenu={() => setIsMobileMenuOpen(true)}
-          onOpenSettings={() => setIsSettingsOpen(true)}
-          canUndo={historyIndex > 0}
-          canRedo={historyIndex < history.length - 1}
-          onUndo={handleUndo}
-          onRedo={handleRedo}
-          isDark={isDark}
-        />
-      ) : (
-        <Header
-          currentProject={currentProject}
-          onOpenProjectManager={() => setIsProjectManagerOpen(true)}
-          layoutType={layoutType}
-          onChangeLayout={setLayoutType}
-          isFocusMode={isFocusMode}
-          onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
-          isConnectingMode={isConnectingMode}
-          onToggleConnectingMode={() => setIsConnectingMode(!isConnectingMode)}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onOpenCreateModal={() => handleOpenCreateModal()}
-          isCopilotOpen={isCopilotOpen}
-          onToggleCopilot={() => setIsCopilotOpen(prev => !prev)}
-          onOpenHandwriting={() => handleOpenHandwriting()}
-          onOpenPdfWorkspace={() => setIsPdfWorkspaceOpen(true)}
-          onSaveAs={handleSaveAs}
-          onManualSave={() => doSaveNow(true)}
-          onImport={handleImportJson}
-          nodeCount={dataset.nodes.length}
-          theme={effectiveTheme}
-          onToggleTheme={cycleTheme}
-          canUndo={historyIndex > 0}
-          canRedo={historyIndex < history.length - 1}
-          onUndo={handleUndo}
-          onRedo={handleRedo}
-          onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
-          onOpenSettings={() => setIsSettingsOpen(true)}
-          onOpenSponsor={() => setIsSponsorOpen(true)}
-        />
-      )}
+      <Header
+        currentProject={currentProject}
+        onOpenProjectManager={() => setIsProjectManagerOpen(true)}
+        layoutType={layoutType}
+        onChangeLayout={setLayoutType}
+        isFocusMode={isFocusMode}
+        onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
+        isConnectingMode={isConnectingMode}
+        onToggleConnectingMode={() => setIsConnectingMode(!isConnectingMode)}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onOpenCreateModal={() => handleOpenCreateModal()}
+        isCopilotOpen={isCopilotOpen}
+        onToggleCopilot={() => setIsCopilotOpen(prev => !prev)}
+        onOpenHandwriting={() => handleOpenHandwriting()}
+        onOpenPdfWorkspace={() => setIsPdfWorkspaceOpen(true)}
+        onSaveAs={handleSaveAs}
+        onManualSave={() => doSaveNow(true)}
+        onImport={handleImportJson}
+        nodeCount={dataset.nodes.length}
+        theme={effectiveTheme}
+        onToggleTheme={cycleTheme}
+        canUndo={historyIndex > 0}
+        canRedo={historyIndex < history.length - 1}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenSponsor={() => setIsSponsorOpen(true)}
+      />
 
       {/* Main Canvas Area */}
       <main className="flex-1 relative overflow-hidden">
@@ -860,70 +839,26 @@ export const App: React.FC = () => {
           theme={effectiveTheme}
           externalTrigger={copilotExternalTrigger}
           onClearExternalTrigger={() => setCopilotExternalTrigger(null)}
-          isMobile={isMobile}
         />
       </main>
 
-      {/* Bottom Bar or Status Bar */}
-      {isMobile ? (
-        <>
-          <MobileBottomBar
-            isDark={isDark}
-            isCopilotOpen={isCopilotOpen}
-            onToggleCopilot={() => setIsCopilotOpen(prev => !prev)}
-            onOpenCreateModal={() => handleOpenCreateModal()}
-            onOpenSettings={() => setIsSettingsOpen(true)}
-            onOpenHandwriting={() => handleOpenHandwriting()}
-            onOpenPdfWorkspace={() => setIsPdfWorkspaceOpen(true)}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-          />
-          <MobileMenuDrawer
-            isOpen={isMobileMenuOpen}
-            onClose={() => setIsMobileMenuOpen(false)}
-            isDark={isDark}
-            theme={effectiveTheme}
-            onToggleTheme={cycleTheme}
-            cornerStyle={cornerStyle}
-            onToggleCornerStyle={() => handleCornerStyleChange(cornerStyle === 'rounded' ? 'sharp' : 'rounded')}
-            surfaceMaterial={surfaceMaterial}
-            onToggleSurfaceMaterial={() => handleSurfaceMaterialChange(surfaceMaterial === 'glass' ? 'solid' : 'glass')}
-            fpsMode={fpsMode}
-            onCycleFpsMode={handleCycleFpsMode}
-            layoutType={layoutType}
-            onChangeLayout={setLayoutType}
-            isFocusMode={isFocusMode}
-            onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
-            canUndo={historyIndex > 0}
-            canRedo={historyIndex < history.length - 1}
-            onUndo={handleUndo}
-            onRedo={handleRedo}
-            onSaveAs={handleSaveAs}
-            onImport={handleImportJson}
-            onOpenSettings={() => setIsSettingsOpen(true)}
-            onOpenSponsor={() => setIsSponsorOpen(true)}
-            onOpenHandwriting={() => handleOpenHandwriting()}
-            onOpenPdfWorkspace={() => setIsPdfWorkspaceOpen(true)}
-          />
-        </>
-      ) : (
-        <StatusBar
-          theme={effectiveTheme}
-          projectName={currentProject.name}
-          nodeCount={dataset.nodes.length}
-          edgeCount={totalEdgesCount}
-          selectedTitle={selectedNode?.title || null}
-          lastSavedTime={lastSavedTime}
-          canUndo={historyIndex > 0}
-          canRedo={historyIndex < history.length - 1}
-          onOpenShortcuts={() => setIsShortcutsModalOpen(true)}
-          autoSaveMode={autoSaveMode}
-          onChangeAutoSaveMode={handleChangeAutoSaveMode}
-          isDirty={isDirty}
-          isSaving={isSaving}
-          onManualSave={() => doSaveNow(true)}
-        />
-      )}
+      {/* Bottom Status Bar */}
+      <StatusBar
+        theme={effectiveTheme}
+        projectName={currentProject.name}
+        nodeCount={dataset.nodes.length}
+        edgeCount={totalEdgesCount}
+        selectedTitle={selectedNode?.title || null}
+        lastSavedTime={lastSavedTime}
+        canUndo={historyIndex > 0}
+        canRedo={historyIndex < history.length - 1}
+        onOpenShortcuts={() => setIsShortcutsModalOpen(true)}
+        autoSaveMode={autoSaveMode}
+        onChangeAutoSaveMode={handleChangeAutoSaveMode}
+        isDirty={isDirty}
+        isSaving={isSaving}
+        onManualSave={() => doSaveNow(true)}
+      />
 
       {/* Create Proposition Modal */}
       <CreateNodeModal
@@ -1072,7 +1007,7 @@ export const App: React.FC = () => {
       {/* Toast Notification */}
       {toastMessage && (
         <div
-          className={`fixed bottom-20 sm:bottom-9 left-1/2 -translate-x-1/2 z-50 text-xs px-4 py-2 border rounded-xl shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-150 font-serif ${
+          className={`fixed bottom-9 left-1/2 -translate-x-1/2 z-50 text-xs px-4 py-2 border rounded-xl shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-150 font-serif ${
             isDark
               ? 'bg-[#27272A] border-[#3F3F46] text-white shadow-black/80'
               : 'bg-[#1A1A1A] border-[#333333] text-white'

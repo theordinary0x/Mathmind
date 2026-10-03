@@ -23,7 +23,7 @@ export const CanvasModeBanners: React.FC<CanvasModeBannersProps> = ({
     <>
       {/* Box / Lasso Mode Active Banner */}
       {toolMode !== 'none' && (
-        <div className="absolute top-16 sm:top-4 left-1/2 -translate-x-1/2 rounded-2xl bg-blue-600 text-white px-4 py-1.5 shadow-2xl flex items-center space-x-3 text-xs z-30 mm-view-fade">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 rounded-2xl bg-blue-600 text-white px-4 py-1.5 shadow-2xl flex items-center space-x-3 text-xs z-30 mm-view-fade">
           <span className="font-medium">
             {toolMode === 'box' ? t('canvas.boxModeActive') : t('canvas.lassoModeActive')}
           </span>
@@ -39,7 +39,7 @@ export const CanvasModeBanners: React.FC<CanvasModeBannersProps> = ({
 
       {/* Connect Mode Banner */}
       {isConnectingMode && (
-        <div className="absolute top-16 sm:top-4 left-1/2 -translate-x-1/2 rounded-2xl bg-[#1E3A5F] text-white px-5 py-2.5 shadow-2xl flex items-center space-x-4 text-xs z-50 border border-white/30 mm-view-fade">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 rounded-2xl bg-[#1E3A5F] text-white px-5 py-2.5 shadow-2xl flex items-center space-x-4 text-xs z-50 border border-white/30 mm-view-fade">
           <div className="flex items-center space-x-2">
             <span className="inline-block w-2 h-2 rounded-full bg-blue-300 animate-ping badge-dot" />
             <span className="font-medium">

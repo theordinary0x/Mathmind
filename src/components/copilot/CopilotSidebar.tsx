@@ -20,7 +20,6 @@ import {
   Square,
   Paperclip,
   Camera,
-  ArrowLeft,
   ArrowDown,
   UploadCloud,
   MessageSquare,
@@ -50,7 +49,6 @@ interface CopilotSidebarProps {
   theme: AppTheme;
   externalTrigger?: CopilotExternalTrigger | null;
   onClearExternalTrigger?: () => void;
-  isMobile?: boolean;
 }
 
 export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
@@ -64,8 +62,7 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
   onOpenHandwriting,
   theme,
   externalTrigger,
-  onClearExternalTrigger,
-  isMobile = false
+  onClearExternalTrigger
 }) => {
   const isDark = theme === 'dark';
   const { shouldRender, isVisible } = useAnimatedVisibility(isOpen, 260);
@@ -408,15 +405,12 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
     <aside
       onPaste={handlePaste}
       style={{
-        width: isMobile || (typeof window !== 'undefined' && window.innerWidth < 640) ? '100%' : `${sidebarWidth}px`,
+        width: typeof window !== 'undefined' && window.innerWidth < 480 ? '100vw' : `${sidebarWidth}px`,
+        maxWidth: '100vw',
         transform: isVisible ? 'translate3d(0, 0, 0)' : 'translate3d(104%, 0, 0)',
         opacity: isVisible ? 1 : 0,
       }}
-      className={`fixed ${
-        isMobile
-          ? 'inset-0 z-50'
-          : 'right-0 top-14 bottom-6 z-30 border-l rounded-l-2xl shadow-2xl overflow-hidden'
-      } max-w-full flex flex-col select-text mm-drawer-transition modal-surface ${
+      className={`fixed right-0 top-13 sm:top-14 bottom-6 z-30 border-l rounded-l-2xl shadow-2xl overflow-hidden max-w-full flex flex-col select-text mm-drawer-transition modal-surface ${
         isDark
           ? 'border-[#2E2E33] text-[#EDECE8]'
           : 'border-[#D4CDC0] text-[#2C2B29]'
@@ -427,19 +421,17 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
       onDrop={handleDrop}
     >
       {/* 左边缘拖拽调节手柄 */}
-      {!isMobile && (
-        <div
-          onMouseDown={handleResizeMouseDown}
-          className="hidden sm:flex absolute left-0 top-0 bottom-0 w-2 -translate-x-1 cursor-col-resize z-40 group items-center justify-center select-none"
-          title="拖拽调节侧边栏宽度"
-        >
-          <div className={`w-0.5 h-8 rounded-full transition-colors ${
-            isResizing
-              ? 'bg-blue-500'
-              : 'bg-transparent group-hover:bg-blue-500/60'
-          }`} />
-        </div>
-      )}
+      <div
+        onMouseDown={handleResizeMouseDown}
+        className="hidden sm:flex absolute left-0 top-0 bottom-0 w-2 -translate-x-1 cursor-col-resize z-40 group items-center justify-center select-none"
+        title="拖拽调节侧边栏宽度"
+      >
+        <div className={`w-0.5 h-8 rounded-full transition-colors ${
+          isResizing
+            ? 'bg-blue-500'
+            : 'bg-transparent group-hover:bg-blue-500/60'
+        }`} />
+      </div>
 
       {/* 拖拽全域释放蒙层 */}
       {isDraggingFile && (
@@ -486,18 +478,6 @@ export const CopilotSidebar: React.FC<CopilotSidebarProps> = ({
         isDark ? 'bg-[#202024]' : 'bg-[#F2EFE9]'
       }`}>
         <div className="flex items-center space-x-2 min-w-0 pr-2">
-          {isMobile && (
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex items-center space-x-1 px-2.5 py-1 rounded-xl text-xs border border-blue-500/40 bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 font-serif shrink-0 cursor-pointer active:scale-95 transition-transform"
-              title="返回图谱画布"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>返回</span>
-            </button>
-          )}
-
           <button
             type="button"
             onClick={() => setIsSessionDrawerOpen(true)}
