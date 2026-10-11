@@ -2,10 +2,9 @@
 
 # 📐 MathMind
 
-### 一个在浏览器里梳理数学定理、公理与推导脉络的知识图谱工作台
+### 一个梳理数学定理、公理与推导的知识图谱
 
-面向数学与理论计算机科学学习者，将概念网络建模为**有向无环拓扑图 (DAG)**。<br />
-从公理与定义出发，步步追踪严谨推演，理清概念因果脉络。
+面向数学与计算机科学生，将概念网络建模为**有向无环拓扑图 (DAG)**。<br />
 
 [![npm version](https://img.shields.io/badge/npm-v1.3.2-blue.svg?style=flat-square)](https://www.npmjs.com/package/mathmind)
 [![release](https://img.shields.io/badge/Release-v1.3.2-emerald.svg?style=flat-square)](https://github.com/theordinary0x/Mathmind/releases)
