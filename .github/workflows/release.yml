@@ -49,11 +49,17 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: false
         run: npx electron-builder --win --publish never
 
+      - name: Stage Windows Executable
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path win_output
+          Copy-Item "release/*.exe" -Destination "win_output/"
+
       - name: Upload Windows Asset
         uses: actions/upload-artifact@v4
         with:
           name: windows-installer
-          path: release/*.exe
+          path: win_output/*.exe
 
   build-android:
     name: Build Android (.apk)
@@ -119,13 +125,15 @@ jobs:
           merge-multiple: true
 
       - name: Display Downloaded Assets
-        run: ls -la release_assets/
+        run: ls -laR release_assets/
 
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
           name: MathMind ${{ github.ref_name }}
-          files: release_assets/*
+          files: |
+            release_assets/*
+            release_assets/**/*
           generate_release_notes: true
           draft: false
           prerelease: false
